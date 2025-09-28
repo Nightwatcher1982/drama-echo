@@ -1,0 +1,75 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%);
+  padding: 40rpx 30rpx 60rpx;
+}
+
+/* 页面头部 */
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #8B4513;
+  margin-bottom: 20rpx;
+  text-shadow: 2rpx 2rpx 4rpx rgba(139, 69, 19, 0.1);
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #A0522D;
+  margin-bottom: 30rpx;
+  line-height: 1.5;
+}
+
+/* 星座网格 */
+.zodiac-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.zodiac-item {
+  background: linear-gradient(135deg, rgba(255, 249, 240, 0.3) 0%, rgba(255, 245, 230, 0.4) 100%);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  padding: 24rpx 16rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2rpx solid rgba(139, 115, 85, 0.15);
+  box-shadow: 0 4rpx 12rpx rgba(139, 115, 85, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.zodiac-item:active {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, rgba(255, 154, 139, 0.3) 0%, rgba(160, 82, 45, 0.25) 100%);
+  border-color: rgba(255, 154, 139, 0.5);
+  box-shadow: 0 4rpx 16rpx rgba(255, 154, 139, 0.2);
+}
+
+.zodiac-symbol {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+  color: #FF9A8B;
+  text-shadow: 0 2rpx 4rpx rgba(255, 154, 139, 0.3);
+}
+
+.zodiac-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+  color: #8B4513;
+  line-height: 1.2;
+}
+
+.zodiac-dates {
+  font-size: 18rpx;
+  color: #A0522D;
+  line-height: 1.3;
+} 

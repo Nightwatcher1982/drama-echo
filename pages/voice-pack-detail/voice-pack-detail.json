@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "语音包详情",
+  "enablePullDownRefresh": false,
+  "usingComponents": {}
+}

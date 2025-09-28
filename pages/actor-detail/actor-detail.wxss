@@ -1,0 +1,716 @@
+/* 演员详情页面样式 */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+  padding-bottom: 160rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  padding: 200rpx 0;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #4facfe;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+.loading-text {
+  color: white;
+  font-size: 28rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 顶部导航 */
+.header {
+  background: transparent;
+  color: white;
+  padding: 40rpx 30rpx 30rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400rpx;
+  height: 400rpx;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.header-subtitle {
+  font-size: 24rpx;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
+/* 演员卡片 */
+.actor-card {
+  background: white;
+  margin: -20rpx 30rpx 40rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 16rpx 60rpx rgba(0,0,0,0.12);
+  overflow: hidden;
+  position: relative;
+}
+
+.actor-info {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+}
+
+.actor-avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: white;
+  font-weight: bold;
+  margin-right: 30rpx;
+  position: relative;
+}
+
+.actor-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -6rpx;
+  border-radius: 50%;
+  background: transparent;
+  z-index: -1;
+  animation: none;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.actor-details {
+  flex: 1;
+}
+
+.actor-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  margin-bottom: 10rpx;
+  color: #2c2c2c;
+}
+
+.actor-title {
+  display: block;
+  color: #666;
+  font-size: 26rpx;
+  margin-bottom: 8rpx;
+}
+
+.actor-desc {
+  display: block;
+  color: #666;
+  font-size: 24rpx;
+  margin-bottom: 15rpx;
+  line-height: 1.4;
+}
+
+.voice-count {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  padding: 8rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  display: inline-block;
+}
+
+/* 竞争状态 */
+.competition-status {
+  background: linear-gradient(45deg, #ffeaa7, #fdcb6e);
+  margin: 0 30rpx 40rpx;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.competition-status::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20rpx,
+    rgba(255,255,255,0.1) 20rpx,
+    rgba(255,255,255,0.1) 40rpx
+  );
+  animation: move 3s linear infinite;
+}
+
+@keyframes move {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.competition-text {
+  position: relative;
+  z-index: 1;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #4facfe;
+}
+
+/* 排行榜区域 */
+.ranking-section {
+  margin: 0 30rpx 40rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: '👑';
+  margin-right: 16rpx;
+}
+
+.view-all {
+  color: rgba(255,255,255,0.8);
+  font-size: 24rpx;
+}
+
+.ranking-list {
+  background: white;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.08);
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.ranking-item:active {
+  background: #fafafa;
+}
+
+.rank-number {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 24rpx;
+  margin-right: 24rpx;
+}
+
+.rank-1 { background: linear-gradient(45deg, #ffd700, #ffed4e); color: #b8860b; }
+.rank-2 { background: linear-gradient(45deg, #c0c0c0, #e5e5e5); color: #696969; }
+.rank-3 { background: linear-gradient(45deg, #cd7f32, #daa520); color: #8b4513; }
+.rank-other { background: #f0f0f0; color: #999; }
+
+.fan-info {
+  flex: 1;
+}
+
+.fan-name {
+  font-weight: 500;
+  font-size: 28rpx;
+  margin-bottom: 4rpx;
+  color: #2c2c2c;
+}
+
+.purchase-count {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.support-level {
+  text-align: right;
+}
+
+.star-level {
+  font-size: 24rpx;
+  margin-bottom: 4rpx;
+}
+
+.level-text {
+  font-size: 22rpx;
+  font-weight: 500;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  white-space: nowrap;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.rank-1 .level-text {
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  color: #b8860b;
+}
+
+.rank-2 .level-text {
+  background: linear-gradient(45deg, #c0c0c0, #e5e5e5);
+  color: #696969;
+}
+
+/* 空状态 */
+.empty-ranking {
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 语音包展示 */
+.voice-packs {
+  margin: 0 30rpx 40rpx;
+}
+
+.packs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+}
+
+.pack-item {
+  background: white;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0,0,0,0.08);
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+}
+
+.pack-item:active {
+  transform: translateY(-4rpx);
+}
+
+.pack-item.selected {
+  border-color: #4facfe;
+  background: #f0f9ff;
+}
+
+.pack-item.purchased {
+  background: #f0fff4;
+  border-color: #52c41a;
+}
+
+.pack-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: transparent;
+  margin: 0 auto 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+
+.pack-name {
+  font-weight: 500;
+  font-size: 26rpx;
+  margin-bottom: 10rpx;
+  color: #2c2c2c;
+}
+
+.pack-price {
+  color: #4facfe;
+  font-weight: 600;
+  font-size: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.pack-sales {
+  font-size: 22rpx;
+  color: #999;
+  background: #f8f8f8;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  display: inline-block;
+  margin-bottom: 16rpx;
+}
+
+/* 标签样式 */
+.hot-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background: #4facfe;
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+  animation: pulse 2s infinite;
+}
+
+.purchased-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background: #52c41a;
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+}
+
+.selected-mark {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: #4facfe;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.pack-buttons {
+  display: flex;
+  justify-content: center;
+}
+
+
+.buy-button {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  padding: 12rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4rpx 12rpx rgba(79, 172, 254, 0.3);
+  transition: all 0.3s ease;
+}
+
+.buy-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(79, 172, 254, 0.3);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* 底部操作区域 */
+.bottom-spacing {
+  height: 40rpx;
+}
+
+.bottom-action {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 30rpx;
+  box-shadow: 0 -8rpx 40rpx rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.purchase-info {
+  flex: 1;
+  text-align: left;
+}
+
+.selected-count {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 4rpx;
+}
+
+.total-price {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4facfe;
+}
+
+/* 重复的buy-button样式已移除，使用上面的统一样式 */
+
+/* 语音包详情弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24rpx;
+  width: 80%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.modal-close {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #666;
+}
+
+.modal-body {
+  padding: 30rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.pack-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f8f8f8;
+}
+
+.pack-info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #2c2c2c;
+  font-weight: 600;
+}
+
+.modal-footer {
+  padding: 30rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.modal-buy-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 30rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(79, 172, 254, 0.3);
+  transition: all 0.3s ease;
+}
+
+.modal-buy-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(79, 172, 254, 0.3);
+}
+
+/* 套餐信息样式 */
+.package-info-section {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #f8f9ff;
+  border-radius: 16rpx;
+}
+
+.package-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.title-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.title-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.package-includes {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.include-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 16rpx;
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.item-icon {
+  font-size: 24rpx;
+  margin-right: 12rpx;
+}
+
+.item-text {
+  font-size: 26rpx;
+  color: #2c2c2c;
+  font-weight: 500;
+}
+
+/* 价格信息样式 */
+.price-info-section {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #fff8f0;
+  border-radius: 16rpx;
+  border: 2rpx solid #ffd591;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.price-item:last-child {
+  margin-bottom: 0;
+}
+
+.price-label {
+  font-size: 26rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.price-value {
+  font-size: 32rpx;
+  color: #ff6b35;
+  font-weight: 700;
+}
+
+.original-price {
+  font-size: 24rpx;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.save-info {
+  text-align: center;
+  margin-top: 12rpx;
+}
+
+.save-text {
+  font-size: 24rpx;
+  color: #52c41a;
+  font-weight: 600;
+  background: rgba(82, 196, 26, 0.1);
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+/* 详细信息样式 */
+.detail-info-section {
+  border-top: 1rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}

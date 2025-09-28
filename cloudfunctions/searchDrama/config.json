@@ -1,0 +1,10 @@
+{
+  "timeout": 10,
+  "envVariables": {
+    "QIANWEN_API_KEY": ""
+  },
+  "vpc": {
+    "vpcId": "",
+    "subnetId": ""
+  }
+}

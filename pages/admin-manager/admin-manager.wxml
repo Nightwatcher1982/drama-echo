@@ -1,0 +1,190 @@
+<!-- 管理员管理页面 -->
+<view class="container">
+  
+  <!-- 当前用户信息 -->
+  <view class="info-card">
+    <view class="card-header">
+      <text class="card-title">👤 当前用户</text>
+    </view>
+    
+    <view class="user-info">
+      <image wx:if="{{currentUserInfo && currentUserInfo.avatarUrl}}" 
+             class="user-avatar" 
+             src="{{currentUserInfo.avatarUrl}}" 
+             mode="aspectFill" />
+      <view wx:else class="default-avatar">👤</view>
+      
+      <view class="user-details">
+        <view class="user-name">{{currentUserInfo ? currentUserInfo.nickName : '未登录'}}</view>
+        <view class="user-status {{isCurrentUserAdmin ? 'admin' : 'normal'}}">
+          {{isCurrentUserAdmin ? '🛡️ 管理员' : '👥 普通用户'}}
+        </view>
+      </view>
+      
+      <button class="copy-btn" bind:tap="copyCurrentOpenId">
+        复制我的OpenID
+      </button>
+    </view>
+  </view>
+
+  <!-- 系统配置 -->
+  <view class="config-card">
+    <view class="card-header">
+      <text class="card-title">⚙️ 系统配置</text>
+    </view>
+    
+    <view class="config-item">
+      <view class="config-label">开发模式</view>
+      <view class="config-value {{developmentMode ? 'enabled' : 'disabled'}}" 
+            bind:tap="toggleDevModeInfo">
+        {{developmentMode ? '✅ 开启（所有用户都是管理员）' : '❌ 关闭（仅配置用户）'}}
+      </view>
+    </view>
+    
+    <view class="config-item">
+      <view class="config-label">管理员总数</view>
+      <view class="config-value">{{totalAdmins}} 人</view>
+    </view>
+  </view>
+
+  <!-- OpenID管理员列表 -->
+  <view class="admin-section">
+    <view class="section-header">
+      <text class="section-title">🔑 OpenID管理员 ({{adminList.length}})</text>
+      <button class="add-btn" bind:tap="showAddAdminModal" data-type="openid">
+        ➕ 添加
+      </button>
+    </view>
+    
+    <view wx:if="{{adminList.length > 0}}" class="admin-list">
+      <view wx:for="{{adminList}}" wx:key="id" class="admin-item">
+        <view class="admin-info">
+          <view class="admin-type">🔑 OpenID</view>
+          <view class="admin-openid" bind:tap="copyOpenId" data-openid="{{item.openid}}">
+            {{item.openid}}
+          </view>
+          <view class="admin-remark">{{item.remark}}</view>
+        </view>
+        
+        <view class="admin-actions">
+          <view wx:if="{{item.isOriginal}}" class="original-tag">原始</view>
+          <button wx:else class="delete-btn" disabled>删除</button>
+        </view>
+      </view>
+    </view>
+    
+    <view wx:else class="empty-state">
+      <text class="empty-text">暂无OpenID管理员</text>
+    </view>
+  </view>
+
+  <!-- 昵称管理员列表 -->
+  <view class="admin-section">
+    <view class="section-header">
+      <text class="section-title">📝 昵称管理员 ({{nicknameAdmins.length}})</text>
+      <button class="add-btn" bind:tap="showAddAdminModal" data-type="nickname">
+        ➕ 添加
+      </button>
+    </view>
+    
+    <view wx:if="{{nicknameAdmins.length > 0}}" class="admin-list">
+      <view wx:for="{{nicknameAdmins}}" wx:key="id" class="admin-item">
+        <view class="admin-info">
+          <view class="admin-type">📝 昵称</view>
+          <view class="admin-nickname">{{item.nickname}}</view>
+          <view class="admin-warning">⚠️ 不够安全，建议改用OpenID</view>
+        </view>
+        
+        <view class="admin-actions">
+          <view wx:if="{{item.isOriginal}}" class="original-tag">系统</view>
+          <button wx:else class="delete-btn" disabled>删除</button>
+        </view>
+      </view>
+    </view>
+    
+    <view wx:else class="empty-state">
+      <text class="empty-text">暂无昵称管理员</text>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="help-section">
+    <view class="card-header">
+      <text class="card-title">💡 使用说明</text>
+    </view>
+    
+    <view class="help-content">
+      <view class="help-item">
+        <text class="help-number">1.</text>
+        <text class="help-text">点击"添加"按钮，输入新管理员的OpenID或昵称</text>
+      </view>
+      
+      <view class="help-item">
+        <text class="help-number">2.</text>
+        <text class="help-text">查看控制台输出的详细代码修改说明</text>
+      </view>
+      
+      <view class="help-item">
+        <text class="help-number">3.</text>
+        <text class="help-text">手动修改 utils/adminConfig.js 文件</text>
+      </view>
+      
+      <view class="help-item">
+        <text class="help-number">4.</text>
+        <text class="help-text">重启小程序使配置生效</text>
+      </view>
+    </view>
+  </view>
+
+</view>
+
+<!-- 添加管理员弹窗 -->
+<view class="modal-overlay {{showAddModal ? 'show' : ''}}" bind:tap="hideAddModal">
+  <view class="add-modal" catch:tap="">
+    <view class="modal-header">
+      <text class="modal-title">
+        {{addType === 'openid' ? '添加OpenID管理员' : '添加昵称管理员'}}
+      </text>
+      <view class="modal-close" bind:tap="hideAddModal">×</view>
+    </view>
+    
+    <view class="modal-content">
+      <view wx:if="{{addType === 'openid'}}">
+        <view class="form-item">
+          <text class="form-label">管理员OpenID *</text>
+          <input class="form-input" 
+                 placeholder="输入管理员的OpenID" 
+                 value="{{newAdminOpenId}}"
+                 bindinput="onOpenIdInput" />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">备注信息</text>
+          <input class="form-input" 
+                 placeholder="如：张三 - 内容管理员" 
+                 value="{{newAdminRemark}}"
+                 bindinput="onRemarkInput" />
+        </view>
+      </view>
+      
+      <view wx:else>
+        <view class="form-item">
+          <text class="form-label">微信昵称 *</text>
+          <input class="form-input" 
+                 placeholder="输入微信昵称" 
+                 value="{{newAdminNickname}}"
+                 bindinput="onNicknameInput" />
+        </view>
+        
+        <view class="warning-text">
+          ⚠️ 基于昵称的权限验证不够安全，用户可以随时更改昵称。推荐使用OpenID方式。
+        </view>
+      </view>
+    </view>
+    
+    <view class="modal-actions">
+      <button class="cancel-btn" bind:tap="hideAddModal">取消</button>
+      <button class="confirm-btn" bind:tap="confirmAddAdmin">确认</button>
+    </view>
+  </view>
+</view>

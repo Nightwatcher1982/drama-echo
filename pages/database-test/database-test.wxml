@@ -1,0 +1,64 @@
+<view class="container">
+  <view class="header">
+    <view class="title">🗄️ 数据库检查工具</view>
+    <view class="subtitle">检查云数据库中的星座和心情数据</view>
+  </view>
+
+  <view class="button-section">
+    <button class="check-btn primary" bindtap="checkAllData" disabled="{{loading}}">
+      📊 检查所有数据
+    </button>
+    
+    <button class="check-btn" bindtap="checkZodiacData" disabled="{{loading}}">
+      ⭐ 检查星座数据
+    </button>
+    
+    <button class="check-btn" bindtap="checkMoodData" disabled="{{loading}}">
+      😊 检查心情数据
+    </button>
+    
+    <view class="divider"></view>
+    
+    <button class="test-btn" bindtap="testGetZodiac" disabled="{{loading}}">
+      🧪 测试获取白羊座数据
+    </button>
+    
+    <button class="test-btn" bindtap="testGetMood" disabled="{{loading}}">
+      🧪 测试获取"抢到票啦"数据
+    </button>
+  </view>
+
+  <view wx:if="{{checkResult}}" class="result-section">
+    <view class="result-title">检查结果</view>
+    
+    <view wx:if="{{checkResult.zodiac_quotes}}" class="result-item">
+      <view class="result-header">⭐ 星座数据</view>
+      <view class="result-content">
+        <text>总数: {{checkResult.zodiac_quotes.total_count}} 条</text>
+        <view wx:for="{{checkResult.zodiac_quotes.zodiac_distribution}}" wx:for-item="count" wx:for-index="zodiac" wx:key="zodiac">
+          <text>{{zodiac}}: {{count}} 条</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{checkResult.mood_quotes}}" class="result-item">
+      <view class="result-header">😊 心情数据</view>
+      <view class="result-content">
+        <text>总数: {{checkResult.mood_quotes.total_count}} 条</text>
+        <view wx:for="{{checkResult.mood_quotes.mood_distribution}}" wx:for-item="count" wx:for-index="mood" wx:key="mood">
+          <text>{{mood}}: {{count}} 条</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="tips">
+    <view class="tips-title">💡 使用说明</view>
+    <view class="tips-content">
+      <text>1. 点击"检查所有数据"查看数据库概况</text>
+      <text>2. 分别检查星座和心情数据的数量分布</text>
+      <text>3. 测试按钮可以验证云函数是否正常工作</text>
+      <text>4. 查看控制台可以看到详细的数据内容</text>
+    </view>
+  </view>
+</view>

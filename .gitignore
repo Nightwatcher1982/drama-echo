@@ -1,0 +1,47 @@
+# 微信小程序开发文件
+.DS_Store
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 微信开发者工具生成的文件
+.vscode/
+.idea/
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+
+# 系统文件
+Thumbs.db
+.DS_Store
+._*
+
+# 文档和报告文件（保留核心文档）
+# 排除所有 .md 文件，只保留 README.md
+*.md
+!README.md
+
+# 测试文件
+test-*.js
+test-*.html
+
+# 清理脚本
+clean-*.sh
+cleanup-*.sh
+
+# 配置文件（敏感信息）
+damai-mcp-config.json
+damai-mcp-server.js
+
+# 证书文件
+cert/
+*.pem
+
+# 临时图片
+images/placeholder*.jpg
+
+# 配置脚本
+configure-api-key.sh
