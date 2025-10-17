@@ -1,0 +1,181 @@
+<!-- 戏剧回响数据库初始化页面 -->
+<view class="container">
+  
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="header-icon">🎭</view>
+    <view class="header-title">戏剧回响数据库初始化</view>
+    <view class="header-subtitle">Voice Echo Database Setup</view>
+  </view>
+
+  <!-- 权限检查 -->
+  <view wx:if="{{!isAdmin}}" class="error-card">
+    <view class="error-icon">🚫</view>
+    <view class="error-title">权限不足</view>
+    <view class="error-desc">此功能仅限管理员使用，请使用管理员账号访问。</view>
+  </view>
+
+  <!-- 管理员界面 -->
+  <view wx:else>
+    
+    <!-- 数据库状态 -->
+    <view class="status-card">
+      <view class="card-header">
+        <view class="card-title">📊 数据库状态</view>
+        <button class="refresh-btn {{checkingStatus ? 'loading' : ''}}" 
+                bind:tap="checkDatabaseStatus" 
+                disabled="{{checkingStatus}}">
+          {{checkingStatus ? '检查中...' : '🔄 刷新'}}
+        </button>
+      </view>
+      
+      <view wx:if="{{databaseStatus}}" class="status-list">
+        <view wx:for="{{databaseStatus}}" wx:key="{{index}}" 
+              class="status-item {{item.exists ? 'exists' : 'missing'}}">
+          <view class="status-name">{{index}}</view>
+          <view class="status-info">
+            <view wx:if="{{item.exists}}" class="status-success">
+              ✅ 已创建 ({{item.count}} 条记录)
+            </view>
+            <view wx:else class="status-error">
+              ❌ 不存在
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view wx:else class="loading-status">
+        <view class="loading-text">正在检查数据库状态...</view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions-card">
+      <view class="card-header">
+        <view class="card-title">🛠️ 操作面板</view>
+      </view>
+      
+      <view class="actions-grid">
+        <!-- 创建集合 -->
+        <button class="action-btn create-btn {{creatingCollections ? 'loading' : ''}}" 
+                bind:tap="createCollections" 
+                disabled="{{creatingCollections}}">
+          <view class="btn-icon">📦</view>
+          <view class="btn-title">创建数据库集合</view>
+          <view class="btn-desc">创建必需的数据库集合</view>
+          <view wx:if="{{creatingCollections}}" class="btn-loading">创建中...</view>
+        </button>
+        
+        <!-- 初始化数据 -->
+        <button class="action-btn init-btn {{initingData ? 'loading' : ''}}" 
+                bind:tap="initSampleData" 
+                disabled="{{initingData}}">
+          <view class="btn-icon">🎯</view>
+          <view class="btn-title">初始化示例数据</view>
+          <view class="btn-desc">添加演员和语音包示例</view>
+          <view wx:if="{{initingData}}" class="btn-loading">初始化中...</view>
+        </button>
+        
+        <!-- 完整初始化 -->
+        <button class="action-btn full-btn {{fullIniting ? 'loading' : ''}}" 
+                bind:tap="fullInit" 
+                disabled="{{fullIniting}}">
+          <view class="btn-icon">🚀</view>
+          <view class="btn-title">完整初始化</view>
+          <view class="btn-desc">一键完成所有设置</view>
+          <view wx:if="{{fullIniting}}" class="btn-loading">初始化中...</view>
+        </button>
+        
+        <!-- 测试功能 -->
+        <button class="action-btn test-btn" bind:tap="testVoiceEcho">
+          <view class="btn-icon">🧪</view>
+          <view class="btn-title">测试戏剧回响</view>
+          <view class="btn-desc">测试初始化结果</view>
+        </button>
+      </view>
+    </view>
+
+    <!-- 初始化结果 -->
+    <view wx:if="{{initResults}}" class="results-card">
+      <view class="card-header">
+        <view class="card-title">📋 初始化结果</view>
+      </view>
+      
+      <view class="results-content">
+        <!-- 演员数据结果 -->
+        <view wx:if="{{initResults.actors}}" class="result-section">
+          <view class="result-title">👤 演员数据</view>
+          <view class="result-items">
+            <view wx:for="{{initResults.actors}}" wx:key="id" 
+                  class="result-item {{item.status}}">
+              <text>{{item.id}}: {{item.status}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 语音包数据结果 -->
+        <view wx:if="{{initResults.voicePacks}}" class="result-section">
+          <view class="result-title">🎵 语音包数据</view>
+          <view class="result-items">
+            <view wx:for="{{initResults.voicePacks}}" wx:key="id" 
+                  class="result-item {{item.status}}">
+              <text>{{item.id}}: {{item.status}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 粉丝排行榜结果 -->
+        <view wx:if="{{initResults.fanRanking}}" class="result-section">
+          <view class="result-title">🏆 粉丝排行榜</view>
+          <view class="result-items">
+            <view wx:for="{{initResults.fanRanking}}" wx:key="id" 
+                  class="result-item {{item.status}}">
+              <text>{{item.id}}: {{item.status}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 使用说明 -->
+    <view class="help-card">
+      <view class="card-header">
+        <view class="card-title">💡 使用说明</view>
+      </view>
+      
+      <view class="help-content">
+        <view class="help-step">
+          <view class="step-number">1</view>
+          <view class="step-text">首次使用请点击"完整初始化"创建数据库并填充示例数据</view>
+        </view>
+        
+        <view class="help-step">
+          <view class="step-number">2</view>
+          <view class="step-text">初始化完成后，可以通过"测试戏剧回响"验证功能是否正常</view>
+        </view>
+        
+        <view class="help-step">
+          <view class="step-number">3</view>
+          <view class="step-text">如需管理演员和语音包数据，请使用语音包管理后台</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快速导航 -->
+    <view class="nav-card">
+      <view class="card-header">
+        <view class="card-title">🚀 快速导航</view>
+      </view>
+      
+      <view class="nav-buttons">
+        <button class="nav-btn" bind:tap="testVoiceEcho">
+          🎭 戏剧回响
+        </button>
+        <button class="nav-btn" bind:tap="goToVoiceAdmin">
+          🎵 语音管理
+        </button>
+      </view>
+    </view>
+
+  </view>
+</view>

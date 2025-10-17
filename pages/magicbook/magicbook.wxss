@@ -1,0 +1,619 @@
+/* 魔法之书样式 */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%);
+  padding: 40rpx 30rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面头部 - 紧凑版 */
+.header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #8B4513;
+  margin-bottom: 12rpx;
+  text-shadow: 2rpx 2rpx 4rpx rgba(139, 69, 19, 0.1);
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #A0522D;
+  margin-bottom: 20rpx;
+  line-height: 1.4;
+}
+
+/* 内容区域 */
+.content-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #8B4513;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+/* 我的星座区域 - 紧凑版 */
+.my-zodiac-section {
+  margin-bottom: 20rpx;
+}
+
+.my-zodiac-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20rpx);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(139, 69, 19, 0.08);
+  border: 1rpx solid rgba(255, 154, 139, 0.2);
+}
+
+.zodiac-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.zodiac-symbol {
+  font-size: 36rpx;
+  color: #FF9A8B;
+}
+
+.zodiac-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.zodiac-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #8B4513;
+}
+
+.zodiac-dates {
+  font-size: 18rpx;
+  color: #A0522D;
+}
+
+.change-zodiac {
+  text-align: center;
+  padding: 8rpx;
+  color: #8B7355;
+  font-size: 20rpx;
+  text-decoration: underline;
+}
+
+/* 紧凑型心情部分 */
+.mood-section-compact {
+  margin-bottom: 10rpx;
+}
+
+.mood-description-compact {
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.mood-description-compact text {
+  font-size: 22rpx;
+  color: #8B7355;
+  font-weight: 500;
+}
+
+/* 紧凑型心情选择网格 */
+.mood-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+  padding: 0 30rpx;
+}
+
+.mood-item-compact {
+  background: linear-gradient(135deg, rgba(255, 249, 240, 0.3) 0%, rgba(255, 245, 230, 0.4) 100%);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  padding: 24rpx 16rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2rpx solid rgba(139, 115, 85, 0.15);
+  box-shadow: 0 4rpx 12rpx rgba(139, 115, 85, 0.08);
+}
+
+.mood-item-compact:active {
+  transform: scale(0.95);
+}
+
+.mood-item-compact.selected {
+  background: linear-gradient(135deg, rgba(255, 154, 139, 0.3) 0%, rgba(160, 82, 45, 0.25) 100%);
+  border-color: rgba(255, 154, 139, 0.5);
+  box-shadow: 0 4rpx 16rpx rgba(255, 154, 139, 0.2);
+}
+
+.mood-emoji-compact {
+  font-size: 40rpx;
+  margin-bottom: 8rpx;
+}
+
+.mood-item-compact.selected .mood-emoji-compact {
+  filter: brightness(1.2);
+}
+
+.mood-name-compact {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #8B4513;
+  line-height: 1.3;
+}
+
+.mood-item-compact.selected .mood-name-compact {
+  color: white;
+  font-weight: 600;
+}
+
+/* 发动魔法按钮 */
+.magic-button-section {
+  margin: 0rpx 0 10rpx 0;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.magic-button-container {
+  position: relative;
+  display: inline-block;
+  width: 360rpx;
+  height: 360rpx;
+}
+
+/* 主魔法按钮 */
+.magic-button-main {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 288rpx;
+  height: 288rpx;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: visible;
+  z-index: 10;
+}
+
+.magic-button-main:active:not(.casting) {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.magic-button-main.casting {
+  transform: translate(-50%, -50%) scale(1.05);
+  background: transparent;
+}
+
+.magic-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.magic-button:active::before {
+  left: 100%;
+}
+
+/* 魔法按钮内容 */
+.magic-button-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.magic-wand-idle {
+  font-size: 96rpx;
+  margin-bottom: 20rpx;
+  animation: wandFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 24rpx rgba(155, 89, 182, 0.6));
+}
+
+@keyframes wandFloat {
+  0%, 100% { 
+    transform: translateY(0) rotate(-5deg) scale(1);
+    filter: drop-shadow(0 0 20rpx rgba(155, 89, 182, 0.6));
+  }
+  50% { 
+    transform: translateY(-10rpx) rotate(5deg) scale(1.05);
+    filter: drop-shadow(0 0 30rpx rgba(155, 89, 182, 0.8));
+  }
+}
+
+.magic-text-main {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #8B7355;
+  text-shadow: 0 1rpx 2rpx rgba(139, 115, 85, 0.2);
+  margin-bottom: 10rpx;
+}
+
+
+/* 施法状态 */
+.magic-button-casting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.magic-crystal-casting {
+  font-size: 96rpx;
+  margin-bottom: 16rpx;
+  animation: crystalPulse 1s ease-in-out infinite;
+  filter: drop-shadow(0 0 36rpx rgba(155, 89, 182, 0.9));
+}
+
+@keyframes crystalPulse {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 30rpx rgba(155, 89, 182, 0.9));
+  }
+  50% { 
+    transform: scale(1.1) rotate(10deg);
+    filter: drop-shadow(0 0 40rpx rgba(138, 43, 226, 1));
+  }
+}
+
+.magic-text-casting {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #8B7355;
+  text-shadow: 0 1rpx 2rpx rgba(139, 115, 85, 0.3);
+  margin-bottom: 8rpx;
+}
+
+
+/* 最近记录 */
+.recent-section {
+  margin-top: 60rpx;
+}
+
+.recent-list {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20rpx);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(139, 69, 19, 0.1);
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid rgba(139, 115, 85, 0.1);
+  gap: 24rpx;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.record-type {
+  font-size: 36rpx;
+  width: 60rpx;
+  text-align: center;
+}
+
+.record-content {
+  flex: 1;
+}
+
+.record-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #8B4513;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-subtitle {
+  font-size: 24rpx;
+  color: #A0522D;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-date {
+  font-size: 22rpx;
+  color: #8B7355;
+  opacity: 0.8;
+}
+
+/* 使用完毕提示 */
+.limit-notice {
+  text-align: center;
+  padding: 60rpx 40rpx;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  border: 2rpx dashed rgba(139, 115, 85, 0.3);
+  margin-top: 40rpx;
+}
+
+.notice-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.8;
+}
+
+.notice-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #8B4513;
+  margin-bottom: 12rpx;
+}
+
+.notice-subtitle {
+  font-size: 24rpx;
+  color: #A0522D;
+  line-height: 1.5;
+}
+
+/* 外圈魔法进度环 */
+.magic-progress-outer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+}
+
+.progress-svg-outer {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 30rpx rgba(155, 89, 182, 0.8));
+}
+
+.progress-fill-outer {
+  transition: stroke-dashoffset 0.1s ease;
+  filter: drop-shadow(0 0 20rpx rgba(138, 43, 226, 1));
+  animation: progressGlow 2s ease-in-out infinite;
+}
+
+@keyframes progressGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 40rpx rgba(138, 43, 226, 1));
+  }
+}
+
+/* 魔法粒子围绕 */
+.magic-particles-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 336rpx;
+  height: 336rpx;
+  animation: orbitRotate 4s linear infinite;
+}
+
+.magic-particle {
+  position: absolute;
+  font-size: 24rpx;
+  color: white;
+  text-shadow: 0 0 10rpx rgba(255, 255, 255, 0.8);
+  animation: particleBob 2s ease-in-out infinite;
+}
+
+.magic-particle-1 {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 0s;
+}
+
+.magic-particle-2 {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  animation-delay: 0.5s;
+}
+
+.magic-particle-3 {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 1s;
+}
+
+.magic-particle-4 {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  animation-delay: 1.5s;
+}
+
+@keyframes orbitRotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes particleBob {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+
+/* 全屏魔法特效 */
+.magic-effect-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255, 215, 63, 0.3) 0%, rgba(255, 107, 53, 0.2) 50%, transparent 100%);
+  animation: magicPulse 1s ease-in-out;
+}
+
+.magic-sparkles {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 60rpx;
+  animation: sparkleFloat 1s ease-out;
+  text-shadow: 0 0 20rpx rgba(255, 255, 255, 0.8);
+}
+
+.sparkle-1 {
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.sparkle-2 {
+  top: 30%;
+  left: 80%;
+  animation-delay: 0.1s;
+}
+
+.sparkle-3 {
+  top: 60%;
+  left: 10%;
+  animation-delay: 0.2s;
+}
+
+.sparkle-4 {
+  top: 70%;
+  left: 85%;
+  animation-delay: 0.3s;
+}
+
+.sparkle-5 {
+  top: 10%;
+  left: 50%;
+  animation-delay: 0.4s;
+}
+
+.sparkle-6 {
+  top: 80%;
+  left: 30%;
+  animation-delay: 0.5s;
+}
+
+.sparkle-7 {
+  top: 45%;
+  left: 70%;
+  animation-delay: 0.6s;
+}
+
+.sparkle-8 {
+  top: 25%;
+  left: 40%;
+  animation-delay: 0.7s;
+}
+
+@keyframes sparkleFloat {
+  0% {
+    transform: translateY(100rpx) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(0) scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100rpx) scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.magic-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.8) 50%, transparent 70%);
+  animation: flashSweep 0.8s ease-out;
+}
+
+@keyframes flashSweep {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100vw) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes magicPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+

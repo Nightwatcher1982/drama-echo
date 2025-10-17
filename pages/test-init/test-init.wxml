@@ -1,0 +1,27 @@
+<!-- 数据初始化测试页面 -->
+<view class="container">
+  <view class="header">
+    <text class="title">🎭 戏剧回响数据初始化</text>
+    <text class="subtitle">管理员专用工具</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bind:tap="initData" disabled="{{loading}}">
+      {{loading ? '初始化中...' : '初始化示例数据'}}
+    </button>
+    
+    <button class="btn-danger" bind:tap="clearAndInitData" disabled="{{loading}}">
+      {{loading ? '处理中...' : '清空并重新初始化'}}
+    </button>
+  </view>
+
+  <view class="info" wx:if="{{result}}">
+    <text class="info-title">初始化结果:</text>
+    <text class="info-content">{{result}}</text>
+  </view>
+
+  <view class="warning">
+    <text class="warning-text">⚠️ 注意: 此功能仅限管理员使用</text>
+    <text class="warning-text">清空操作将删除所有现有的演员、语音包和排行榜数据</text>
+  </view>
+</view>

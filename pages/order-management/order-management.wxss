@@ -1,0 +1,223 @@
+.container {
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  padding: 40rpx 30rpx 30rpx;
+  color: white;
+}
+
+.page-title {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 30rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab-item.active {
+  color: #4facfe;
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: #4facfe;
+  border-radius: 2rpx;
+}
+
+.order-list {
+  padding: 20rpx;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+}
+
+.order-item {
+  background: white;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.order-id {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.order-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.order-status {
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-paid {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-refunded {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.order-content {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.pack-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.pack-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: white;
+  margin-right: 20rpx;
+}
+
+.pack-details {
+  flex: 1;
+}
+
+.pack-name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.actor-name {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.order-amount {
+  font-size: 32rpx;
+  color: #4facfe;
+  font-weight: 600;
+}
+
+.order-footer {
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-time-info {
+  flex: 1;
+}
+
+.pay-time,
+.refund-time {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 4rpx;
+}
+
+.order-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action-btn {
+  padding: 16rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  border: none;
+  min-width: 120rpx;
+}
+
+.detail-btn {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.refund-btn {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.loading,
+.no-more {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 24rpx;
+}

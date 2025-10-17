@@ -1,0 +1,190 @@
+<!--演员详情页面-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <view wx:else>
+    <!-- 顶部头部 -->
+    <view class="header">
+      <view class="header-title">戏剧回响</view>
+      <view class="header-subtitle">专属戏剧演员语音收藏</view>
+    </view>
+
+    <!-- 演员信息卡片 -->
+    <view class="actor-card">
+      <view class="actor-info">
+        <view class="actor-avatar">{{actor.avatar}}</view>
+        <view class="actor-details">
+          <text class="actor-name">{{actor.name}}</text>
+          <text class="actor-title">{{actor.title}}</text>
+          <text class="actor-desc">{{actor.description}}</text>
+          <view class="voice-count">{{actor.stats.voicePackCount}}个语音包</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 竞争状态 -->
+    <view class="competition-status">
+      <view class="competition-text">🎭 本月已有 {{actor.stats.guardianCount}} 位粉丝加入收藏，谁将成为下一个守护者？</view>
+    </view>
+
+    <!-- 粉丝排行榜 -->
+    <view class="ranking-section">
+      <view class="section-header">
+        <view class="section-title">粉丝支持榜</view>
+        <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+      </view>
+      <view class="ranking-list">
+        <view wx:for="{{fanRanking}}" wx:key="_id" class="ranking-item">
+          <view class="rank-number rank-{{index < 3 ? index + 1 : 'other'}}">{{index + 1}}</view>
+          <view class="fan-info">
+            <view class="fan-name">{{item.userInfo.nickName}}</view>
+            <view class="purchase-count">已收藏 {{item.purchaseCount}} 个专属声音</view>
+          </view>
+          <view class="support-level">
+            <view class="star-level">
+              <text wx:for="{{item.starCount}}" wx:for-item="star" wx:key="*this">⭐</text>
+            </view>
+            <view class="level-text">{{item.level}}</view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view wx:if="{{fanRanking.length === 0}}" class="empty-ranking">
+          <view class="empty-icon">👑</view>
+          <view class="empty-text">暂无支持榜，快来成为第一个守护者吧！</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 语音包展示 -->
+    <view class="voice-packs">
+      <view class="section-header">
+        <view class="section-title">🎭 精选语音包</view>
+      </view>
+      <view class="packs-grid">
+        <view wx:for="{{voicePacks}}" wx:key="_id" 
+              class="pack-item {{item.isPurchased ? 'purchased' : ''}} {{item.isSelected ? 'selected' : ''}}"
+              data-pack-id="{{item._id}}"
+              data-price="{{item.price}}"
+              data-is-purchased="{{item.isPurchased}}"
+              bind:tap="togglePackSelection"
+              bind:longpress="goToPackDetail">
+          
+          <!-- 热门标签 -->
+          <view wx:if="{{item.isHot && !item.isPurchased}}" class="hot-badge">HOT</view>
+          
+          <!-- 已购买标签 -->
+          <view wx:if="{{item.isPurchased}}" class="purchased-badge">已拥有</view>
+          
+          <!-- 选中标记 -->
+          <view wx:if="{{item.isSelected}}" class="selected-mark">✓</view>
+          
+          <view class="pack-icon">{{item.icon}}</view>
+          <view class="pack-name">{{item.name}}</view>
+          <view class="pack-price">¥{{item.formattedPrice}}</view>
+          <view class="pack-sales">已售 {{item.sales}} 份</view>
+          
+          <!-- 操作按钮 -->
+          <view class="pack-buttons">
+            <view class="buy-button"
+                  data-pack-id="{{item._id}}"
+                  data-is-purchased="{{item.isPurchased}}"
+                  catch:tap="{{item.isPurchased ? 'goToPackDetail' : 'showPackDetail'}}">
+              {{item.isPurchased ? '▶️ 播放' : '💰 购买'}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作区域 -->
+    <view class="bottom-spacing"></view>
+  </view>
+
+  <!-- 语音包详情弹窗 -->
+  <view wx:if="{{showPackDetailModal}}" class="modal-overlay" bind:tap="closePackDetail">
+    <view class="modal-content" catch:tap="">
+      <view class="modal-header">
+        <view class="modal-title">{{currentPackDetail.name}}</view>
+        <view class="modal-close" bind:tap="closePackDetail">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 套餐内容 -->
+        <view class="package-info-section">
+          <view class="package-title">
+            <text class="title-icon">🎁</text>
+            <text class="title-text">套餐内容</text>
+          </view>
+          
+          <view class="package-includes">
+            <view class="include-item">
+              <text class="item-icon">🎵</text>
+              <text class="item-text">全部{{currentPackDetail.voiceCount || 0}}条语音</text>
+            </view>
+            <view class="include-item" wx:if="{{currentPackDetail.images && currentPackDetail.images.length > 0}}">
+              <text class="item-icon">📸</text>
+              <text class="item-text">高清写真图包 ({{currentPackDetail.images.length}}张)</text>
+            </view>
+            <view class="include-item" wx:if="{{currentPackDetail.bonusVideoUrl}}">
+              <text class="item-icon">🎬</text>
+              <text class="item-text">独家花絮视频</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 价格信息 -->
+        <view class="price-info-section">
+          <view class="price-item">
+            <text class="price-label">套餐价格：</text>
+            <text class="price-value">¥{{(currentPackDetail.packagePrice || 0) / 100}}</text>
+          </view>
+          <view class="price-item" wx:if="{{currentPackDetail.originalPrice && currentPackDetail.originalPrice > currentPackDetail.packagePrice}}">
+            <text class="price-label">原价：</text>
+            <text class="original-price">¥{{(currentPackDetail.originalPrice || 0) / 100}}</text>
+          </view>
+          <view class="save-info" wx:if="{{currentPackDetail.saveAmount && currentPackDetail.saveAmount > 0}}">
+            <text class="save-text">节省 ¥{{(currentPackDetail.saveAmount || 0) / 100}}</text>
+          </view>
+        </view>
+        
+        <!-- 详细信息 -->
+        <view class="detail-info-section">
+          <view class="pack-info-item">
+            <text class="info-label">总时长：</text>
+            <text class="info-value">{{currentPackDetail.totalDuration || '未知'}}</text>
+          </view>
+          
+          <view class="pack-info-item">
+            <text class="info-label">分类：</text>
+            <text class="info-value">{{currentPackDetail.category || '未分类'}}</text>
+          </view>
+          
+          <view class="pack-info-item" wx:if="{{currentPackDetail.description}}">
+            <text class="info-label">描述：</text>
+            <text class="info-value">{{currentPackDetail.description}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-buy-btn" bind:tap="goToPackDetailFromModal">
+          {{currentPackDetail.isPurchased ? '进入详情页' : '立即购买'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 语音播放器组件 -->
+  <voice-player 
+    isOpen="{{showVoicePlayer}}"
+    currentPack="{{currentVoicePack}}"
+    currentActor="{{actor}}"
+    playlist="{{voicePlaylist}}"
+    bind:close="closeVoicePlayer">
+  </voice-player>
+</view>

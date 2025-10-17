@@ -1,0 +1,344 @@
+<view class="container fade-in">
+  <!-- 页面头部 -->
+  <view class="note-header">
+    <view class="page-title">{{pageTitle}}</view>
+    <view class="note-actions" wx:if="{{mode !== 'view'}}">
+      <button class="action-btn save-btn" bindtap="saveNote">
+        <text class="btn-text">{{mode === 'create' ? '提交' : '更新'}}</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="basic-info glass-card">
+    <!-- 剧目名称 -->
+    <view class="form-group required">
+      <view class="form-label">*剧目名称</view>
+      <input 
+        class="form-input"
+        placeholder="请输入剧目名称"
+        value="{{dramaTitle}}"
+        bindinput="onDramaTitleInput"
+        disabled="{{mode === 'view'}}"
+      />
+      <view class="search-tip" wx:if="{{mode !== 'view'}}">
+        <text class="tip-text">不知道剧目名称？</text>
+        <button class="tip-btn" bindtap="toggleSearchSection">
+          <text class="tip-btn-text">搜索热门剧目</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 热门剧目搜索区域 -->
+    <view class="search-section {{showSearchSection ? 'show' : ''}}" wx:if="{{mode !== 'view'}}">
+      <view class="search-header">
+        <text class="search-title">热门剧目搜索</text>
+        <button class="close-btn" bindtap="toggleSearchSection">×</button>
+      </view>
+      
+      <view class="search-input-group">
+        <input 
+          class="search-input"
+          placeholder="搜索剧目、演员或剧院..."
+          value="{{searchValue}}"
+          bindinput="onSearchInput"
+          bindconfirm="searchDramaShows"
+        />
+        <button class="search-btn" bindtap="searchDramaShows" disabled="{{isSearching}}">
+          <text class="search-btn-text">{{isSearching ? '搜索中...' : '搜索'}}</text>
+        </button>
+        <button class="clear-btn" bindtap="clearSearch" wx:if="{{searchValue}}">×</button>
+      </view>
+
+      <!-- 搜索结果 -->
+      <view class="search-results" wx:if="{{searchResults.length > 0}}">
+        <view class="result-item" 
+              wx:for="{{searchResults}}" 
+              wx:key="id"
+              bindtap="selectSearchResult"
+              data-show="{{item}}">
+          <image class="result-poster" src="{{item.poster}}" mode="aspectFill"/>
+          <view class="result-info">
+            <text class="result-title">{{item.title}}</text>
+            <text class="result-cast">{{item.cast[0]}}</text>
+            <text class="result-venue">{{item.venue}}</text>
+            <text class="result-dates">{{item.dates[0]}}</text>
+          </view>
+          <view class="result-arrow">></view>
+        </view>
+      </view>
+
+      <!-- 无搜索结果 -->
+      <view class="no-results" wx:if="{{searchValue && searchResults.length === 0 && !isSearching}}">
+        <text class="no-results-text">未找到相关剧目，请尝试其他关键词</text>
+      </view>
+    </view>
+
+    <!-- 日期 -->
+    <view class="form-group required">
+      <view class="form-label">*日期</view>
+      <picker 
+        class="form-picker"
+        mode="date"
+        value="{{watchDate}}"
+        bindchange="onDateChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{watchDate ? '' : 'placeholder'}}">
+          {{watchDate || '请选择 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 时间 -->
+    <view class="form-group required">
+      <view class="form-label">*时间</view>
+      <picker 
+        class="form-picker"
+        mode="time"
+        value="{{watchTime}}"
+        bindchange="onTimeChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{watchTime ? '' : 'placeholder'}}">
+          {{watchTime || '请选择 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 观演地点 -->
+    <view class="form-group">
+      <view class="form-label">观演地点</view>
+      <input 
+        class="form-input"
+        placeholder="如：上海大剧院"
+        value="{{venue}}"
+        bindinput="onVenueInput"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <!-- 场地 -->
+    <view class="form-group">
+      <view class="form-label">场地</view>
+      <picker 
+        class="form-picker"
+        mode="selector"
+        range="{{stageList}}"
+        range-key="name"
+        value="{{stageIndex}}"
+        bindchange="onStageChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{stage ? '' : 'placeholder'}}">
+          {{stage || '请选择 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 座位信息 -->
+    <view class="form-group">
+      <view class="form-label">座位</view>
+      <view class="seat-inputs">
+        <view class="seat-input-group">
+          <view class="seat-label">区域</view>
+          <input 
+            class="seat-input"
+            placeholder=""
+            value="{{seatArea}}"
+            bindinput="onSeatAreaInput"
+            disabled="{{mode === 'view'}}"
+          />
+        </view>
+        <view class="seat-input-group">
+          <view class="seat-label">排</view>
+          <input 
+            class="seat-input"
+            placeholder=""
+            value="{{seatRow}}"
+            bindinput="onSeatRowInput"
+            disabled="{{mode === 'view'}}"
+          />
+        </view>
+        <view class="seat-input-group">
+          <view class="seat-label">号</view>
+          <input 
+            class="seat-input"
+            placeholder=""
+            value="{{seatNumber}}"
+            bindinput="onSeatNumberInput"
+            disabled="{{mode === 'view'}}"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- 票价 -->
+    <view class="form-group">
+      <view class="form-label">票价</view>
+      <input 
+        class="form-input"
+        placeholder="请输入"
+        value="{{ticketPrice}}"
+        bindinput="onTicketPriceInput"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <!-- 相关演员 -->
+    <view class="form-group">
+      <view class="form-label">相关演员</view>
+      <input 
+        class="form-input"
+        placeholder="请输入演员姓名，多个演员用逗号分隔"
+        value="{{selectedActorsText}}"
+        bindinput="onActorsInput"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <!-- 购买渠道 -->
+    <view class="form-group">
+      <view class="form-label">购买渠道</view>
+      <picker 
+        class="form-picker"
+        mode="selector"
+        range="{{channelList}}"
+        range-key="name"
+        value="{{channelIndex}}"
+        bindchange="onChannelChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{purchaseChannel ? '' : 'placeholder'}}">
+          {{purchaseChannel || '请选择 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 票根上传 -->
+    <view class="form-group">
+      <view class="form-label">票根上传</view>
+      <view class="upload-section">
+        <view 
+          class="upload-btn"
+          wx:if="{{mode !== 'view'}}"
+          bindtap="chooseTicketImage"
+        >
+          <text class="upload-text">请上传 ></text>
+        </view>
+        <view class="uploaded-tickets" wx:if="{{ticketImages.length > 0}}">
+          <view 
+            class="ticket-item"
+            wx:for="{{ticketImages}}"
+            wx:key="*this"
+          >
+            <image class="ticket-image" src="{{item}}" mode="aspectFill" bindtap="previewTicketImage" data-url="{{item}}" />
+            <view 
+              class="delete-ticket"
+              wx:if="{{mode !== 'view'}}"
+              bindtap="deleteTicketImage"
+              data-index="{{index}}"
+            >×</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 日历 -->
+    <view class="form-group required">
+      <view class="form-label">*日历</view>
+      <picker 
+        class="form-picker"
+        mode="selector"
+        range="{{calendarList}}"
+        range-key="name"
+        value="{{calendarIndex}}"
+        bindchange="onCalendarChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{selectedCalendar ? '' : 'placeholder'}}">
+          {{selectedCalendar || '默认剧历 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 显示设置 -->
+    <view class="form-group">
+      <view class="form-label">显示设置</view>
+      <picker 
+        class="form-picker"
+        mode="selector"
+        range="{{displayOptions}}"
+        value="{{displayIndex}}"
+        bindchange="onDisplayChange"
+        disabled="{{mode === 'view'}}"
+      >
+        <view class="picker-text {{displaySetting ? '' : 'placeholder'}}">
+          {{displaySetting || '公开 >'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 待定行程 -->
+    <view class="form-group checkbox-group">
+      <view class="checkbox-item">
+        <checkbox 
+          class="pending-checkbox"
+          value="pending"
+          checked="{{isPending}}"
+          bindchange="onPendingChange"
+          disabled="{{mode === 'view'}}"
+        />
+        <text class="checkbox-label">待定行程</text>
+      </view>
+      <text class="checkbox-hint">如该日程尚未确认,请勾选此项</text>
+    </view>
+
+    <!-- 备注 -->
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea 
+        class="form-textarea"
+        placeholder="请输入..."
+        value="{{remarks}}"
+        bindinput="onRemarksInput"
+        maxlength="23"
+        auto-height
+        disabled="{{mode === 'view'}}"
+      />
+      <view class="textarea-count" wx:if="{{mode !== 'view'}}">
+        {{remarks.length}}/23
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view class="bottom-actions" wx:if="{{mode !== 'view'}}">
+    <button class="btn-primary submit-btn" bindtap="saveNote">
+      <text class="btn-text">提交</text>
+    </button>
+  </view>
+
+  <!-- 会员提示 -->
+  <view class="member-tip" wx:if="{{mode !== 'view'}}">
+    <text class="tip-text">开通会员,解锁「高级备注」功能</text>
+    <button class="tip-btn" bindtap="viewMemberDetails">
+      <text class="tip-btn-text">查看详情</text>
+    </button>
+  </view>
+
+  <!-- 查看模式的操作按钮 -->
+  <view class="view-actions" wx:if="{{mode === 'view'}}">
+    <button class="btn-outline edit-btn" bindtap="enterEditMode">
+      <text class="btn-text">编辑</text>
+    </button>
+    <button class="btn-secondary share-btn" bindtap="shareNote">
+      <text class="btn-text">分享</text>
+    </button>
+  </view>
+</view>
+
+<!-- 图片预览遮罩 -->
+<view class="image-preview-mask {{showImagePreview ? 'show' : ''}}" bindtap="hideImagePreview">
+  <image class="preview-image" src="{{previewImageUrl}}" mode="aspectFit" />
+</view> 

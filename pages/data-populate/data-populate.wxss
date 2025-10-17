@@ -1,0 +1,142 @@
+.container {
+  padding: 20px;
+  background: linear-gradient(135deg, #FF9A8B 0%, #FFF9F0 100%);
+  min-height: 100vh;
+  color: #8B7355;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #8B7355;
+}
+
+.subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.button-section {
+  margin-bottom: 30px;
+}
+
+.action-btn {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 16px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #8B7355;
+  box-shadow: 0 2px 8px rgba(139, 115, 85, 0.1);
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(139, 115, 85, 0.2);
+}
+
+.action-btn.primary {
+  background: linear-gradient(45deg, #FF9A8B, #FFA07A);
+  color: white;
+  font-weight: bold;
+}
+
+.action-btn.test {
+  background: linear-gradient(45deg, #87CEEB, #98D8E8);
+  color: white;
+}
+
+.action-btn.danger {
+  background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+  color: white;
+}
+
+.action-btn[disabled] {
+  opacity: 0.6;
+  transform: none !important;
+}
+
+.btn-desc {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.result-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(139, 115, 85, 0.1);
+}
+
+.result-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #8B7355;
+}
+
+.result-content {
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.result-content.success {
+  background: linear-gradient(45deg, #90EE90, #98FB98);
+  color: #2E7D2E;
+}
+
+.result-content.error {
+  background: linear-gradient(45deg, #FFB6C1, #FFC0CB);
+  color: #8B0000;
+}
+
+.result-message {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.result-stats text {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.tips {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(139, 115, 85, 0.1);
+}
+
+.tips-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #FF9A8B;
+}
+
+.tips-content text {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.9;
+}

@@ -1,0 +1,99 @@
+<view class="container">
+  <view class="page-header">
+    <view class="header-icon">🗃️</view>
+    <view class="page-title">戏剧回响数据插入</view>
+    <view class="page-subtitle">一键插入演员、语音包和粉丝数据</view>
+  </view>
+
+  <!-- 管理员功能区 -->
+  <view wx:if="{{isAdmin}}" class="admin-section">
+    
+    <!-- 插入按钮 -->
+    <view class="action-section glass-card">
+      <view class="section-title">
+        <view class="title-icon">📥</view>
+        <view class="title-text">数据插入</view>
+      </view>
+      
+      <view class="action-buttons">
+        <button 
+          class="insert-btn {{loading ? 'loading' : ''}}" 
+          bindtap="insertData"
+          disabled="{{loading}}"
+        >
+          <view class="btn-icon">{{loading ? '⏳' : '🚀'}}</view>
+          <view class="btn-text">{{loading ? '插入中...' : '开始插入数据'}}</view>
+        </button>
+      </view>
+      
+      <view class="insert-info">
+        <text class="info-text">将插入以下数据：</text>
+        <view class="data-list">
+          <text class="data-item">• 3个演员：李雨萱🌸、陈墨轩🎭、苏婉清🌙</text>
+          <text class="data-item">• 8个语音包：昆曲、话剧、越剧等精品内容</text>  
+          <text class="data-item">• 5个粉丝排行榜示例数据</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 结果显示 -->
+    <view wx:if="{{result}}" class="result-section glass-card">
+      <view class="section-title">
+        <view class="title-icon">{{result.success ? '✅' : '❌'}}</view>
+        <view class="title-text">执行结果</view>
+      </view>
+      
+      <view class="result-content">
+        <view class="result-status {{result.success ? 'success' : 'error'}}">
+          {{result.message}}
+        </view>
+        
+        <view wx:if="{{result.success && result.data}}" class="result-details">
+          <view class="detail-item">
+            <text class="detail-label">演员数量：</text>
+            <text class="detail-value">{{result.data.actors}}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">语音包数量：</text>
+            <text class="detail-value">{{result.data.voicePacks}}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">粉丝数据：</text>
+            <text class="detail-value">{{result.data.fanRanking}}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">完成时间：</text>
+            <text class="detail-value">{{result.data.timestamp}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 测试按钮 -->
+    <view wx:if="{{result && result.success}}" class="test-section glass-card">
+      <view class="section-title">
+        <view class="title-icon">🧪</view>
+        <view class="title-text">功能测试</view>
+      </view>
+      
+      <button class="test-btn" bindtap="testVoiceEcho">
+        <view class="btn-icon">🎭</view>
+        <view class="btn-text">测试戏剧回响</view>
+      </button>
+    </view>
+
+  </view>
+
+  <!-- 非管理员提示 -->
+  <view wx:else class="no-permission glass-card">
+    <view class="no-permission-icon">🔒</view>
+    <view class="no-permission-text">需要管理员权限才能使用此功能</view>
+  </view>
+
+  <!-- 返回按钮 -->
+  <view class="back-section">
+    <button class="back-btn" bindtap="goBack">
+      <view class="btn-text">返回</view>
+    </button>
+  </view>
+</view>

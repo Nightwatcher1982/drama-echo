@@ -1,0 +1,444 @@
+/* 个人中心样式 */
+.container {
+  padding: 30rpx 20rpx;
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
+  min-height: 100vh;
+}
+
+.page-title {
+  font-size: 42rpx;
+  font-weight: bold;
+  color: #FF9A8B;
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+
+.page-subtitle {
+  font-size: 28rpx;
+  color: #8B7355;
+  text-align: center;
+  margin-bottom: 40rpx;
+  font-style: italic;
+}
+
+/* 玻璃卡片效果 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 30rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 用户信息区域 */
+.header-section {
+  display: flex;
+  align-items: center;
+  padding: 40rpx 30rpx;
+}
+
+.user-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 30rpx;
+  background: linear-gradient(135deg, #FF9A8B 0%, #FF6B6B 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-placeholder {
+  font-size: 60rpx;
+  color: white;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.user-title {
+  font-size: 28rpx;
+  color: #8B7355;
+  font-style: italic;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  padding: 15rpx 25rpx;
+  border: 2rpx solid #FF9A8B;
+  border-radius: 30rpx;
+  background: transparent;
+}
+
+/* 头像昵称官方采集面板 */
+.editor-panel {
+  margin-top: 24rpx;
+  padding: 24rpx;
+}
+
+.editor-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 16rpx;
+}
+
+.choose-avatar-btn {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.avatar-preview {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+}
+
+.nickname-input {
+  flex: 1;
+  background: #fff;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #eee;
+}
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.btn-icon {
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+
+.btn-text {
+  font-size: 24rpx;
+  color: #FF9A8B;
+}
+
+/* 收藏区块 */
+.collection-section {
+  padding: 30rpx;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.title-icon {
+  font-size: 32rpx;
+  margin-right: 15rpx;
+}
+
+.title-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+}
+
+.title-action {
+  font-size: 26rpx;
+  color: #FF9A8B;
+  cursor: pointer;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.collection-item {
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
+  border-radius: 20rpx;
+  padding: 25rpx 20rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.collection-item:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.collection-icon {
+  font-size: 48rpx;
+  margin-bottom: 15rpx;
+}
+
+.collection-name {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.collection-count {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #FF9A8B;
+}
+
+/* 语音包列表 */
+.voice-packs-list {
+  margin-top: 20rpx;
+}
+
+.voice-pack-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background: #FFF9F0;
+  border-radius: 20rpx;
+  margin-bottom: 15rpx;
+}
+
+.pack-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: white;
+  margin-right: 20rpx;
+}
+
+.pack-info {
+  flex: 1;
+}
+
+.pack-name {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.pack-actor {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.pack-action {
+  padding: 15rpx 25rpx;
+  background: linear-gradient(135deg, #FF9A8B 0%, #FF6B6B 100%);
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-icon {
+  font-size: 28rpx;
+  color: white;
+}
+
+/* 快捷入口 */
+.quick-entries {
+  padding: 30rpx;
+}
+
+.entry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25rpx;
+}
+
+.entry-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 10rpx;
+  transition: all 0.3s ease;
+}
+
+.entry-item:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
+.entry-icon {
+  font-size: 50rpx;
+  margin-bottom: 10rpx;
+}
+
+.entry-text {
+  font-size: 24rpx;
+  color: #666;
+  text-align: center;
+}
+
+
+/* 设置选项 */
+.settings-section {
+  padding: 20rpx;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background 0.3s ease;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item:active {
+  background: #f5f5f5;
+}
+
+.settings-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.settings-text {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.settings-arrow {
+  font-size: 30rpx;
+  color: #999;
+}
+
+.logout-item {
+  border-top: 1rpx solid #f0f0f0;
+  margin-top: 20rpx;
+  padding-top: 30rpx;
+}
+
+.logout-item .settings-text {
+  color: #ff4757;
+}
+
+/* 版本信息 */
+.version-info {
+  text-align: center;
+  padding: 40rpx 0 60rpx;
+}
+
+.version-text {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.copyright {
+  font-size: 24rpx;
+  color: #bbb;
+}
+
+/* 动画效果 */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+.empty-action {
+  display: inline-block;
+  padding: 20rpx 40rpx;
+  background: linear-gradient(135deg, #FF9A8B 0%, #FF6B6B 100%);
+  color: white;
+  border-radius: 30rpx;
+  font-size: 28rpx;
+}
+
+/* 新用户引导层 */
+.onboarding-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.onboarding-card {
+  width: 86%;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx 30rpx;
+  text-align: center;
+}
+
+.onboarding-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.onboarding-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+  justify-content: center;
+}

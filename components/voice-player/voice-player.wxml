@@ -1,0 +1,128 @@
+<!-- 唱片机风格语音播放器组件 -->
+<view class="voice-player-container {{isOpen ? 'open' : ''}}">
+  <!-- 播放器背景遮罩 -->
+  <view class="player-overlay {{isOpen ? 'show' : ''}}" bind:tap="closePlayer"></view>
+  
+  <!-- 播放器主体 -->
+  <view class="voice-player {{isOpen ? 'show' : ''}}" catch:tap="stopPropagation">
+    
+    <!-- 播放器头部 -->
+    <view class="player-header">
+      <view class="player-title">{{currentPack.name || '语音播放器'}}</view>
+      <view class="player-subtitle">{{currentActor.name}}</view>
+      <view class="close-btn" bind:tap="closePlayer">×</view>
+    </view>
+    
+    <!-- 唱片机主体 -->
+    <view class="record-player">
+      
+      <!-- 唱片盘 -->
+      <view class="record-disc {{isPlaying ? 'spinning' : ''}}">
+        <!-- 唱片纹理 -->
+        <view class="record-grooves">
+          <view class="groove groove-1"></view>
+          <view class="groove groove-2"></view>
+          <view class="groove groove-3"></view>
+          <view class="groove groove-4"></view>
+          <view class="groove groove-5"></view>
+        </view>
+        
+        <!-- 唱片中心 -->
+        <view class="record-center">
+          <view class="center-hole"></view>
+          <view class="center-label">
+            <view class="label-text">{{currentPack.icon || '🎵'}}</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 唱臂 -->
+      <view class="tone-arm {{isPlaying ? 'playing' : 'rest'}}">
+        <view class="arm-base"></view>
+        <view class="arm-shaft"></view>
+        <view class="arm-head"></view>
+      </view>
+      
+      <!-- 播放控制台 -->
+      <view class="control-panel">
+        <!-- 音量控制 -->
+        <view class="volume-control">
+          <view class="volume-icon">🔊</view>
+          <slider class="volume-slider" 
+                  min="0" max="100" 
+                  value="{{volume}}" 
+                  bindchange="onVolumeChange"
+                  activeColor="#ff6b6b"
+                  backgroundColor="rgba(255,255,255,0.3)" />
+        </view>
+        
+        <!-- 进度控制 -->
+        <view class="progress-control">
+          <view class="time-display">{{formatTime(currentTime)}}</view>
+          <slider class="progress-slider" 
+                  min="0" max="{{duration}}" 
+                  value="{{currentTime}}" 
+                  bindchange="onProgressChange"
+                  bindchanging="onProgressChanging"
+                  activeColor="#ff6b6b"
+                  backgroundColor="rgba(255,255,255,0.3)" />
+          <view class="time-display">{{formatTime(duration)}}</view>
+        </view>
+        
+        <!-- 主控制按钮 -->
+        <view class="main-controls">
+          <view class="control-btn prev-btn" bind:tap="playPrevious">⏮️</view>
+          <view class="control-btn play-btn {{isPlaying ? 'playing' : ''}}" bind:tap="togglePlay">
+            {{isPlaying ? '⏸️' : '▶️'}}
+          </view>
+          <view class="control-btn next-btn" bind:tap="playNext">⏭️</view>
+        </view>
+      </view>
+      
+    </view>
+    
+    <!-- 播放列表 -->
+    <view class="playlist-section">
+      <view class="playlist-header">
+        <view class="playlist-title">播放列表 ({{playlist.length}})</view>
+        <view class="playlist-toggle" bind:tap="togglePlaylist">
+          {{showPlaylist ? '收起' : '展开'}} {{showPlaylist ? '▲' : '▼'}}
+        </view>
+      </view>
+      
+      <view class="playlist {{showPlaylist ? 'show' : ''}}" wx:if="{{playlist.length > 0}}">
+        <scroll-view class="playlist-scroll" scroll-y="true" style="max-height: 300rpx;">
+          <view wx:for="{{playlist}}" wx:key="id" 
+                class="playlist-item {{currentIndex === index ? 'current' : ''}}"
+                bind:tap="playTrack" data-index="{{index}}">
+            <view class="track-info">
+              <view class="track-name">{{item.name}}</view>
+              <view class="track-duration">{{formatTime(item.duration)}}</view>
+            </view>
+            <view class="track-status">
+              {{currentIndex === index ? (isPlaying ? '🎵' : '⏸️') : '♪'}}
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <view class="playlist-empty" wx:else>
+        <text class="empty-text">暂无播放内容</text>
+      </view>
+    </view>
+    
+    <!-- 播放器底部 -->
+    <view class="player-footer">
+      <view class="playback-mode" bind:tap="togglePlayMode">
+        <view class="mode-icon">{{playModeIcons[playMode]}}</view>
+        <view class="mode-text">{{playModeTexts[playMode]}}</view>
+      </view>
+      
+      <view class="player-info">
+        <view class="info-text">仅限播放 · 禁止下载</view>
+        <view class="copyright">© 戏剧回响</view>
+      </view>
+    </view>
+    
+  </view>
+</view>

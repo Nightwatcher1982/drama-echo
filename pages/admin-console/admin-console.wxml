@@ -1,0 +1,192 @@
+<view class="container">
+  <!-- 顶部标题 -->
+  <view class="header">
+    <view class="title">后台管理中心</view>
+    <view class="subtitle">演员维护与语音包上传</view>
+  </view>
+
+  <!-- 密码登录 -->
+  <view class="card" wx:if="{{!isAuthed}}">
+    <view class="section-title">管理员登录</view>
+    <input class="input" password placeholder="请输入管理密码" value="{{adminPassword}}" bindinput="onPwdInput" />
+    <button class="btn-primary" bindtap="login">登录</button>
+  </view>
+
+  <!-- 主面板 -->
+  <view wx:if="{{isAuthed}}">
+    <!-- 演员列表 -->
+    <view class="card">
+      <view class="section-header">
+        <view class="section-title">选择演员</view>
+        <view style="display:flex; gap:12rpx;">
+          <button class="btn-outline" bindtap="openCreateActor">+ 新建演员</button>
+          <button class="btn-outline" bindtap="openEditActor" wx:if="{{selectedActorId}}">编辑演员</button>
+          <button class="btn-outline" bindtap="deleteActor" wx:if="{{selectedActorId}}">删除演员</button>
+        </view>
+      </view>
+      <!-- 演员选择器 -->
+      <picker mode="selector" range="{{actors}}" range-key="name" bindchange="onPickActor">
+        <view class="picker">{{selectedActorName || '请选择演员'}}</view>
+      </picker>
+      
+      <!-- 调试信息 -->
+      <view class="debug-info" style="font-size: 24rpx; color: #999; margin-top: 16rpx;">
+        演员数量: {{actors.length}}
+        <text wx:if="{{actors.length === 0}}"> - 暂无演员数据</text>
+      </view>
+      
+      <!-- 备用选择方式：如果picker不工作，显示列表 -->
+      <view wx:if="{{actors.length > 0}}" class="actor-list-backup" style="margin-top: 20rpx;">
+        <view class="backup-title" style="font-size: 28rpx; margin-bottom: 16rpx; color: #666;">或直接点击选择：</view>
+        <view wx:for="{{actors}}" wx:key="_id" class="actor-item-backup" 
+              style="padding: 16rpx; border: 1rpx solid #ddd; border-radius: 8rpx; margin-bottom: 12rpx; background: #f9f9f9;"
+              bindtap="selectActorDirect" data-actor="{{item}}">
+          <view style="font-weight: bold;">{{item.name}}</view>
+          <view style="font-size: 24rpx; color: #666;">{{item.title || '暂无称号'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 语音包列表 -->
+    <view class="card" wx:if="{{selectedActorId}}">
+      <view class="section-header">
+        <view class="section-title">{{selectedActorName}} - 语音包</view>
+        <button class="btn-primary" bindtap="openPackModal">+ 创建语音包</button>
+      </view>
+      <view wx:for="{{voicePacks}}" wx:key="_id" class="pack-item">
+        <view class="pack-main">
+          <view class="pack-icon">{{item.icon}}</view>
+          <view class="pack-info">
+            <view class="pack-name">{{item.name}}</view>
+            <view class="pack-meta">¥{{item.formattedPrice}} · 文件 {{item.voiceFiles.length}}</view>
+          </view>
+        </view>
+        <view class="pack-actions">
+          <button class="btn-outline btn-s" bindtap="openPackModal" data-pack="{{item}}">编辑</button>
+          <button class="btn-primary btn-s" bindtap="openFileModal" data-pack-id="{{item._id}}">添加音频</button>
+          <button class="btn-outline btn-s" bindtap="deletePack" data-pack-id="{{item._id}}">删除</button>
+        </view>
+      </view>
+      <view wx:if="{{voicePacks.length===0}}" class="empty">暂无语音包</view>
+    </view>
+  </view>
+
+  <!-- 语音包弹窗 -->
+  <view class="modal" wx:if="{{showPackModal}}">
+    <view class="modal-body">
+      <view class="modal-title">{{editingPack._id ? '编辑语音包' : '新建语音包'}}</view>
+      <input class="input" placeholder="语音包名称" value="{{editingPack.name}}" bindinput="onPackInput" data-field="name" />
+      <input class="input" placeholder="图标 Emoji（如：🎵）" value="{{editingPack.icon}}" bindinput="onPackInput" data-field="icon" />
+      <input class="input" type="digit" placeholder="价格（元）" value="{{editingPack.displayPrice}}" bindinput="onPackPriceInput" />
+      <textarea class="textarea" placeholder="语音包描述" value="{{editingPack.description}}" bindinput="onPackInput" data-field="description" />
+      
+      <!-- 语音包图片上传 -->
+      <view class="form-group">
+        <text class="form-label">语音包图片</text>
+        <view class="images-upload-section">
+          <view class="images-list">
+            <view wx:for="{{editingPack.images}}" wx:key="index" class="image-item">
+              <image class="uploaded-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
+              <button class="btn-small btn-danger remove-image" bindtap="removePackImage" data-index="{{index}}">×</button>
+            </view>
+            <view wx:if="{{editingPack.images.length < 5}}" class="add-image-btn" bindtap="choosePackImage">
+              <view class="add-icon">📷</view>
+              <view class="add-text">添加图片</view>
+            </view>
+          </view>
+          <view class="upload-hint">最多可上传5张图片，支持JPG、PNG格式</view>
+        </view>
+      </view>
+      
+      <!-- 花絮视频上传 -->
+      <view class="form-group">
+        <text class="form-label">花絮视频</text>
+        <view class="video-upload-section">
+          <view wx:if="{{!editingPack.bonusVideoUrl}}" class="video-upload-area" bindtap="chooseBonusVideo">
+            <view class="upload-placeholder">
+              <view class="upload-icon">🎬</view>
+              <view class="upload-text">点击上传花絮视频</view>
+              <view class="upload-hint">支持MP4格式，最大时长60秒</view>
+            </view>
+          </view>
+          <view wx:else class="video-preview">
+            <video class="preview-video" src="{{editingPack.bonusVideoUrl}}" controls="{{true}}" poster="{{editingPack.bonusVideoThumb}}"></video>
+            <view class="video-info">
+              <view class="video-title">{{editingPack.bonusVideoTitle || '花絮视频'}}</view>
+              <view class="video-duration">{{editingPack.bonusVideoDuration || '未知时长'}}</view>
+            </view>
+            <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
+            <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <button class="btn-outline" bindtap="closePackModal">取消</button>
+        <button class="btn-primary" bindtap="savePack">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 演员编辑弹窗 -->
+  <view class="modal" wx:if="{{showActorModal}}">
+    <view class="modal-body">
+      <view class="modal-title">编辑演员</view>
+      <input class="input" placeholder="演员名称" value="{{editingActor.name}}" bindinput="onActorInput" data-field="name" />
+      <input class="input" placeholder="演员称号" value="{{editingActor.title}}" bindinput="onActorInput" data-field="title" />
+      <textarea class="textarea" placeholder="演员简介" value="{{editingActor.description}}" bindinput="onActorInput" data-field="description" />
+      <view class="uploader" bindtap="chooseActorImage">
+        <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" mode="aspectFill" class="img" />
+        <view wx:else class="uploader-hint">点击选择封面图</view>
+      </view>
+      <view class="card small">
+        <view class="section-title">图片库（最多5张，按上传顺序展示）</view>
+        <view class="img-grid">
+          <block wx:for="{{actorImages}}" wx:key="*this">
+            <view class="img-cell">
+              <image class="img" src="{{item}}" mode="aspectFill" />
+              <button class="btn-outline btn-s" data-url="{{item}}" bindtap="removeActorImage">删除</button>
+            </view>
+          </block>
+          <view wx:if="{{actorImages.length < 5}}" class="img-cell add" bindtap="addActorImages">+ 添加</view>
+        </view>
+      </view>
+      <view class="modal-actions">
+        <button class="btn-outline" bindtap="closeActorModal">取消</button>
+        <button class="btn-primary" bindtap="saveActor">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 音频管理弹窗：添加/预览/保存 -->
+  <view class="modal" wx:if="{{showFileModal}}">
+    <view class="modal-body">
+      <view class="modal-title">添加音频</view>
+      <!-- 已有文件列表 -->
+      <view wx:if="{{fileList.length > 0}}" class="card small">
+        <view class="section-title">已添加的音频（{{fileList.length}}）</view>
+        <view wx:for="{{fileList}}" wx:key="id" class="file-row">
+          <view class="file-name">{{item.name}}</view>
+          <view class="file-actions">
+            <button class="btn-outline btn-s" data-src="{{item.fileId}}" bindtap="previewExistingAudio">试听</button>
+            <button class="btn-outline btn-s" data-id="{{item.id}}" bindtap="deleteExistingAudio">删除</button>
+          </view>
+        </view>
+      </view>
+      <input class="input" placeholder="文件名称" value="{{editingFile.name}}" bindinput="onFileInput" data-field="name" />
+      <view class="uploader" bindtap="chooseAudioFile">
+        <view wx:if="{{!editingFile.tempFilePath}}" class="uploader-hint">点击选择音频（mp3/wav/aac/m4a，≤20MB）</view>
+        <view wx:else class="file-chip">{{editingFile.fileName}}</view>
+      </view>
+      <input class="input" type="number" placeholder="时长（秒）" value="{{editingFile.duration}}" bindinput="onFileInput" data-field="duration" />
+      <textarea class="textarea" placeholder="文件描述" value="{{editingFile.description}}" bindinput="onFileInput" data-field="description" />
+      <view class="modal-actions">
+        <button class="btn-outline" bindtap="closeFileModal">完成</button>
+        <button class="btn-outline" bindtap="previewSelectedAudio" wx:if="{{editingFile.tempFilePath}}">试听</button>
+        <button class="btn-primary" loading="{{uploading}}" bindtap="saveAudioFile">{{uploading ? '上传中...' : '保存并继续'}}</button>
+      </view>
+    </view>
+  </view>
+</view>
+
+

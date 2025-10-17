@@ -1,0 +1,299 @@
+<!-- 戏剧回响后台管理 -->
+<view class="container">
+  <view class="header">
+    <view class="header-title">🎭 戏剧回响管理后台</view>
+    <view class="header-subtitle">演员语音内容管理系统</view>
+  </view>
+
+  <!-- 身份验证 -->
+  <view class="auth-section glass-card" wx:if="{{!isAuthenticated}}">
+    <view class="auth-title">管理员身份验证</view>
+    <input class="auth-input" type="password" placeholder="请输入管理密码" value="{{adminPassword}}" bindinput="onPasswordInput" />
+    <button class="btn-primary" bindtap="authenticate">验证身份</button>
+  </view>
+
+  <!-- 管理面板 -->
+  <view class="admin-panel" wx:if="{{isAuthenticated}}">
+    
+    <!-- 标签导航 -->
+    <view class="tab-nav glass-card">
+      <view class="tab-item {{activeTab === 'actors' ? 'active' : ''}}" bindtap="switchTab" data-tab="actors">
+        <text class="tab-icon">👥</text>
+        <text class="tab-label">演员管理</text>
+      </view>
+      <view class="tab-item {{activeTab === 'voicepacks' ? 'active' : ''}}" bindtap="switchTab" data-tab="voicepacks">
+        <text class="tab-icon">🎵</text>
+        <text class="tab-label">语音包管理</text>
+      </view>
+      <view class="tab-item {{activeTab === 'stats' ? 'active' : ''}}" bindtap="switchTab" data-tab="stats">
+        <text class="tab-icon">📊</text>
+        <text class="tab-label">数据统计</text>
+      </view>
+    </view>
+
+    <!-- 演员管理 -->
+    <view class="section glass-card" wx:if="{{activeTab === 'actors'}}">
+      <view class="section-header">
+        <view class="section-title">演员列表</view>
+        <button class="btn-primary btn-small" bindtap="showAddActorModal">+ 添加演员</button>
+      </view>
+      
+      <view class="actors-grid">
+        <view wx:for="{{actors}}" wx:key="_id" class="actor-card {{selectedActorId === item._id ? 'selected' : ''}}" bindtap="selectActor" data-actor="{{item}}">
+          <view class="actor-image-container">
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" class="actor-image" mode="aspectFill" />
+            <view wx:else class="actor-avatar">{{item.avatar || '👤'}}</view>
+          </view>
+          <view class="actor-info">
+            <view class="actor-name">{{item.name}}</view>
+            <view class="actor-title">{{item.title}}</view>
+            <view class="actor-stats">
+              <text class="stat-item">{{item.stats.voicePackCount}}个语音包</text>
+            </view>
+            <view class="actor-tags">
+              <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+            </view>
+            <view class="status-badge {{item.status}}">
+              {{item.status === 'online' ? '在线' : '离线'}}
+            </view>
+          </view>
+          <button class="btn-edit" catchtap="editActor" data-actor="{{item}}">编辑</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 语音包管理 -->
+    <view class="section glass-card" wx:if="{{activeTab === 'voicepacks'}}">
+      <view wx:if="{{!selectedActorId}}" class="empty-state">
+        <text class="empty-icon">👈</text>
+        <text class="empty-text">请先从演员管理中选择一个演员</text>
+      </view>
+      
+      <view wx:else>
+        <view class="section-header">
+          <view class="section-title">{{selectedActor.name}} - 语音包</view>
+          <button class="btn-primary btn-small" bindtap="showAddPackModal">+ 创建语音包</button>
+        </view>
+        
+        <view class="packs-list">
+          <view wx:for="{{voicePacks}}" wx:key="_id" class="pack-card">
+            <view class="pack-header">
+              <view class="pack-icon">{{item.icon || '🎵'}}</view>
+              <view class="pack-info">
+                <view class="pack-name">{{item.name}}</view>
+                <view class="pack-price">¥{{item.formattedPrice}}</view>
+                <view class="pack-meta">
+                  <text>销量: {{item.sales || 0}}</text>
+                  <text class="separator">|</text>
+                  <text>文件: {{item.voiceFiles.length || 0}}个</text>
+                  <text wx:if="{{item.isHot}}" class="hot-badge">🔥热门</text>
+                  <text wx:if="{{!item.isActive}}" class="inactive-badge">已下架</text>
+                </view>
+              </view>
+            </view>
+            <view class="pack-actions">
+              <button class="btn-outline btn-small" bindtap="editPack" data-pack="{{item}}">编辑</button>
+              <button class="btn-secondary btn-small" bindtap="manageVoiceFiles" data-pack-id="{{item._id}}">管理音频</button>
+            </view>
+          </view>
+        </view>
+        
+        <view wx:if="{{voicePacks.length === 0}}" class="empty-state">
+          <text class="empty-icon">🎵</text>
+          <text class="empty-text">该演员暂无语音包</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据统计 -->
+    <view class="section glass-card" wx:if="{{activeTab === 'stats'}}">
+      <view class="section-title">数据概览</view>
+      
+      <view class="stats-grid">
+        <view class="stat-card">
+          <view class="stat-icon">👥</view>
+          <view class="stat-value">{{stats.totalActors}}</view>
+          <view class="stat-label">演员总数</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-icon">🎵</view>
+          <view class="stat-value">{{stats.totalPacks}}</view>
+          <view class="stat-label">语音包总数</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-icon">📁</view>
+          <view class="stat-value">{{stats.totalFiles}}</view>
+          <view class="stat-label">音频文件总数</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-icon">💰</view>
+          <view class="stat-value">¥{{stats.totalRevenue}}</view>
+          <view class="stat-label">总收入</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 退出按钮 -->
+    <button class="btn-logout" bindtap="logout">退出登录</button>
+  </view>
+
+  <!-- 演员编辑弹窗 -->
+  <view class="modal-overlay" wx:if="{{showActorModal}}" bindtap="hideActorModal">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">{{editingActor._id ? '编辑演员' : '添加演员'}}</text>
+        <text class="modal-close" bindtap="hideActorModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">演员姓名 *</text>
+          <input class="form-input" placeholder="请输入演员姓名" value="{{editingActor.name}}" bindinput="onActorInput" data-field="name" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">职称/头衔</text>
+          <input class="form-input" placeholder="如：国家一级演员" value="{{editingActor.title}}" bindinput="onActorInput" data-field="title" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">简介</text>
+          <textarea class="form-textarea" placeholder="演员简介" value="{{editingActor.description}}" bindinput="onActorInput" data-field="description" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">选择头像表情</text>
+          <view class="avatar-options">
+            <view wx:for="{{['👤', '🎭', '👨', '👩', '🧑', '👨‍🎤', '👩‍🎤']}}" wx:key="*this" 
+                  class="avatar-option {{editingActor.avatar === item ? 'selected' : ''}}"
+                  bindtap="selectAvatar" data-avatar="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">演员照片</text>
+          <view class="image-uploader">
+            <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" class="preview-image" mode="aspectFill" />
+            <button wx:else class="btn-upload" bindtap="chooseActorImage">选择图片</button>
+            <button wx:if="{{tempImagePath}}" class="btn-remove" bindtap="removeActorImage">移除图片</button>
+          </view>
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">标签</text>
+          <checkbox-group bindchange="onTagChange">
+            <label wx:for="{{tagOptions}}" wx:key="*this" class="checkbox-label">
+              <checkbox value="{{item}}" checked="{{editingActor.tags.includes(item)}}" />
+              <text>{{item}}</text>
+            </label>
+          </checkbox-group>
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">状态</text>
+          <radio-group bindchange="onStatusChange">
+            <label wx:for="{{statusOptions}}" wx:key="value" class="radio-label">
+              <radio value="{{item.value}}" checked="{{editingActor.status === item.value}}" />
+              <text>{{item.label}}</text>
+            </label>
+          </radio-group>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hideActorModal">取消</button>
+        <button class="btn-primary" bindtap="saveActor" loading="{{uploadingImage}}">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 语音包编辑弹窗 -->
+  <view class="modal-overlay" wx:if="{{showPackModal}}" bindtap="hidePackModal">
+    <view class="modal-content" catchtap>
+      <view class="modal-header">
+        <text class="modal-title">{{editingPack._id ? '编辑语音包' : '创建语音包'}}</text>
+        <text class="modal-close" bindtap="hidePackModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-group">
+          <text class="form-label">语音包名称 *</text>
+          <input class="form-input" placeholder="请输入语音包名称" value="{{editingPack.name}}" bindinput="onPackInput" data-field="name" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">价格 (元) *</text>
+          <input class="form-input" type="digit" placeholder="0.00" value="{{editingPack.displayPrice}}" bindinput="onPriceInput" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">描述</text>
+          <textarea class="form-textarea" placeholder="语音包描述" value="{{editingPack.description}}" bindinput="onPackInput" data-field="description" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">图标</text>
+          <input class="form-input" placeholder="输入emoji图标" value="{{editingPack.icon}}" bindinput="onPackInput" data-field="icon" />
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">语音包图片</text>
+          <view class="images-upload-section">
+            <view class="images-list">
+              <view wx:for="{{editingPack.images}}" wx:key="index" class="image-item">
+                <image class="uploaded-image" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
+                <button class="btn-small btn-danger remove-image" bindtap="removePackImage" data-index="{{index}}">×</button>
+              </view>
+              <view wx:if="{{editingPack.images.length < 5}}" class="add-image-btn" bindtap="choosePackImage">
+                <view class="add-icon">📷</view>
+                <view class="add-text">添加图片</view>
+              </view>
+            </view>
+            <view class="upload-hint">最多可上传5张图片，支持JPG、PNG格式</view>
+          </view>
+        </view>
+        
+        <view class="form-group">
+          <text class="form-label">花絮视频</text>
+          <view class="video-upload-section">
+            <view wx:if="{{!editingPack.bonusVideoUrl}}" class="video-upload-area" bindtap="chooseBonusVideo">
+              <view class="upload-placeholder">
+                <view class="upload-icon">🎬</view>
+                <view class="upload-text">点击上传花絮视频</view>
+                <view class="upload-hint">支持MP4格式，最大时长60秒</view>
+              </view>
+            </view>
+            <view wx:else class="video-preview">
+              <video class="preview-video" src="{{editingPack.bonusVideoUrl}}" controls="{{true}}" poster="{{editingPack.bonusVideoThumb}}"></video>
+              <view class="video-info">
+                <view class="video-title">{{editingPack.bonusVideoTitle || '花絮视频'}}</view>
+                <view class="video-duration">{{editingPack.bonusVideoDuration || '未知时长'}}</view>
+              </view>
+              <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
+              <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
+            </view>
+          </view>
+        </view>
+        
+        <view class="form-group">
+          <label class="switch-label">
+            <switch checked="{{editingPack.isHot}}" bindchange="onHotChange" />
+            <text>设为热门</text>
+          </label>
+        </view>
+        
+        <view class="form-group">
+          <label class="switch-label">
+            <switch checked="{{editingPack.isActive}}" bindchange="onActiveChange" />
+            <text>启用销售</text>
+          </label>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="hidePackModal">取消</button>
+        <button class="btn-primary" bindtap="savePack">保存</button>
+      </view>
+    </view>
+  </view>
+</view>
