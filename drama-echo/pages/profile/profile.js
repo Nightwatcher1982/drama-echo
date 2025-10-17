@@ -726,8 +726,25 @@ Page({
     })
   },
   
-  // 跳转到戏剧回响
+  // 跳转到已购买的语音包列表
   goToVoiceEcho() {
+    // 检查是否有购买的语音包
+    if (this.data.purchasedVoicePacks === 0) {
+      wx.showToast({
+        title: '暂无购买的语音包',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 跳转到已购买的语音包列表页面
+    wx.navigateTo({
+      url: '/pages/purchased-voice-packs/purchased-voice-packs'
+    })
+  },
+
+  // 跳转到戏剧回响页面（用于快捷入口）
+  goToDramaEcho() {
     wx.navigateTo({
       url: '/pages/voice-echo/voice-echo'
     })

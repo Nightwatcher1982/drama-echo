@@ -17,6 +17,7 @@
     "pages/voice-pack-detail/voice-pack-detail",
     "pages/order-management/order-management",
     "pages/wish-pool/wish-pool",
+    "pages/purchased-voice-packs/purchased-voice-packs",
     "pages/test-guardian-count/test-guardian-count",
     "pages/debug-guardian/debug-guardian",
     "pages/debug-actor-data/debug-actor-data",
