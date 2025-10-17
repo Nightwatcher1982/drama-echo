@@ -40,9 +40,12 @@ Page({
   },
 
   async onShow() {
-    // 页面显示时自动更新排行榜（避免重复调用）
-    if (this.data.actorId && !this.data.loading) {
-      await this.updateFanRanking()
+    // 页面显示时只在必要时更新排行榜
+    if (this.data.actorId && !this.data.loading && (!this.data.fanRanking || this.data.fanRanking.length === 0)) {
+      // 延迟更新，避免阻塞页面显示
+      setTimeout(() => {
+        this.updateFanRanking()
+      }, 1000)
     }
   },
 
@@ -82,35 +85,13 @@ Page({
         console.log('✅ 演员详情加载完成，语音包数量:', updatedVoicePacks.length)
         console.log('📊 购买状态统计:', updatedVoicePacks.map(p => ({ name: p.name, isPurchased: p.isPurchased })))
         
-        // 如果排行榜为空，尝试更新排行榜
+        // 如果排行榜为空，延迟更新排行榜（不阻塞页面显示）
         if (!fanRanking || fanRanking.length === 0) {
-          console.log('📊 排行榜为空，尝试更新')
-          await this.updateFanRanking()
+          console.log('📊 排行榜为空，延迟更新')
+          setTimeout(() => {
+            this.updateFanRanking()
+          }, 2000)
         }
-        
-        // 详细打印语音包数据
-        updatedVoicePacks.forEach((pack, index) => {
-          console.log(`📦 语音包 ${index + 1} 详细信息:`, {
-            id: pack._id,
-            name: pack.name,
-            price: pack.price,
-            sales: pack.sales,
-            isPurchased: pack.isPurchased,
-            formattedPrice: pack.formattedPrice
-          })
-        })
-        
-        // 测试购买状态（开发环境）
-        if (updatedVoicePacks.length > 0) {
-          const firstPack = updatedVoicePacks[0]
-          console.log('🧪 测试第一个语音包的购买状态:', firstPack.name, 'isPurchased:', firstPack.isPurchased)
-          
-          // 检查语音包销量
-          await this.checkVoicePackSales(firstPack._id)
-        }
-        
-        // 测试粉丝排行榜（开发环境）
-        console.log('📊 当前排行榜数据:', fanRanking)
       } else {
         throw new Error(res.result.message || '获取演员详情失败')
       }
@@ -579,9 +560,6 @@ Page({
           await this.loadActorDetail()
           console.log('✅ 页面数据刷新完成')
           
-          // 测试购买状态（开发环境调试）
-          await this.testPurchaseStatus(packId)
-          
           // 延迟跳转到语音包详情页
           setTimeout(() => {
             wx.navigateTo({
@@ -689,105 +667,7 @@ Page({
     }
   },
 
-  // 测试购买状态（开发环境调试用）
-  async testPurchaseStatus(packId) {
-    try {
-      console.log('🧪 测试购买状态，语音包ID:', packId)
-      
-      const result = await wx.cloud.callFunction({
-        name: 'checkPurchaseStatus',
-        data: { packId: packId }
-      })
-      
-      console.log('🧪 购买状态测试结果:', result.result)
-      
-      if (result.result.code === 0) {
-        const data = result.result.data
-        console.log('📊 购买状态详情:', {
-          isPurchased: data.isPurchased,
-          newPurchases: data.newPurchases.length,
-          oldPurchases: data.oldPurchases.length,
-          orders: data.orders.length,
-          voicePackSales: data.voicePackSales
-        })
-      }
-    } catch (error) {
-      console.error('🧪 测试购买状态失败:', error)
-    }
-  },
-
-  // 检查语音包销量（开发环境调试用）
-  async checkVoicePackSales(packId) {
-    try {
-      console.log('🔍 检查语音包销量，语音包ID:', packId)
-      
-      const result = await wx.cloud.callFunction({
-        name: 'checkVoicePackSales',
-        data: { packId: packId }
-      })
-      
-      console.log('🔍 销量检查结果:', result.result)
-      
-      if (result.result.code === 0) {
-        const data = result.result.data
-        console.log('📊 销量详情:', {
-          packName: data.packName,
-          collectionName: data.collectionName,
-          currentSales: data.currentSales,
-          salesType: data.salesType,
-          totalPurchases: data.totalPurchases,
-          totalOrders: data.totalOrders
-        })
-        
-        // 如果销量不匹配，自动修复
-        if (data.currentSales !== data.totalPurchases) {
-          console.log('⚠️ 销量不匹配，自动修复...')
-          await this.fixVoicePackSales(packId)
-        }
-      }
-    } catch (error) {
-      console.error('🔍 检查销量失败:', error)
-    }
-  },
-
-  // 修复语音包销量（开发环境调试用）
-  async fixVoicePackSales(packId) {
-    try {
-      console.log('🔧 修复语音包销量，语音包ID:', packId)
-      
-      const result = await wx.cloud.callFunction({
-        name: 'fixVoicePackSales',
-        data: { packId: packId }
-      })
-      
-      console.log('🔧 销量修复结果:', result.result)
-      
-      if (result.result.code === 0) {
-        const data = result.result.data
-        console.log('✅ 销量修复成功:', {
-          packName: data.packName,
-          oldSales: data.oldSales,
-          newSales: data.newSales,
-          totalPurchases: data.totalPurchases
-        })
-        
-        // 修复成功后刷新页面
-        wx.showToast({
-          title: '销量已修复',
-          icon: 'success'
-        })
-        
-        // 延迟刷新页面数据
-        setTimeout(() => {
-          this.loadActorDetail()
-        }, 1000)
-      } else {
-        console.error('❌ 销量修复失败:', result.result.message)
-      }
-    } catch (error) {
-      console.error('🔧 修复销量失败:', error)
-    }
-  },
+  // 开发环境调试方法已移除，提升页面加载性能
 
   // 更新粉丝排行榜
   async updateFanRanking() {
@@ -801,18 +681,16 @@ Page({
       this.setData({ isUpdatingRanking: true })
       console.log('🔄 更新粉丝排行榜，演员ID:', this.data.actorId)
       
-      // 调用更新排行榜云函数，设置超时时间
+      // 调用更新排行榜云函数，设置更短的超时时间
       const result = await Promise.race([
         wx.cloud.callFunction({
           name: 'updateFanRanking',
           data: { actorId: this.data.actorId }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('云函数调用超时')), 10000) // 10秒超时
+          setTimeout(() => reject(new Error('云函数调用超时')), 5000) // 5秒超时
         )
       ])
-      
-      console.log('🔄 排行榜更新结果:', result.result)
       
       if (result.result.code === 0) {
         const data = result.result.data
@@ -830,10 +708,9 @@ Page({
     } catch (error) {
       console.error('❌ 更新排行榜失败:', error)
       
-      // 如果云函数超时，尝试从数据库直接获取排行榜数据
+      // 如果云函数超时或失败，静默处理，不影响页面主要功能
       if (error.message.includes('超时') || error.message.includes('timeout')) {
-        console.log('🔄 云函数超时，尝试直接获取排行榜数据')
-        await this.getFanRankingDirectly()
+        console.log('🔄 云函数超时，排行榜更新失败，但不影响页面使用')
       }
     } finally {
       this.setData({ isUpdatingRanking: false })
