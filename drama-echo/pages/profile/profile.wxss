@@ -91,12 +91,13 @@
 .edit-btn {
   display: flex;
   align-items: center;
-  padding: 12rpx 16rpx;
-  border: 2rpx solid #FF9A8B;
-  border-radius: 20rpx;
+  padding: 8rpx 12rpx;
+  border: 1rpx solid #FF9A8B;
+  border-radius: 16rpx;
   background: transparent;
   min-width: auto;
   flex-shrink: 0;
+  max-width: 140rpx;
 }
 
 /* 头像昵称官方采集面板 */
@@ -139,12 +140,12 @@
 }
 
 .btn-icon {
-  font-size: 20rpx;
-  margin-right: 6rpx;
+  font-size: 16rpx;
+  margin-right: 4rpx;
 }
 
 .btn-text {
-  font-size: 22rpx;
+  font-size: 18rpx;
   color: #FF9A8B;
   white-space: nowrap;
 }
