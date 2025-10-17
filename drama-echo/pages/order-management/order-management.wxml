@@ -1,0 +1,83 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">我的订单</text>
+  </view>
+
+  <!-- 标签栏 -->
+  <view class="tabs">
+    <view 
+      wx:for="{{tabs}}" 
+      wx:key="key"
+      class="tab-item {{currentTab === item.key ? 'active' : ''}}"
+      data-tab="{{item.key}}"
+      bindtap="onTabChange"
+    >
+      {{item.name}}
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="order-list">
+    <view wx:if="{{orders.length === 0 && !loading}}" class="empty-state">
+      <view class="empty-icon">📋</view>
+      <view class="empty-text">暂无订单</view>
+    </view>
+
+    <view wx:for="{{orders}}" wx:key="orderId" class="order-item">
+      <view class="order-header">
+        <view class="order-info">
+          <text class="order-id">订单号：{{item.orderId}}</text>
+          <text class="order-time">{{item.createTime}}</text>
+        </view>
+        <view class="order-status status-{{item.status}}">
+          {{item.status === 'pending' ? '待支付' : item.status === 'paid' ? '已支付' : item.status === 'refunded' ? '已退款' : '未知'}}
+        </view>
+      </view>
+
+      <view class="order-content" bindtap="onOrderDetail" data-order-id="{{item.orderId}}">
+        <view class="pack-info">
+          <view class="pack-icon">{{item.packIcon || '🎵'}}</view>
+          <view class="pack-details">
+            <view class="pack-name">{{item.packName}}</view>
+            <view class="actor-name">{{item.actorName}}</view>
+          </view>
+        </view>
+        <view class="order-amount">¥{{item.formattedAmount}}</view>
+      </view>
+
+      <view class="order-footer">
+        <view class="order-time-info">
+          <text wx:if="{{item.payTime}}" class="pay-time">支付时间：{{item.payTime}}</text>
+          <text wx:if="{{item.refundTime}}" class="refund-time">退款时间：{{item.refundTime}}</text>
+        </view>
+        <view class="order-actions">
+          <button 
+            wx:if="{{item.status === 'paid'}}"
+            class="action-btn refund-btn"
+            data-order-id="{{item.orderId}}"
+            catchtap="onRefund"
+          >
+            申请退款
+          </button>
+          <button 
+            class="action-btn detail-btn"
+            data-order-id="{{item.orderId}}"
+            catchtap="onOrderDetail"
+          >
+            查看详情
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:if="{{!hasMore && orders.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </view>
+</view>

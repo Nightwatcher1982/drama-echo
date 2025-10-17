@@ -1,0 +1,67 @@
+<view class="container">
+  <view class="header">
+    <view class="title">守护者计数流程测试</view>
+    <view class="subtitle">测试新演员的守护者计数自动更新</view>
+  </view>
+
+  <view class="card" wx:if="{{loading}}">
+    <view class="loading">加载中...</view>
+  </view>
+
+  <view class="card" wx:elif="{{actorData}}">
+    <view class="section-title">演员信息</view>
+    <view class="info-item">
+      <text class="label">姓名:</text>
+      <text class="value">{{actorData.name}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">守护者计数:</text>
+      <text class="value guardian-count">{{actorData.stats.guardianCount}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">语音包数量:</text>
+      <text class="value">{{actorData.stats.voicePackCount}}</text>
+    </view>
+
+    <view class="section-title">语音包列表</view>
+    <view wx:if="{{voicePacks.length > 0}}">
+      <view wx:for="{{voicePacks}}" wx:key="_id" class="pack-item">
+        <view class="pack-info">
+          <text class="pack-name">{{item.name}}</text>
+          <text class="pack-sales">销量: {{item.sales}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="empty">该演员没有语音包</view>
+
+    <view class="section-title">购买记录统计</view>
+    <view wx:if="{{purchases}}">
+      <view class="info-item">
+        <text class="label">新集合购买:</text>
+        <text class="value">{{purchases.newCollection.length}}条</text>
+      </view>
+      <view class="info-item">
+        <text class="label">旧集合购买:</text>
+        <text class="value">{{purchases.oldCollection.length}}条</text>
+      </view>
+      <view class="info-item">
+        <text class="label">过滤后旧集合:</text>
+        <text class="value">{{purchases.filteredOldCollection.length}}条</text>
+      </view>
+    </view>
+
+    <view class="button-group">
+      <button class="btn-primary" bindtap="testGuardianCount">测试守护者计数</button>
+      <button class="btn-outline" bindtap="simulatePurchase" wx:if="{{voicePacks.length > 0}}">模拟购买</button>
+      <button class="btn-secondary" bindtap="copyData">复制数据</button>
+    </view>
+  </view>
+
+  <view class="card" wx:else>
+    <view class="empty">请先选择演员</view>
+  </view>
+</view>
+
+
+
+

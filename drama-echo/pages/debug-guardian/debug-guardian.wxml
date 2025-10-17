@@ -1,0 +1,75 @@
+<!--调试守护者计数页面-->
+<view class="container">
+  <view class="header">
+    <view class="title">🔍 守护者计数调试</view>
+    <view class="subtitle">调试和修复守护者计数问题</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bind:tap="debugGuardianCount" disabled="{{loading}}">
+      {{loading ? '调试中...' : '🔍 调试守护者计数'}}
+    </button>
+    
+    <button class="btn-secondary" bind:tap="updateGuardianCount" disabled="{{loading}}">
+      🔄 手动更新计数
+    </button>
+  </view>
+
+  <view wx:if="{{debugInfo.actor}}" class="debug-info">
+    <view class="info-section">
+      <view class="section-title">演员信息</view>
+      <view class="info-item">
+        <text class="label">演员ID:</text>
+        <text class="value">{{debugInfo.actor.id}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">演员名称:</text>
+        <text class="value">{{debugInfo.actor.name}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">当前守护者计数:</text>
+        <text class="value guardian-count">{{debugInfo.actor.currentGuardianCount}}</text>
+      </view>
+    </view>
+
+    <view class="info-section">
+      <view class="section-title">语音包信息</view>
+      <view class="info-item">
+        <text class="label">语音包数量:</text>
+        <text class="value">{{debugInfo.voicePacks.count}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">语音包ID:</text>
+        <text class="value small">{{debugInfo.voicePacks.packIds.join(', ')}}</text>
+      </view>
+    </view>
+
+    <view class="info-section">
+      <view class="section-title">购买记录</view>
+      <view class="info-item">
+        <text class="label">新集合购买记录:</text>
+        <text class="value">{{debugInfo.purchases.newCollection.count}}条</text>
+      </view>
+      <view class="info-item">
+        <text class="label">旧集合购买记录:</text>
+        <text class="value">{{debugInfo.purchases.oldCollection.count}}条</text>
+      </view>
+    </view>
+
+    <view class="info-section">
+      <view class="section-title">计算结果</view>
+      <view class="info-item">
+        <text class="label">计算出的守护者计数:</text>
+        <text class="value guardian-count">{{debugInfo.guardianCount.calculated}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">唯一用户数:</text>
+        <text class="value">{{debugInfo.guardianCount.uniqueUsers.length}}人</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+
+
+

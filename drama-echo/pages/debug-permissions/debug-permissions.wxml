@@ -1,0 +1,71 @@
+<view class="debug-container">
+  <view class="debug-header">
+    <text class="debug-title">权限调试工具</text>
+    <view class="debug-actions">
+      <button class="debug-btn" bindtap="clearDebugInfo">清空</button>
+      <button class="debug-btn" bindtap="copyDebugInfo">复制</button>
+    </view>
+  </view>
+
+  <!-- 用户信息 -->
+  <view class="debug-section">
+    <text class="section-title">用户信息</text>
+    <view class="debug-content">
+      <text wx:if="{{userInfo}}">{{userInfo.nickName}} ({{userInfo.openid || '未知'}})</text>
+      <text wx:else>未获取到用户信息</text>
+    </view>
+  </view>
+
+  <!-- 云存储文件列表 -->
+  <view class="debug-section">
+    <text class="section-title">云存储图片 ({{cloudFiles.length}}个)</text>
+    <view class="file-list">
+      <view 
+        wx:for="{{cloudFiles}}" 
+        wx:key="imageUrl" 
+        class="file-item"
+        bindtap="testSingleImage"
+        data-image-url="{{item.imageUrl}}"
+      >
+        <text class="file-actor">{{item.actorName}}</text>
+        <text class="file-url">{{item.imageUrl}}</text>
+      </view>
+    </view>
+    <button class="test-btn" bindtap="testAllImages">测试所有图片</button>
+    <button class="test-btn" bindtap="testWeChatShare">测试微信分享</button>
+    <button class="test-btn" bindtap="testDifferentImageSources">测试不同图片源</button>
+    <button class="test-btn" bindtap="refreshUserState">刷新用户状态</button>
+  </view>
+
+  <!-- 测试结果 -->
+  <view class="debug-section" wx:if="{{testResults.length > 0}}">
+    <text class="section-title">测试结果</text>
+    <view class="test-results">
+      <view 
+        wx:for="{{testResults}}" 
+        wx:key="timestamp" 
+        class="test-result {{item.result.success ? 'success' : 'failed'}}"
+      >
+        <text class="result-time">{{item.timestamp}}</text>
+        <text class="result-status">{{item.result.success ? '✅ 成功' : '❌ 失败'}}</text>
+        <text class="result-error" wx:if="{{!item.result.success}}">{{item.result.errMsg}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 调试日志 -->
+  <view class="debug-section">
+    <text class="section-title">调试日志</text>
+    <view class="debug-log">
+      <view 
+        wx:for="{{debugInfo}}" 
+        wx:key="timestamp" 
+        class="log-item"
+      >
+        <text class="log-time">[{{item.timestamp}}]</text>
+        <text class="log-title">{{item.title}}:</text>
+        <text class="log-content">{{item.content}}</text>
+      </view>
+    </view>
+  </view>
+</view>

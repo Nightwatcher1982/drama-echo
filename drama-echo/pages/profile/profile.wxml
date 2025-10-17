@@ -1,0 +1,144 @@
+<view class="container fade-in">
+  <view class="page-title">个人中心</view>
+  <view class="page-subtitle">我的戏剧生活</view>
+  
+  <!-- 用户信息区域 -->
+  <view class="header-section glass-card">
+    <view class="user-avatar" bindlongpress="goToAdmin">
+      <image src="{{userInfo.avatarUrl}}" class="avatar-img" mode="aspectFill" wx:if="{{userInfo.avatarUrl}}" />
+      <view class="avatar-placeholder" wx:else>🎭</view>
+    </view>
+    <view class="user-info">
+      <view class="user-name">{{displayName || userInfo.nickName || '戏剧爱好者'}}</view>
+      <view class="user-title">魔都戏剧爱好者</view>
+    </view>
+    <button class="btn-outline edit-btn" bindtap="editUserInfo">
+      <view class="btn-icon">✏️</view>
+      <view class="btn-text">编辑资料</view>
+    </button>
+  </view>
+
+  <!-- 官方头像昵称填写能力面板 -->
+  <view wx:if="{{showEditorPanel}}" class="editor-panel glass-card">
+    <view class="section-title">
+      <view class="title-icon">🖼️</view>
+      <view class="title-text">选择微信头像和昵称</view>
+    </view>
+    <view class="editor-row">
+      <button open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" class="choose-avatar-btn">选择头像</button>
+      <image wx:if="{{pendingAvatarUrl}}" src="{{pendingAvatarUrl}}" class="avatar-preview" mode="aspectFill"/>
+    </view>
+    <view class="editor-row">
+      <input class="nickname-input" type="nickname" placeholder="请输入昵称"
+             bindinput="onNicknameInput" value="{{pendingNickname}}"/>
+    </view>
+    <view class="editor-actions">
+      <button class="btn-secondary" bindtap="closeEditorPanel">取消</button>
+      <button class="btn-success" bindtap="saveEditorProfile">保存</button>
+    </view>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="collection-section glass-card">
+    <view class="section-title">
+      <view class="title-icon">⭐</view>
+      <view class="title-text">我的收藏</view>
+    </view>
+    <view class="collection-single">
+      <view class="collection-item-large" bindtap="goToVoiceEcho">
+        <view class="collection-icon-large">🎵</view>
+        <view class="collection-content">
+          <view class="collection-name">购买的语音包</view>
+          <view class="collection-desc">已购买 {{purchasedVoicePacks || 0}} 个语音包</view>
+        </view>
+        <view class="collection-arrow">〉</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的语音包 -->
+  <view class="voice-packs-section glass-card" wx:if="{{myVoicePacks && myVoicePacks.length > 0}}">
+    <view class="section-title">
+      <view class="title-icon">🎵</view>
+      <view class="title-text">最近收听</view>
+      <view class="title-action" bindtap="goToVoiceEcho">查看全部</view>
+    </view>
+    <view class="voice-packs-list">
+      <view class="voice-pack-item" wx:for="{{myVoicePacks}}" wx:key="id">
+        <view class="pack-avatar">{{item.actorAvatar || '🎭'}}</view>
+        <view class="pack-info">
+          <view class="pack-name">{{item.name}}</view>
+          <view class="pack-actor">{{item.actorName}}</view>
+        </view>
+        <view class="pack-action" bindtap="playVoicePack" data-pack-id="{{item.id}}">
+          <text class="play-icon">▶️</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="quick-entries glass-card">
+    <view class="section-title">
+      <view class="title-icon">🚀</view>
+      <view class="title-text">快捷入口</view>
+    </view>
+    <view class="entry-grid">
+      <view class="entry-item" bindtap="goToMagicBook">
+        <view class="entry-icon">🔮</view>
+        <view class="entry-text">戏剧魔法书</view>
+      </view>
+      <view class="entry-item" bindtap="goToVoiceEcho">
+        <view class="entry-icon">🎤</view>
+        <view class="entry-text">戏剧回响</view>
+      </view>
+      <view class="entry-item" bindtap="goToWishPool">
+        <view class="entry-icon">🌟</view>
+        <view class="entry-text">许愿池</view>
+      </view>
+    </view>
+  </view>
+
+
+  <!-- 设置选项 -->
+  <view class="settings-section glass-card">
+    <view class="settings-item" bindtap="clearData">
+      <view class="settings-icon">🗑️</view>
+      <view class="settings-text">清除缓存</view>
+      <view class="settings-arrow">〉</view>
+    </view>
+    <view class="settings-item" bindtap="aboutApp">
+      <view class="settings-icon">ℹ️</view>
+      <view class="settings-text">关于应用</view>
+      <view class="settings-arrow">〉</view>
+    </view>
+    <view class="settings-item" bindtap="contactUs">
+      <view class="settings-icon">📧</view>
+      <view class="settings-text">联系我们</view>
+      <view class="settings-arrow">〉</view>
+    </view>
+    <view class="settings-item logout-item" bindtap="handleLogout" wx:if="{{userInfo.nickName && userInfo.nickName !== '未登录用户'}}">
+      <view class="settings-icon">🚪</view>
+      <view class="settings-text">退出登录</view>
+      <view class="settings-arrow">〉</view>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <view class="version-text">戏剧回响 v2.1.0</view>
+    <view class="copyright">© 2024 魔都戏剧</view>
+  </view>
+
+  <!-- 新用户引导全屏层 -->
+  <view wx:if="{{showOnboardingOverlay}}" class="onboarding-mask">
+    <view class="onboarding-card">
+      <view class="onboarding-title">完善个人资料</view>
+      <view class="onboarding-desc">为更好的使用体验，请授权获取微信头像与昵称，或设置个性昵称。</view>
+      <view class="onboarding-actions">
+        <button class="btn-secondary" bindtap="dismissOnboarding">暂不</button>
+        <button class="btn-success" bindtap="startOneTapOnboarding">一键授权完善</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,12 @@
+{
+  "name": "createWish",
+  "version": "1.0.0",
+  "description": "创建许愿",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+
+

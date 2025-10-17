@@ -1,0 +1,142 @@
+.container {
+  padding: 20rpx;
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-top: 8rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0,0,0,.06);
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111827;
+  margin: 24rpx 0 16rpx 0;
+  border-bottom: 2rpx solid #e5e7eb;
+  padding-bottom: 8rpx;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 12rpx;
+  align-items: center;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #6b7280;
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 26rpx;
+  color: #111827;
+  flex: 1;
+}
+
+.guardian-count {
+  font-weight: bold;
+  color: #2563eb;
+  font-size: 32rpx;
+}
+
+.pack-item {
+  padding: 16rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+  background: #f9fafb;
+}
+
+.pack-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pack-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pack-sales {
+  font-size: 24rpx;
+  color: #6b7280;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 24rpx;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #2563eb;
+  border: 2rpx solid #2563eb;
+  border-radius: 12rpx;
+  padding: 18rpx;
+  font-size: 26rpx;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: #fff;
+  border: none;
+  border-radius: 12rpx;
+  padding: 18rpx;
+  font-size: 26rpx;
+}
+
+.loading {
+  text-align: center;
+  color: #6b7280;
+  font-size: 26rpx;
+  padding: 40rpx;
+}
+
+.empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40rpx;
+  font-size: 26rpx;
+}
+
+
+
+

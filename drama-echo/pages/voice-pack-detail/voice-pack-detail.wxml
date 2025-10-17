@@ -1,0 +1,158 @@
+<!-- 语音包详情页 -->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <view class="nav-bar">
+      <view class="nav-left" bindtap="goBack">
+        <text class="back-icon">‹</text>
+      </view>
+      <view class="nav-title">{{packInfo.name}}</view>
+      <button class="nav-right share-btn" open-type="share" bind:tap="setShareContent">
+        <text class="share-icon">⋯</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 语音包图片展示区域 -->
+  <view class="photo-section">
+    <swiper class="photo-swiper" indicator-dots="{{packInfo.images && packInfo.images.length > 1}}" autoplay="{{false}}" circular="{{packInfo.images && packInfo.images.length > 1}}">
+      <swiper-item wx:for="{{packInfo.images}}" wx:key="index">
+        <image 
+          src="{{item}}" 
+          class="photo-image" 
+          mode="aspectFill"
+          bindtap="previewPhoto"
+          data-index="{{index}}"
+        />
+      </swiper-item>
+    </swiper>
+    
+  </view>
+
+
+  <!-- 语音列表 -->
+  <view class="voice-list-section">
+    <view class="voice-list">
+      <view 
+        class="voice-item {{currentPlaying === index ? 'playing' : ''}}" 
+        wx:for="{{packInfo.voices}}" 
+        wx:key="index"
+        data-index="{{index}}"
+      >
+        <view class="voice-content">
+          <view class="voice-title">{{item.title}}</view>
+          <view class="voice-meta">
+            <text class="voice-duration">{{item.duration}}</text>
+            <text wx:if="{{item.subtitle}}" class="voice-subtitle">{{item.subtitle}}</text>
+          </view>
+        </view>
+        
+        <view class="voice-action">
+          <view 
+            class="play-btn {{currentPlaying === index ? 'playing' : ''}}" 
+            bindtap="previewVoice"
+            data-index="{{index}}"
+          >
+            <text class="play-icon">{{currentPlaying === index ? '⏸' : '▶'}}</text>
+          </view>
+        </view>
+        
+        <!-- 播放进度条 -->
+        <view class="progress-bar" wx:if="{{currentPlaying === index}}">
+          <view class="progress" style="width: {{playProgress}}%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+
+  <!-- 花絮视频预览 (如果有花絮视频) -->
+  <view class="bonus-section" wx:if="{{packInfo.bonusVideoUrl}}">
+    <view class="section-title">
+      <text class="title-icon">🎬</text>
+      <text class="title-text">独家花絮</text>
+    </view>
+    
+    <view class="video-preview" bindtap="playBonusVideo">
+      <image src="{{packInfo.bonusVideoThumb || 'https://picsum.photos/300/200?random=1'}}" class="video-thumb" mode="aspectFill" />
+      <view class="play-overlay">
+        <text class="play-icon">▶</text>
+      </view>
+      <view class="video-info">
+        <text class="video-title">{{packInfo.bonusVideoTitle || '花絮视频'}}</text>
+        <text class="video-duration">{{packInfo.bonusVideoDuration || '未知时长'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 打榜复购区域 -->
+  <view class="support-section" wx:if="{{packInfo.packagePurchased}}">
+    <view class="support-card">
+      <view class="support-info">
+        <view class="support-title">为{{packInfo.actorName}}打榜</view>
+        <view class="support-desc">支持你喜欢的演员，让TA在排行榜上更闪耀！</view>
+        <view class="support-count">当前已支持：{{userPurchaseCount}}份</view>
+      </view>
+      
+      <view class="support-action">
+        <view class="support-btn" bindtap="showRepurchaseModal">
+          <text class="btn-icon">💎</text>
+          <text class="btn-text">打榜复购</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 复购数量选择弹窗 -->
+  <view class="repurchase-modal" wx:if="{{showRepurchaseModal}}" catchtouchmove="preventTouchMove">
+    <view class="modal-mask" bindtap="hideRepurchaseModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <view class="modal-title">选择复购数量</view>
+        <view class="modal-close" bindtap="hideRepurchaseModal">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <view class="pack-info">
+          <image src="{{packInfo.icon}}" class="pack-icon" mode="aspectFill" />
+          <view class="pack-details">
+            <view class="pack-name">{{packInfo.name}}</view>
+            <view class="pack-price">¥{{packInfo.formattedPrice}}</view>
+          </view>
+        </view>
+        
+        <view class="quantity-selector">
+          <view class="quantity-label">购买数量</view>
+          <view class="quantity-controls">
+            <view class="quantity-btn" bindtap="decreaseQuantity">-</view>
+            <view class="quantity-display">{{repurchaseQuantity}}</view>
+            <view class="quantity-btn" bindtap="increaseQuantity">+</view>
+          </view>
+        </view>
+        
+        <view class="total-price">
+          <text class="total-label">总计：</text>
+          <text class="total-amount">¥{{totalPrice}}</text>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <view class="modal-btn cancel-btn" bindtap="hideRepurchaseModal">取消</view>
+        <view class="modal-btn confirm-btn" bindtap="confirmRepurchase">确认购买</view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 音频播放器组件 -->
+<audio-player
+  show="{{showAudioPlayer}}"
+  audioUrl="{{currentAudioUrl}}"
+  fileName="{{currentAudioFileName}}"
+  coverImage="{{packInfo.images && packInfo.images[0] ? packInfo.images[0] : ''}}"
+  playlist="{{packInfo.voices}}"
+  currentIndex="{{currentPlaying}}"
+  bind:close="closeAudioPlayer">
+</audio-player>
+
+<!-- 购买确认弹窗已移除 -->

@@ -1,0 +1,94 @@
+<!-- 音频播放器组件 - 唱片机风格 -->
+<view class="audio-player" wx:if="{{show}}">
+  <!-- 播放器头部 -->
+  <view class="player-header">
+    <view class="back-btn" bind:tap="closePlayer">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title">{{fileName || '音频文件'}}</view>
+    <view class="close-btn" bind:tap="closePlayer">
+      <text class="close-icon">×</text>
+    </view>
+  </view>
+  
+  <!-- 唱片机主体 -->
+  <view class="record-player-section">
+    <view class="turntable-container">
+      <!-- 唱片机底座 -->
+      <view class="turntable-base">
+        <!-- 唱片 -->
+        <view class="record" style="transform: rotate({{rotationAngle}}deg);">
+          <!-- 唱片封面 -->
+          <view class="record-cover">
+            <image wx:if="{{coverImage}}" src="{{coverImage}}" class="cover-image" mode="aspectFill"></image>
+            <view wx:else class="cover-placeholder">
+              <text class="placeholder-icon">🎵</text>
+            </view>
+          </view>
+          <!-- 唱片中心孔 -->
+          <view class="record-center"></view>
+          <!-- 唱片纹理 -->
+          <view class="record-grooves">
+            <view class="groove groove-1"></view>
+            <view class="groove groove-2"></view>
+            <view class="groove groove-3"></view>
+            <view class="groove groove-4"></view>
+          </view>
+        </view>
+        
+        <!-- 唱针 -->
+        <view class="tonearm {{isPlaying ? 'playing' : ''}}">
+          <view class="tonearm-base"></view>
+          <view class="tonearm-arm"></view>
+          <view class="tonearm-head"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 歌曲信息区域 -->
+  <view class="song-info-section">
+    <view class="song-details">
+      <view class="artist-name">{{fileName || '未知艺术家'}}</view>
+      <view class="song-index">{{currentTrackIndex + 1}} / {{totalTracks}}</view>
+    </view>
+  </view>
+  
+  <!-- 进度条区域 -->
+  <view class="progress-section">
+    <view class="time-display">
+      <text class="current-time">{{formatTime(currentTime)}}</text>
+      <text class="duration">{{formatTime(duration)}}</text>
+    </view>
+    
+    <!-- 进度条 -->
+    <view class="progress-container">
+      <slider 
+        min="0" 
+        max="{{duration}}" 
+        value="{{currentTime}}" 
+        show-value="{{false}}"
+        block-size="20"
+        block-color="#ffffff"
+        activeColor="#e74c3c"
+        backgroundColor="rgba(255,255,255,0.2)"
+        bind:change="onSliderChange"
+        bind:changing="onSliderChanging">
+      </slider>
+    </view>
+    
+  </view>
+  
+  <!-- 播放控制区域 -->
+  <view class="player-controls">
+    <view class="control-btn prev-btn" bind:tap="playPrevious">
+      <text class="btn-icon">⏮</text>
+    </view>
+    <view class="control-btn main-play-btn {{isPlaying ? 'playing' : ''}}" bind:tap="{{isPlaying ? 'pauseAudio' : 'playAudio'}}">
+      <text class="btn-icon">{{isPlaying ? '⏸' : '▶'}}</text>
+    </view>
+    <view class="control-btn next-btn" bind:tap="playNext">
+      <text class="btn-icon">⏭</text>
+    </view>
+  </view>
+</view>

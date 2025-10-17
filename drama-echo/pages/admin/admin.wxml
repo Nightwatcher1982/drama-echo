@@ -1,0 +1,422 @@
+<view class="container">
+  <view class="admin-header">
+    <view class="header-title">🛠️ 后台管理中心</view>
+    <view class="header-subtitle">积分商城 & 戏剧回响管理</view>
+  </view>
+
+  <!-- 管理员验证 -->
+  <view class="auth-section glass-card" wx:if="{{!isAuthenticated}}">
+    <view class="auth-title">管理员身份验证</view>
+    <input class="auth-input" type="password" placeholder="请输入管理密码" value="{{adminPassword}}" bindinput="onPasswordInput" />
+    <button class="btn-primary" bindtap="authenticate">验证身份</button>
+  </view>
+
+  <!-- 管理面板 -->
+  <view class="admin-panel" wx:if="{{isAuthenticated}}">
+    
+    <!-- 主导航标签页 -->
+    <view class="main-tabs glass-card">
+      <view class="main-tab {{activeMainTab === 'mall' ? 'active' : ''}}" 
+            bindtap="switchMainTab" data-tab="mall">
+        🛒 积分商城管理
+      </view>
+      <view class="main-tab {{activeMainTab === 'voice-echo' ? 'active' : ''}}" 
+            bindtap="switchMainTab" data-tab="voice-echo">
+        🎭 戏剧回响管理
+      </view>
+      <view class="main-tab voice-admin-tab" 
+            bindtap="goToVoiceAdmin">
+        🎵 语音包管理
+      </view>
+    </view>
+
+    <!-- 积分商城管理 -->
+    <view wx:if="{{activeMainTab === 'mall'}}">
+      <!-- 统计概览 -->
+    <view class="stats-section glass-card">
+      <view class="section-title">📊 商品统计</view>
+      <view class="stats-grid">
+        <view class="stat-item">
+          <view class="stat-number">{{totalProducts}}</view>
+          <view class="stat-label">总商品数</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-number">{{totalStock}}</view>
+          <view class="stat-label">总库存</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-number">{{outOfStockCount}}</view>
+          <view class="stat-label">缺货商品</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类管理 -->
+    <view class="category-section glass-card">
+      <view class="section-title">📂 分类管理</view>
+      <view class="category-tabs">
+        <view class="category-tab {{activeCategory === 'physical' ? 'active' : ''}}" 
+              bindtap="switchCategory" data-category="physical">
+          <view class="tab-icon">📦</view>
+          <view class="tab-text">实物商品</view>
+        </view>
+        <view class="category-tab {{activeCategory === 'digital' ? 'active' : ''}}" 
+              bindtap="switchCategory" data-category="digital">
+          <view class="tab-icon">💾</view>
+          <view class="tab-text">数字商品</view>
+        </view>
+        <view class="category-tab {{activeCategory === 'experience' ? 'active' : ''}}" 
+              bindtap="switchCategory" data-category="experience">
+          <view class="tab-icon">🎭</view>
+          <view class="tab-text">体验商品</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品操作 -->
+    <view class="actions-section glass-card">
+      <view class="section-title">⚡ 快速操作</view>
+      <view class="action-buttons">
+        <button class="btn-primary" bindtap="addProduct">
+          <view class="btn-text">➕ 添加商品</view>
+        </button>
+        <button class="btn-outline" bindtap="batchImport">
+          <view class="btn-text">📥 批量导入</view>
+        </button>
+        <button class="btn-outline" bindtap="exportData">
+          <view class="btn-text">📤 导出数据</view>
+        </button>
+      </view>
+    </view>
+
+    <!-- 商品列表 -->
+    <view class="products-section glass-card">
+      <view class="section-title">🛍️ {{categoryNames[activeCategory]}} ({{currentProducts.length}}件)</view>
+      
+      <view class="product-list" wx:if="{{currentProducts.length > 0}}">
+        <view class="product-item" wx:for="{{currentProducts}}" wx:key="id">
+          <view class="product-image">
+            <text class="product-emoji">{{item.emoji}}</text>
+            <view class="stock-badge {{item.stock <= 0 ? 'out-stock' : item.stock <= 5 ? 'low-stock' : ''}}">
+              {{item.stock}}
+            </view>
+          </view>
+          
+          <view class="product-info">
+            <view class="product-name">{{item.name}}</view>
+            <view class="product-desc">{{item.description}}</view>
+            <view class="product-price">{{item.price}} 戏剧币</view>
+          </view>
+          
+          <view class="product-actions">
+            <button class="action-btn edit-btn" bindtap="editProduct" data-id="{{item.id}}">
+              ✏️
+            </button>
+            <button class="action-btn copy-btn" bindtap="copyProduct" data-id="{{item.id}}">
+              📋
+            </button>
+            <button class="action-btn delete-btn" bindtap="deleteProduct" data-id="{{item.id}}">
+              🗑️
+            </button>
+          </view>
+        </view>
+      </view>
+
+      <view class="empty-state" wx:else>
+        <view class="empty-icon">📭</view>
+        <view class="empty-text">该分类暂无商品</view>
+        <button class="btn-outline" bindtap="addProduct">添加第一个商品</button>
+      </view>
+    </view>
+
+  </view>
+</view>
+
+<!-- 商品编辑弹窗 -->
+<view class="modal-overlay {{showEditModal ? 'show' : ''}}" bindtap="hideEditModal">
+  <view class="edit-modal" bindtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-title">{{editingProduct.id ? '编辑商品' : '添加商品'}}</view>
+      <button class="close-btn" bindtap="hideEditModal">✕</button>
+    </view>
+    
+    <scroll-view class="modal-content" scroll-y>
+      <!-- 基本信息 -->
+      <view class="form-section">
+        <view class="form-title">📝 基本信息</view>
+        
+        <view class="form-item">
+          <label class="form-label">商品名称</label>
+          <input class="form-input" placeholder="请输入商品名称" 
+                 value="{{editingProduct.name}}" bindinput="onProductInput" data-field="name" />
+        </view>
+        
+        <view class="form-item">
+          <label class="form-label">商品表情</label>
+          <input class="form-input emoji-input" placeholder="🎭" 
+                 value="{{editingProduct.emoji}}" bindinput="onProductInput" data-field="emoji" />
+        </view>
+        
+        <view class="form-item">
+          <label class="form-label">简短描述</label>
+          <input class="form-input" placeholder="商品简短描述" 
+                 value="{{editingProduct.description}}" bindinput="onProductInput" data-field="description" />
+        </view>
+        
+        <view class="form-item">
+          <label class="form-label">详细描述</label>
+          <textarea class="form-textarea" placeholder="商品详细描述" 
+                    value="{{editingProduct.fullDescription}}" bindinput="onProductInput" data-field="fullDescription"></textarea>
+        </view>
+      </view>
+
+      <!-- 价格库存 -->
+      <view class="form-section">
+        <view class="form-title">💰 价格库存</view>
+        
+        <view class="form-row">
+          <view class="form-item half">
+            <label class="form-label">价格 (戏剧币)</label>
+            <input class="form-input" type="number" placeholder="0" 
+                   value="{{editingProduct.price}}" bindinput="onProductInput" data-field="price" />
+          </view>
+          <view class="form-item half">
+            <label class="form-label">库存数量</label>
+            <input class="form-input" type="number" placeholder="0" 
+                   value="{{editingProduct.stock}}" bindinput="onProductInput" data-field="stock" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 分类设置 -->
+      <view class="form-section">
+        <view class="form-title">📂 分类设置</view>
+        <view class="category-selector">
+          <view class="selector-item {{editingProduct.category === 'physical' ? 'selected' : ''}}"
+                bindtap="selectCategory" data-category="physical">
+            <view class="selector-icon">📦</view>
+            <view class="selector-text">实物商品</view>
+          </view>
+          <view class="selector-item {{editingProduct.category === 'digital' ? 'selected' : ''}}"
+                bindtap="selectCategory" data-category="digital">
+            <view class="selector-icon">💾</view>
+            <view class="selector-text">数字商品</view>
+          </view>
+          <view class="selector-item {{editingProduct.category === 'experience' ? 'selected' : ''}}"
+                bindtap="selectCategory" data-category="experience">
+            <view class="selector-icon">🎭</view>
+            <view class="selector-text">体验商品</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 商品图片 -->
+      <view class="form-section">
+        <view class="form-title">🖼️ 商品图片</view>
+        <view class="image-upload">
+          <view class="upload-area" bindtap="chooseImage">
+            <view class="upload-icon" wx:if="{{!editingProduct.imageUrl}}">📷</view>
+            <image class="uploaded-image" src="{{editingProduct.imageUrl}}" wx:else></image>
+            <view class="upload-text">{{editingProduct.imageUrl ? '点击更换图片' : '点击上传图片'}}</view>
+          </view>
+          <button class="btn-outline" bindtap="removeImage" wx:if="{{editingProduct.imageUrl}}">移除图片</button>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="modal-footer">
+      <button class="btn-outline" bindtap="hideEditModal">取消</button>
+      <button class="btn-primary" bindtap="saveProduct">保存</button>
+    </view>
+  </view>
+</view>
+
+    <!-- 戏剧回响管理 -->
+    <view wx:if="{{activeMainTab === 'voice-echo'}}">
+      <!-- 演员管理区域 -->
+      <view class="voice-echo-section glass-card">
+        <view class="section-title">🎭 演员管理</view>
+        <view class="section-actions">
+          <button class="btn-primary" bindtap="showAddActorModal">+ 添加演员</button>
+          <button class="btn-outline" bindtap="refreshActors">刷新</button>
+        </view>
+        
+        <view class="actors-list">
+          <view wx:for="{{actors}}" wx:key="_id" class="actor-item">
+            <view class="actor-info">
+              <view class="actor-avatar">{{item.avatar}}</view>
+              <view class="actor-details">
+                <view class="actor-name">{{item.name}}</view>
+                <view class="actor-title">{{item.title}}</view>
+                <view class="actor-stats">
+                  守护者: {{item.stats.guardianCount}} | 语音包: {{item.stats.voicePackCount}} | 销量: {{item.stats.totalSales}}
+                </view>
+              </view>
+            </view>
+            <view class="actor-actions">
+              <view class="status-tag {{item.status === 'online' ? 'online' : 'offline'}}">
+                {{item.status === 'online' ? '在线' : '离线'}}
+              </view>
+              <button class="btn-outline btn-small" 
+                      bindtap="editActor" data-actor="{{item}}">编辑</button>
+              <button class="btn-secondary btn-small" 
+                      bindtap="manageVoicePacks" data-actor-id="{{item._id}}">语音包</button>
+            </view>
+          </view>
+          
+          <view wx:if="{{actors.length === 0}}" class="empty-state">
+            <view class="empty-icon">🎭</view>
+            <view class="empty-text">暂无演员数据</view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 语音包管理区域 -->
+      <view class="voice-packs-section glass-card" wx:if="{{selectedActorId}}">
+        <view class="section-title">🎵 语音包管理 - {{selectedActorName}}</view>
+        <view class="section-actions">
+          <button class="btn-primary" bindtap="showAddPackModal">+ 添加语音包</button>
+          <button class="btn-outline" bindtap="clearSelectedActor">返回演员列表</button>
+        </view>
+        
+        <view class="voice-packs-list">
+          <view wx:for="{{voicePacks}}" wx:key="_id" class="pack-item">
+            <view class="pack-info">
+              <view class="pack-icon">{{item.icon}}</view>
+              <view class="pack-details">
+                <view class="pack-name">{{item.name}}</view>
+                <view class="pack-price">¥{{item.formattedPrice}}</view>
+                <view class="pack-stats">销量: {{item.sales}} | 文件: {{item.voiceFiles.length}}个</view>
+              </view>
+            </view>
+            <view class="pack-actions">
+              <view class="hot-tag" wx:if="{{item.isHot}}">热门</view>
+              <button class="btn-outline btn-small" 
+                      bindtap="editVoicePack" data-pack="{{item}}">编辑</button>
+              <button class="btn-danger btn-small" 
+                      bindtap="deleteVoicePack" data-pack-id="{{item._id}}">删除</button>
+            </view>
+          </view>
+          
+          <view wx:if="{{voicePacks.length === 0}}" class="empty-state">
+            <view class="empty-icon">🎵</view>
+            <view class="empty-text">该演员暂无语音包</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+<!-- 演员编辑弹窗 -->
+<view class="modal-overlay {{showActorModal ? 'show' : ''}}" bindtap="hideActorModal">
+  <view class="edit-modal" bindtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-title">{{editingActor._id ? '编辑演员' : '添加演员'}}</view>
+      <view class="modal-close" bindtap="hideActorModal">×</view>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true">
+      <view class="form-section">
+        <view class="form-title">演员姓名</view>
+        <input class="form-input" value="{{editingActor.name}}" 
+               bindinput="onActorInput" data-field="name" placeholder="请输入演员姓名" />
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">职业头衔</view>
+        <input class="form-input" value="{{editingActor.title}}" 
+               bindinput="onActorInput" data-field="title" placeholder="如：国家一级演员" />
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">演员简介</view>
+        <textarea class="form-textarea" value="{{editingActor.description}}" 
+                  bindinput="onActorInput" data-field="description" 
+                  placeholder="请输入演员简介" maxlength="200"></textarea>
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">在线状态</view>
+        <view class="radio-group">
+          <label class="radio-item">
+            <radio value="online" checked="{{editingActor.status === 'online'}}" 
+                   bindchange="onActorStatusChange" />
+            在线
+          </label>
+          <label class="radio-item">
+            <radio value="offline" checked="{{editingActor.status === 'offline'}}" 
+                   bindchange="onActorStatusChange" />
+            离线
+          </label>
+        </view>
+      </view>
+    </scroll-view>
+    
+    <view class="modal-footer">
+      <button class="btn-outline" bindtap="hideActorModal">取消</button>
+      <button class="btn-primary" bindtap="saveActor">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 语音包编辑弹窗 -->
+<view class="modal-overlay {{showPackModal ? 'show' : ''}}" bindtap="hidePackModal">
+  <view class="edit-modal" bindtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-title">{{editingPack._id ? '编辑语音包' : '添加语音包'}}</view>
+      <view class="modal-close" bindtap="hidePackModal">×</view>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true">
+      <view class="form-section">
+        <view class="form-title">语音包名称</view>
+        <input class="form-input" value="{{editingPack.name}}" 
+               bindinput="onPackInput" data-field="name" placeholder="如：经典台词" />
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">图标</view>
+        <input class="form-input" value="{{editingPack.icon}}" 
+               bindinput="onPackInput" data-field="icon" placeholder="如：🌹" />
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">价格（元）</view>
+        <input class="form-input" type="digit" value="{{editingPack.displayPrice}}" 
+               bindinput="onPackPriceInput" placeholder="如：68.00" />
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">简介</view>
+        <textarea class="form-textarea" value="{{editingPack.description}}" 
+                  bindinput="onPackInput" data-field="description" 
+                  placeholder="语音包简介" maxlength="100"></textarea>
+      </view>
+      
+      <view class="form-section">
+        <view class="form-title">是否热门</view>
+        <switch checked="{{editingPack.isHot}}" bindchange="onPackHotChange"></switch>
+      </view>
+    </scroll-view>
+    
+    <view class="modal-footer">
+      <button class="btn-outline" bindtap="hidePackModal">取消</button>
+      <button class="btn-primary" bindtap="savePack">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 确认删除弹窗 -->
+<view class="modal-overlay {{showDeleteModal ? 'show' : ''}}" bindtap="hideDeleteModal">
+  <view class="confirm-modal" bindtap="stopPropagation">
+    <view class="confirm-title">确认删除</view>
+    <view class="confirm-message">
+      确定要删除商品 "{{deletingProduct.name}}" 吗？<br/>
+      此操作无法撤销。
+    </view>
+    <view class="confirm-actions">
+      <button class="btn-outline" bindtap="hideDeleteModal">取消</button>
+      <button class="btn-danger" bindtap="confirmDelete">删除</button>
+    </view>
+  </view>
+</view> 

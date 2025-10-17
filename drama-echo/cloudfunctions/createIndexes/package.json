@@ -1,0 +1,12 @@
+{
+  "name": "createIndexes",
+  "version": "1.0.0",
+  "description": "创建许愿池数据库索引",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+
+

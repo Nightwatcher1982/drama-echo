@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "audio-player": "/components/audio-player/audio-player"
+  },
+  "navigationBarTitleText": "语音包管理后台",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white"
+}

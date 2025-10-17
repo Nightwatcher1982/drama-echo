@@ -1,0 +1,67 @@
+<view class="container">
+  <view class="header">
+    <view class="title">演员数据调试</view>
+    <view class="subtitle">查看演员的封面图和图片库数据</view>
+  </view>
+
+  <view class="card" wx:if="{{loading}}">
+    <view class="loading">加载中...</view>
+  </view>
+
+  <view class="card" wx:elif="{{actorData}}">
+    <view class="section-title">演员基本信息</view>
+    <view class="info-item">
+      <text class="label">姓名:</text>
+      <text class="value">{{actorData.name}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">头像:</text>
+      <text class="value">{{actorData.avatar}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">封面照片:</text>
+      <text class="value">{{actorData.imageUrl || '无'}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">专属页面封面:</text>
+      <text class="value">{{actorData.coverImageUrl || '无'}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">图片库数量:</text>
+      <text class="value">{{actorData.images ? actorData.images.length : 0}}张</text>
+    </view>
+
+    <view class="section-title" wx:if="{{actorData.imageUrl}}">封面照片预览</view>
+    <view class="image-preview" wx:if="{{actorData.imageUrl}}">
+      <image src="{{actorData.imageUrl}}" mode="aspectFit" class="preview-image"></image>
+    </view>
+
+    <view class="section-title" wx:if="{{actorData.coverImageUrl}}">专属页面封面预览</view>
+    <view class="image-preview" wx:if="{{actorData.coverImageUrl}}">
+      <image src="{{actorData.coverImageUrl}}" mode="aspectFit" class="preview-image"></image>
+    </view>
+
+    <view class="section-title" wx:if="{{actorData.images && actorData.images.length > 0}}">图片库预览</view>
+    <view class="images-grid" wx:if="{{actorData.images && actorData.images.length > 0}}">
+      <view wx:for="{{actorData.images}}" wx:key="*this" class="image-item">
+        <image src="{{item}}" mode="aspectFill" class="grid-image"></image>
+        <view class="image-index">{{index + 1}}</view>
+      </view>
+    </view>
+
+    <view class="section-title">完整数据</view>
+    <view class="data-display">
+      <text class="data-text">{{actorData}}</text>
+    </view>
+
+    <button class="btn-primary" bindtap="copyData">复制数据</button>
+  </view>
+
+  <view class="card" wx:else>
+    <view class="empty">请先选择演员</view>
+  </view>
+</view>
+
+
+
+
