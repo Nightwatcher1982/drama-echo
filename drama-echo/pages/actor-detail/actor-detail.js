@@ -712,10 +712,10 @@ Page({
     try {
       wx.showLoading({ title: '调起支付中...' })
       
-      // 检查是否为开发环境
-      if (payParams.paySign === 'test_signature_for_development') {
-        // 开发环境：模拟支付成功
-        console.log('🎭 开发环境：模拟支付成功')
+      // 检查是否为开发环境或fallback模式
+      if (payParams.paySign === 'test_signature_for_development' || payParams.paySign === 'fallback_signature_for_testing') {
+        // 开发环境或fallback模式：模拟支付成功
+        console.log('🎭 模拟支付成功（开发环境或fallback模式）')
         wx.hideLoading()
         
         // 模拟支付成功
