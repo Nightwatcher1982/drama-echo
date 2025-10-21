@@ -6,12 +6,6 @@
       <view class="nav-title"></view>
     </view>
   </view>
-  <view class="top-bar">
-    <view class="nav-bar">
-      <view class="nav-back" bind:tap="goBackFn">＜</view>
-      <view class="nav-title">语音包详情</view>
-    </view>
-  </view>
 
   <!-- 语音包图片展示区域 -->
   <view class="photo-section">

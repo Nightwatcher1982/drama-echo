@@ -75,13 +75,6 @@
   font-weight: bold;
 }
 
-.nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-}
 
 /* 写真照片区域 */
 .photo-section {
@@ -788,19 +781,6 @@
   align-items: center;
 }
 
-.nav-title {
-  width: 100%;
-  text-align: center;
-  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 32rpx;
-  color: #fff;
-  letter-spacing: 0.02em;
-}
-
-.nav-back{
-  font-size: 36rpx !important;
-  color: #fff;
-}
 
 /* 打榜复购区域新样式 */
 .support-section {
