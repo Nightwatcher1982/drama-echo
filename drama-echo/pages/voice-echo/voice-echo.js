@@ -74,11 +74,21 @@ Page({
         })
         
         // 立即显示页面，不等待图片处理
+        // 确保每个演员都有正确的stats结构
+        const processedActorsData = actorsData.map(actor => ({
+          ...actor,
+          stats: {
+            guardianCount: actor.stats?.guardianCount || 0,
+            voicePackCount: actor.stats?.voicePackCount || 0,
+            ...actor.stats
+          }
+        }))
+        
         this.setData({
-          actorsData: actorsData,
+          actorsData: processedActorsData,
           allImages: allImages,
           totalSlides: allImages.length,
-          currentActor: actorsData[0] || null,
+          currentActor: processedActorsData[0] || null,
           loading: false
         })
 
