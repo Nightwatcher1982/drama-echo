@@ -1071,13 +1071,13 @@ Page({
               console.warn('🎵 时长无效，使用智能默认值:', duration)
               audioContext.destroy()
               // 根据音频URL的特征使用不同的默认时长
-              if (audioUrl.includes('voice1') || audioUrl.includes('孙一城')) {
+              if (audioUrl.includes('早安闹钟') || audioUrl.includes('孙一城')) {
                 resolve('2:30')
-              } else if (audioUrl.includes('voice2') || audioUrl.includes('晚安故事')) {
+              } else if (audioUrl.includes('晚安故事')) {
                 resolve('0:26')
-              } else if (audioUrl.includes('voice3') || audioUrl.includes('迷雾灯塔针')) {
+              } else if (audioUrl.includes('迷雾指南针') || audioUrl.includes('迷雾灯塔针')) {
                 resolve('1:06')
-              } else if (audioUrl.includes('voice4') || audioUrl.includes('点亮灯塔')) {
+              } else if (audioUrl.includes('迷雾灯塔') || audioUrl.includes('点亮灯塔')) {
                 resolve('1:27')
               } else {
                 resolve('2:30') // 通用默认时长
