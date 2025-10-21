@@ -29,7 +29,7 @@
             <swiper wx:if="{{coverImages && coverImages.length > 0}}" 
                     class="cover-swiper" 
                     autoplay="{{coverImages.length > 1}}"
-                    interval="4000"
+                    interval="8000"
                     duration="1600"
                     circular="{{coverImages.length > 1}}"
                     indicator-dots="{{false}}"
