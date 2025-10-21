@@ -161,8 +161,6 @@ Page({
             // 异步处理云存储图片，获取临时链接
             this.processCloudImages(packData)
             
-            // 语音时长获取功能已移除
-            
             // 获取用户购买数量
             await this.getUserPurchaseCount(packId)
             
@@ -832,40 +830,91 @@ Page({
     const { packId, repurchaseQuantity, packInfo } = this.data
     
     try {
-      wx.showLoading({ title: '处理中...' })
+      wx.showLoading({ title: '创建订单中...' })
       
-      // 创建多个订单
-      const orders = []
-      for (let i = 0; i < repurchaseQuantity; i++) {
-        const result = await wx.cloud.callFunction({
-          name: 'createOrder',
-          data: {
-            packId: packId,
-            quantity: 1
-          }
+      // 获取用户信息
+      const userInfo = await this.getUserInfo()
+      if (!userInfo) {
+        wx.hideLoading()
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none'
         })
-        
-        if (result.result.code === 0) {
-          orders.push(result.result.data)
-        } else {
-          throw new Error(result.result.message || '创建订单失败')
-        }
+        return
       }
+      
+      // 创建订单并调起支付
+      const result = await wx.cloud.callFunction({
+        name: 'createOrder',
+        data: {
+          packId: packId,
+          userId: userInfo.openid,
+          openid: userInfo.openid,
+          quantity: repurchaseQuantity
+        }
+      })
+      
+      wx.hideLoading()
+      
+      if (result.result.code === 0) {
+        const { orderId, payParams, status } = result.result.data
+        
+        if (payParams && status === 'pending') {
+          // 调起微信支付
+          await this.requestPayment(payParams, orderId, packId, repurchaseQuantity)
+        } else {
+          wx.showToast({
+            title: '支付参数错误',
+            icon: 'none'
+          })
+        }
+      } else {
+        wx.showToast({
+          title: result.result.message || '创建订单失败',
+          icon: 'none'
+        })
+      }
+      
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({
+        title: error.message || '复购失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 调起微信支付
+  async requestPayment(payParams, orderId, packId, quantity = 1) {
+    try {
+      wx.showLoading({ title: '调起支付中...' })
+      
+      const paymentResult = await wx.requestPayment({
+        appId: payParams.appId,
+        timeStamp: payParams.timeStamp,
+        nonceStr: payParams.nonceStr,
+        package: payParams.package,
+        signType: payParams.signType,
+        paySign: payParams.paySign
+      })
+      
+      wx.hideLoading()
+      
+      // 支付成功
+      wx.showToast({
+        title: `购买成功！已购买${quantity}份`,
+        icon: 'success',
+        duration: 2000
+      })
+      
+      // 关闭弹窗
+      this.hideRepurchaseModal()
       
       // 更新用户购买数量
       await this.getUserPurchaseCount(packId)
       
       // 立即刷新页面数据
       await this.loadPackInfo(packId)
-      
-      // 关闭弹窗
-      this.hideRepurchaseModal()
-      
-      wx.showToast({
-        title: `复购成功！已购买${repurchaseQuantity}份`,
-        icon: 'success',
-        duration: 2000
-      })
       
       // 通知父页面刷新数据
       const pages = getCurrentPages()
@@ -880,12 +929,37 @@ Page({
       }
       
     } catch (error) {
-      wx.showToast({
-        title: error.message || '复购失败',
-        icon: 'none'
-      })
-    } finally {
       wx.hideLoading()
+      console.error('支付失败:', error)
+      
+      if (error.errMsg.includes('cancel')) {
+        wx.showToast({
+          title: '支付已取消',
+          icon: 'none'
+        })
+      } else {
+        wx.showToast({
+          title: '支付失败，请重试',
+          icon: 'none'
+        })
+      }
+    }
+  },
+
+  // 获取用户信息
+  async getUserInfo() {
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'getUserData'
+      })
+      
+      if (result.result.code === 0) {
+        return result.result.data
+      }
+      return null
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      return null
     }
   },
 
@@ -902,226 +976,5 @@ Page({
       currentAudioFileName: '',
       currentPlaying: -1
     })
-  },
-
-  // 获取语音文件实际时长
-  async getVoiceDurations(packData) {
-    // 使用当前页面数据中的voices，而不是传入的packData
-    const currentVoices = this.data.packInfo.voices || packData.voices || []
-    if (currentVoices.length === 0) {
-      console.log('🎵 没有语音数据，跳过时长获取')
-      return
-    }
-    
-    try {
-      console.log('🎵 开始获取语音文件实际时长，数量:', currentVoices.length)
-      
-      // 获取云存储音频文件的临时链接
-      const cloudAudioUrls = currentVoices
-        .map(voice => voice.audioUrl || voice.previewUrl)
-        .filter(url => url && url.startsWith('cloud://'))
-      
-      if (cloudAudioUrls.length > 0) {
-        console.log('🎵 需要获取临时链接的云存储音频:', cloudAudioUrls)
-        const tempRes = await wx.cloud.getTempFileURL({
-          fileList: cloudAudioUrls
-        })
-        
-        console.log('🎵 音频临时链接结果:', tempRes)
-        
-        // 更新语音数据中的音频URL和时长
-        const updatedVoices = await Promise.all(
-          currentVoices.map(async (voice, index) => {
-            console.log(`🎵 处理语音${index + 1}:`, {
-              title: voice.title,
-              originalAudioUrl: voice.audioUrl,
-              originalPreviewUrl: voice.previewUrl,
-              originalDuration: voice.duration
-            })
-            
-            let audioUrl = voice.audioUrl || voice.previewUrl
-            
-            // 如果是云存储URL，获取临时链接
-            if (audioUrl && audioUrl.startsWith('cloud://')) {
-              const tempFile = tempRes.fileList.find(file => file.fileID === audioUrl)
-              if (tempFile && tempFile.status === 0) {
-                audioUrl = tempFile.tempFileURL
-                console.log(`🎵 语音${index + 1}获取临时链接成功:`, audioUrl)
-              } else {
-                console.warn(`🎵 语音${index + 1}获取临时链接失败:`, tempFile)
-              }
-            }
-            
-            // 获取实际时长
-            let actualDuration = voice.duration || '2:30' // 默认时长
-            if (audioUrl) {
-              try {
-                console.log(`🎵 开始获取语音${index + 1}时长，URL:`, audioUrl)
-                actualDuration = await this.getAudioDuration(audioUrl)
-                console.log(`🎵 语音${index + 1}实际时长:`, actualDuration)
-              } catch (error) {
-                console.warn(`🎵 获取语音${index + 1}时长失败:`, error)
-              }
-            } else {
-              console.warn(`🎵 语音${index + 1}没有有效的音频URL`)
-            }
-            
-            return {
-              ...voice,
-              audioUrl: audioUrl,
-              duration: actualDuration
-            }
-          })
-        )
-        
-        // 更新页面数据
-        console.log('🎵 准备更新页面数据，当前voices:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
-        
-        this.setData({
-          'packInfo.voices': updatedVoices
-        })
-        
-        console.log('🎵 语音时长更新完成，页面数据已更新:', updatedVoices.map(v => ({ title: v.title, duration: v.duration })))
-        
-        // 立即验证页面数据是否已更新
-        console.log('🎵 立即验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
-        
-        // 延迟验证页面数据是否已更新
-        setTimeout(() => {
-          console.log('🎵 延迟验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
-          
-          // 强制刷新页面数据
-          this.setData({
-            'packInfo.voices': updatedVoices
-          })
-          console.log('🎵 强制刷新页面数据完成')
-        }, 100)
-      }
-    } catch (error) {
-      console.error('🎵 获取语音时长失败:', error)
-    }
-  },
-
-  // 获取音频文件时长
-  getAudioDuration(audioUrl) {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('🎵 开始获取音频时长，URL:', audioUrl)
-        
-        // 首先尝试使用wx.getFileInfo获取文件信息
-        if (audioUrl && !audioUrl.startsWith('http')) {
-          wx.getFileInfo({
-            filePath: audioUrl,
-            success: (res) => {
-              console.log('🎵 文件信息:', res)
-              // 根据文件大小估算时长（假设128kbps的音频质量）
-              // 128kbps = 16KB/s，所以文件大小/16KB = 秒数
-              const estimatedSeconds = Math.floor(res.size / 16000)
-              const minutes = Math.floor(estimatedSeconds / 60)
-              const seconds = estimatedSeconds % 60
-              const estimatedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
-              console.log('🎵 根据文件大小估算时长:', estimatedDuration)
-              resolve(estimatedDuration)
-            },
-            fail: (error) => {
-              console.warn('🎵 获取文件信息失败:', error)
-              // 继续使用音频上下文方法
-              this.getAudioDurationByContext(audioUrl, resolve)
-            }
-          })
-          return
-        }
-        
-        // 对于HTTP URL，直接使用音频上下文
-        this.getAudioDurationByContext(audioUrl, resolve)
-        
-      } catch (error) {
-        console.warn('🎵 创建音频上下文失败:', error)
-        resolve('2:30') // 默认时长
-      }
-    })
-  },
-
-  // 使用音频上下文获取时长
-  getAudioDurationByContext(audioUrl, resolve) {
-    try {
-      // 创建音频上下文
-      const audioContext = wx.createInnerAudioContext()
-      
-      audioContext.src = audioUrl
-      
-      audioContext.onCanplay(() => {
-        console.log('🎵 音频可播放，获取时长...')
-        
-        // 等待一下让音频完全加载
-        setTimeout(() => {
-          const duration = audioContext.duration
-          console.log('🎵 原始时长:', duration)
-          
-          if (duration && !isNaN(duration) && duration > 0) {
-            // 转换为 mm:ss 格式
-            const minutes = Math.floor(duration / 60)
-            const seconds = Math.floor(duration % 60)
-            const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
-            console.log('🎵 格式化时长:', formattedDuration)
-            audioContext.destroy()
-            resolve(formattedDuration)
-            } else {
-              console.warn('🎵 时长无效，使用智能默认值:', duration)
-              audioContext.destroy()
-              
-              // 简化的智能默认值逻辑
-              let defaultDuration = '2:30'
-              
-              console.log('🎵 检查URL:', audioUrl)
-              
-              if (audioUrl.includes('早安闹钟')) {
-                defaultDuration = '2:30'
-                console.log('🎵 匹配早安闹钟 -> 2:30')
-              } else if (audioUrl.includes('晚安故事')) {
-                defaultDuration = '0:26'
-                console.log('🎵 匹配晚安故事 -> 0:26')
-              } else if (audioUrl.includes('迷雾指南针')) {
-                defaultDuration = '1:06'
-                console.log('🎵 匹配迷雾指南针 -> 1:06')
-              } else if (audioUrl.includes('迷雾灯塔')) {
-                defaultDuration = '1:27'
-                console.log('🎵 匹配迷雾灯塔 -> 1:27')
-              } else {
-                console.log('🎵 未匹配，使用默认 -> 2:30')
-              }
-              
-              console.log('🎵 返回时长:', defaultDuration)
-              resolve(defaultDuration)
-            }
-        }, 500) // 等待500ms让音频完全加载
-      })
-      
-      audioContext.onError((error) => {
-        console.warn('🎵 音频加载失败:', error, 'URL:', audioUrl)
-        audioContext.destroy()
-        resolve('2:30') // 默认时长
-      })
-      
-      // 移除不支持的onLoad和onWaiting方法
-      // audioContext.onLoad(() => {
-      //   console.log('🎵 音频加载完成')
-      // })
-      
-      // audioContext.onWaiting(() => {
-      //   console.log('🎵 音频等待中...')
-      // })
-      
-      // 设置超时
-      setTimeout(() => {
-        console.warn('🎵 获取音频时长超时，URL:', audioUrl)
-        audioContext.destroy()
-        resolve('2:30') // 默认时长
-      }, 8000) // 增加超时时间到8秒
-      
-    } catch (error) {
-      console.warn('🎵 创建音频上下文失败:', error)
-      resolve('2:30') // 默认时长
-    }
   }
 })

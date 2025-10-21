@@ -1,0 +1,118 @@
+<view class="container">
+  <view class="header">
+    <view class="title">🧹 数据清理工具</view>
+    <view class="subtitle">生产环境上线前清理测试数据</view>
+  </view>
+
+  <!-- 数据分析结果 -->
+  <view class="card" wx:if="{{analysisData}}">
+    <view class="card-title">📊 当前数据统计</view>
+    <view class="data-grid">
+      <view wx:for="{{analysisData}}" wx:key="index" class="data-item">
+        <view class="data-label">{{item.desc || index}}</view>
+        <view class="data-value {{item.exists ? 'success' : 'error'}}">
+          {{item.exists ? item.count : '不存在'}}
+        </view>
+      </view>
+    </view>
+    <button class="btn-refresh" bindtap="refreshData">🔄 刷新数据</button>
+  </view>
+
+  <!-- 清理操作 -->
+  <view class="card">
+    <view class="card-title">⚠️ 数据清理操作</view>
+    <view class="warning-box">
+      <view class="warning-icon">⚠️</view>
+      <view class="warning-text">
+        以下操作将永久删除数据，请谨慎使用！<br/>
+        建议在生产环境上线前执行，清理所有测试数据。
+      </view>
+    </view>
+    
+    <view class="action-grid">
+      <view class="action-item danger" bindtap="showConfirmModal" data-action="clear">
+        <view class="action-icon">🧹</view>
+        <view class="action-title">清理所有数据</view>
+        <view class="action-desc">删除所有演员、语音包、购买记录等</view>
+      </view>
+      
+      <view class="action-item warning" bindtap="showConfirmModal" data-action="clearActors">
+        <view class="action-icon">🎭</view>
+        <view class="action-title">清理演员数据</view>
+        <view class="action-desc">删除所有演员信息</view>
+      </view>
+      
+      <view class="action-item warning" bindtap="showConfirmModal" data-action="clearVoicePacks">
+        <view class="action-icon">🎵</view>
+        <view class="action-title">清理语音包数据</view>
+        <view class="action-desc">删除所有语音包信息</view>
+      </view>
+      
+      <view class="action-item warning" bindtap="showConfirmModal" data-action="clearPurchases">
+        <view class="action-icon">💰</view>
+        <view class="action-title">清理购买记录</view>
+        <view class="action-desc">删除所有用户购买记录</view>
+      </view>
+      
+      <view class="action-item warning" bindtap="showConfirmModal" data-action="clearWishes">
+        <view class="action-icon">🎋</view>
+        <view class="action-title">清理许愿数据</view>
+        <view class="action-desc">删除所有许愿记录和点赞</view>
+      </view>
+      
+      <view class="action-item warning" bindtap="showConfirmModal" data-action="clearUsers">
+        <view class="action-icon">👥</view>
+        <view class="action-title">清理用户数据</view>
+        <view class="action-desc">删除所有用户数据</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 清理结果 -->
+  <view class="card" wx:if="{{clearResults}}">
+    <view class="card-title">✅ 清理结果</view>
+    <view class="result-content">
+      <text>{{clearResults}}</text>
+    </view>
+  </view>
+
+  <!-- 确认弹窗 -->
+  <view class="modal" wx:if="{{showConfirmModal}}">
+    <view class="modal-body">
+      <view class="modal-title">⚠️ 危险操作确认</view>
+      <view class="modal-content">
+        <view class="confirm-warning">
+          <view class="warning-icon">🚨</view>
+          <view class="warning-text">
+            您即将执行: <text class="action-name">{{actionDesc}}</text><br/>
+            此操作将永久删除数据，无法恢复！
+          </view>
+        </view>
+        
+        <view class="confirm-input">
+          <view class="input-label">请输入确认码:</view>
+          <input 
+            class="confirm-code-input" 
+            placeholder="CLEAR_ALL_DATA_2024"
+            value="{{confirmCode}}"
+            bindinput="onConfirmCodeInput"
+          />
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <button class="btn-cancel" bindtap="cancelClear">取消</button>
+        <button class="btn-confirm danger" bindtap="executeClear">确认清理</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-icon">⏳</view>
+      <view class="loading-text">处理中...</view>
+    </view>
+  </view>
+</view>
+

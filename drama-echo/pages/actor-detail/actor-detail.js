@@ -224,7 +224,7 @@ Page({
     const startDateStr = `${currentMonth}月${startDate.getDate()}日`
     const endDateStr = `${currentMonth}月${endDate.getDate()}日`
     
-    const rewardDetails = `🎁 月度荣耀活动详情
+    const rewardDetails = `🎁 月度奖励活动详情
 
 📅 活动周期：${currentYear}年${startDateStr} - ${endDateStr}
 
@@ -255,7 +255,7 @@ Page({
 • 如有疑问请联系客服`
 
     wx.showModal({
-      title: '月度荣耀活动',
+      title: '月度奖励活动',
       content: rewardDetails,
       showCancel: false,
       confirmText: '我知道了'
@@ -650,35 +650,21 @@ Page({
       
       if (result.result.code === 0) {
         console.log('✅ 订单创建成功')
-        const { orderId, simulatedPayment } = result.result.data
+        const { orderId, payParams, status } = result.result.data
         console.log('🆔 订单ID:', orderId)
-        console.log('🎭 模拟支付:', simulatedPayment)
+        console.log('💰 支付参数:', payParams)
+        console.log('📊 订单状态:', status)
         
-        if (simulatedPayment) {
-          // 开发环境：直接显示购买成功
-          wx.showToast({
-            title: '购买成功！',
-            icon: 'success'
-          })
-          
-          // 关闭弹窗
-          this.closePackDetail()
-          
-          // 刷新页面数据，更新购买状态
-          console.log('🔄 购买成功，刷新页面数据...')
-          await this.loadActorDetail()
-          console.log('✅ 页面数据刷新完成')
-          
-          // 延迟跳转到语音包详情页
-          setTimeout(() => {
-            wx.navigateTo({
-              url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
-            })
-          }, 1500)
-        } else {
-          // 生产环境：调起微信支付
-          const { payParams } = result.result.data
+        if (payParams && status === 'pending') {
+          // 调起微信支付
+          console.log('💰 调起微信支付...')
           await this.requestPayment(payParams, orderId, packId)
+        } else {
+          console.error('❌ 支付参数或状态异常')
+          wx.showToast({
+            title: '支付参数错误',
+            icon: 'none'
+          })
         }
       } else {
         console.log('❌ 订单创建失败:', result.result)

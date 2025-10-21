@@ -11,13 +11,11 @@ cloud.init({
 
 const db = cloud.database()
 
-// 微信支付配置
-const WECHAT_PAY_CONFIG = {
-  appid: 'wxa7e86bc1f0369892', // 您的小程序AppID
-  mch_id: '1728007358', // 您的商户号
-  api_key: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', // 请替换为您的APIv2密钥（32位字符串）
-  notify_url: 'https://cloud1-2gyb3dkq4c474fe4.tcb.qcloud.la/tcb-http-trigger/payCallback'
-}
+// 安全配置加载
+const secureConfig = require('../utils/secureConfig')
+
+// 获取微信支付配置
+const WECHAT_PAY_CONFIG = secureConfig.getWechatPayConfig()
 
 // 生成随机字符串
 function generateNonceStr() {
@@ -143,11 +141,10 @@ exports.main = async (event, context) => {
   const currentUserId = userId || OPENID
   
   try {
-    console.log('开始创建订单:', { 
+    secureConfig.log('info', '开始创建订单', { 
       packId, 
-      userId: currentUserId, 
-      openid: currentOpenid,
-      originalEvent: { packId, userId, openid }
+      userId: currentUserId,
+      originalEvent: { packId, userId }
     })
     
     // 1. 获取语音包信息
@@ -160,7 +157,7 @@ exports.main = async (event, context) => {
     }
     
     const packData = packResult.data
-    console.log('语音包信息:', packData)
+    secureConfig.log('debug', '语音包信息获取成功', { packId: packData._id, packName: packData.name })
     
     // 2. 获取演员信息
     const actorResult = await db.collection('actors').doc(packData.actorId).get()
@@ -193,106 +190,65 @@ exports.main = async (event, context) => {
       data: orderData
     })
     
-    console.log('订单创建成功:', orderData)
+    secureConfig.log('info', '订单创建成功', { orderNo: orderData._id, amount: orderData.amount })
     
-    // 开发环境：跳过支付，直接完成购买
-    console.log('开发环境：跳过支付，直接完成购买')
-    
-    // 更新订单状态为已支付
-    await db.collection('orders').doc(orderNo).update({
-      data: {
-        status: 'paid',
-        payTime: new Date(),
-        transactionId: `dev_${Date.now()}`
-      }
-    })
-    
-    // 创建用户购买记录
-    await db.collection('user_purchases').add({
-      data: {
-        _openid: currentOpenid,
-        userId: currentUserId,
-        packId: packId,
-        orderId: orderNo,
-        purchaseTime: new Date(),
-        status: 'completed',
-        purchaseType: 'package',
-        amount: packData.price
-      }
-    })
-    
-    // 更新语音包销量
-    console.log('🔄 开始更新语音包销量，packId:', packId)
-    
-    // 先检查当前销量
+    // 6. 调用微信支付统一下单接口
     try {
-      const currentPackResult = await db.collection('voicePacks').doc(packId).get()
-      if (currentPackResult.data) {
-        console.log('📊 当前销量:', currentPackResult.data.sales, '类型:', typeof currentPackResult.data.sales)
-      }
-    } catch (error) {
-      console.log('未找到语音包:', error.message)
-    }
-    
-    // 更新语音包销量
-    try {
-      const packResult = await db.collection('voicePacks').doc(packId).get()
-      if (packResult.data) {
-        const currentSales = packResult.data.sales || 0
-        const newSales = currentSales + 1
+      const wechatResponse = await createWechatOrder(orderData)
+      const wechatData = parseXML(wechatResponse)
+      
+      if (wechatData.return_code === 'SUCCESS' && wechatData.result_code === 'SUCCESS') {
+        // 微信支付统一下单成功，返回支付参数
+        const payParams = {
+          appId: WECHAT_PAY_CONFIG.appid,
+          timeStamp: Math.floor(Date.now() / 1000).toString(),
+          nonceStr: generateNonceStr(),
+          package: `prepay_id=${wechatData.prepay_id}`,
+          signType: 'MD5',
+          paySign: generateSign({
+            appId: WECHAT_PAY_CONFIG.appid,
+            timeStamp: Math.floor(Date.now() / 1000).toString(),
+            nonceStr: generateNonceStr(),
+            package: `prepay_id=${wechatData.prepay_id}`,
+            signType: 'MD5'
+          }, WECHAT_PAY_CONFIG.api_key)
+        }
         
-        await db.collection('voicePacks').doc(packId).update({
-          data: {
-            sales: newSales
-          }
+        secureConfig.log('info', '微信支付统一下单成功', { 
+          orderNo: orderData._id, 
+          prepayId: wechatData.prepay_id 
         })
-        console.log('✅ 销量更新成功:', packId, '从', currentSales, '到', newSales)
-
-        // 验证更新结果
-        const updatedPackResult = await db.collection('voicePacks').doc(packId).get()
-        if (updatedPackResult.data) {
-          console.log('📊 更新后销量:', updatedPackResult.data.sales)
+        
+        return {
+          code: 0,
+          message: '订单创建成功',
+          data: {
+            orderId: orderNo,
+            payParams: payParams,
+            status: 'pending'
+          }
         }
       } else {
-        console.error('❌ 未找到语音包，无法更新销量')
+        // 微信支付统一下单失败
+        secureConfig.log('error', '微信支付统一下单失败', { 
+          orderNo: orderData._id, 
+          error: wechatData.return_msg || wechatData.err_code_des 
+        })
+        
+        return {
+          code: -1,
+          message: wechatData.return_msg || wechatData.err_code_des || '支付下单失败'
+        }
       }
     } catch (error) {
-      console.error('❌ 销量更新失败:', error.message)
-    }
-    
-    console.log('开发环境：模拟支付完成，订单号:', orderNo)
-    
-    // 更新粉丝排行榜
-    try {
-      console.log('🔄 更新粉丝排行榜...')
-      await wx.cloud.callFunction({
-        name: 'updateFanRanking',
-        data: { actorId: packData.actorId }
+      secureConfig.log('error', '调用微信支付接口失败', { 
+        orderNo: orderData._id, 
+        error: error.message 
       })
-      console.log('✅ 粉丝排行榜更新完成')
-    } catch (error) {
-      console.error('❌ 更新粉丝排行榜失败:', error.message)
-    }
-    
-    // 更新演员守护者计数
-    try {
-      console.log('🔄 更新演员守护者计数...')
-      await wx.cloud.callFunction({
-        name: 'updateActorGuardianCount',
-        data: { actorId: packData.actorId }
-      })
-      console.log('✅ 演员守护者计数更新完成')
-    } catch (error) {
-      console.error('❌ 更新演员守护者计数失败:', error.message)
-    }
-    
-    return {
-      code: 0,
-      message: '开发环境：购买成功！',
-      data: {
-        orderId: orderNo,
-        simulatedPayment: true,
-        message: '开发环境：支付模拟成功'
+      
+      return {
+        code: -1,
+        message: '支付接口调用失败: ' + error.message
       }
     }
     
