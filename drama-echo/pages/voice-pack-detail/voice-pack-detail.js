@@ -856,9 +856,20 @@ Page({
       
       wx.hideLoading()
       
+      console.log('🔍 完整的云函数返回结果:', result)
+      console.log('🔍 result.result:', result.result)
+      console.log('🔍 result.result.data:', result.result.data)
+      
       if (result.result.code === 0) {
         const { orderId, payParams, status } = result.result.data
         console.log('📊 复购订单创建成功:', { orderId, payParams, status })
+        console.log('📊 数据类型检查:', {
+          orderIdType: typeof orderId,
+          payParamsType: typeof payParams,
+          statusType: typeof status,
+          payParamsValue: payParams,
+          statusValue: status
+        })
         
         if (payParams && status === 'pending') {
           // 调起微信支付
@@ -866,6 +877,7 @@ Page({
           await this.requestPayment(payParams, orderId, packId, repurchaseQuantity)
         } else {
           console.error('❌ 支付参数异常:', { payParams, status })
+          console.error('❌ 完整的数据结构:', result.result.data)
           wx.showToast({
             title: '支付参数错误',
             icon: 'none'

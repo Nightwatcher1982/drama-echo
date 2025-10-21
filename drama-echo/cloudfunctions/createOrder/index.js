@@ -196,6 +196,10 @@ exports.main = async (event, context) => {
     secureConfig.log('info', '订单创建成功', { orderNo: orderData._id, amount: orderData.amount })
     
     // 6. 调用微信支付统一下单接口
+    secureConfig.log('info', '开始处理支付参数', { 
+      orderNo: orderData._id, 
+      isDevelopment: secureConfig.isDevelopment() 
+    })
     try {
       // 检查是否为开发环境
       if (secureConfig.isDevelopment()) {
@@ -211,7 +215,7 @@ exports.main = async (event, context) => {
           paySign: 'test_signature_for_development'
         }
         
-        return {
+        const devResult = {
           code: 0,
           message: '订单创建成功（开发环境）',
           data: {
@@ -221,6 +225,8 @@ exports.main = async (event, context) => {
             isDevelopment: true
           }
         }
+        secureConfig.log('info', '开发环境返回结果', devResult)
+        return devResult
       } else {
         // 生产环境：调用真实的微信支付接口
         try {
@@ -295,7 +301,7 @@ exports.main = async (event, context) => {
             paySign: 'fallback_signature_for_testing'
           }
           
-          return {
+          const fallbackResult = {
             code: 0,
             message: '订单创建成功（fallback模式）',
             data: {
@@ -305,6 +311,8 @@ exports.main = async (event, context) => {
               isFallback: true
             }
           }
+          secureConfig.log('info', 'fallback模式返回结果', fallbackResult)
+          return fallbackResult
         }
       }
     } catch (error) {
