@@ -1,0 +1,54 @@
+<!--测试演员图片显示页面-->
+<view class="container">
+  <view class="header">
+    <view class="title">🧪 演员图片显示测试</view>
+    <view class="subtitle">测试封面照片和详情页图片的显示逻辑</view>
+  </view>
+
+  <view class="content">
+    <button class="refresh-btn" bindtap="refreshData" disabled="{{loading}}">
+      {{loading ? '加载中...' : '🔄 刷新数据'}}
+    </button>
+
+    <view wx:if="{{!loading && actorsData.length > 0}}" class="actors-list">
+      <view wx:for="{{actorsData}}" wx:key="_id" class="actor-card">
+        <view class="actor-header">
+          <view class="actor-name">{{item.name}}</view>
+          <view class="actor-id">ID: {{item._id}}</view>
+        </view>
+        
+        <!-- 封面照片显示 -->
+        <view class="image-section">
+          <view class="section-title">📸 封面照片（戏剧回响页）</view>
+          <view class="image-display">
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" class="cover-image"></image>
+            <view wx:else class="no-image">无封面照片</view>
+          </view>
+        </view>
+        
+        <!-- 详情页图片库显示 -->
+        <view class="image-section">
+          <view class="section-title">🖼️ 详情页图片库</view>
+          <view class="images-grid">
+            <view wx:for="{{item.images}}" wx:key="*this" wx:for-item="imageUrl" class="detail-image-item">
+              <image src="{{imageUrl}}" mode="aspectFill" class="detail-image"></image>
+            </view>
+            <view wx:if="{{!item.images || item.images.length === 0}}" class="no-image">无详情页图片</view>
+          </view>
+        </view>
+        
+        <!-- 测试按钮 -->
+        <view class="test-actions">
+          <button class="test-btn" bindtap="testActorDetail" data-actor-id="{{item._id}}">
+            测试详情页图片逻辑
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{!loading && actorsData.length === 0}}" class="empty-state">
+      <view class="empty-icon">📭</view>
+      <view class="empty-text">暂无演员数据</view>
+    </view>
+  </view>
+</view>
