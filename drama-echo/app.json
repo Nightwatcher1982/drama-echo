@@ -29,7 +29,8 @@
     "pages/clear-data/clear-data",
     "pages/debug-guardian-data/debug-guardian-data",
     "pages/test-guardian-display/test-guardian-display",
-    "pages/test-actor-images/test-actor-images"
+    "pages/test-actor-images/test-actor-images",
+    "pages/debug-actor-images/debug-actor-images"
   ],
   "window": {
     "backgroundTextStyle": "dark",

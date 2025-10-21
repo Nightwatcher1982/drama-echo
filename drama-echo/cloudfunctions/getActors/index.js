@@ -177,8 +177,19 @@ exports.main = async (event, context) => {
           console.log(`计算演员 ${actor.name} 守护者计数失败(可忽略):`, e.message)
         }
         
+        // 确保封面照片正确设置
+        // imageUrl 应该是封面照片，用于戏剧回响页显示
+        let coverImageUrl = actor.imageUrl
+        
+        // 如果 imageUrl 为空，但有图片库，则使用图片库第一张作为封面照片
+        if (!coverImageUrl && actor.images && actor.images.length > 0) {
+          coverImageUrl = actor.images[0]
+          console.log(`演员 ${actor.name} 使用图片库第一张作为封面照片:`, coverImageUrl)
+        }
+        
         return {
           ...actor,
+          imageUrl: coverImageUrl, // 确保封面照片正确
           stats: {
             ...(actor.stats || {}),
             guardianCount

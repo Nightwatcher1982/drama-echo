@@ -1,0 +1,54 @@
+<!--调试演员图片数据页面-->
+<view class="container">
+  <view class="header">
+    <view class="title">🔍 演员图片数据调试</view>
+    <view class="subtitle">调试演员封面照片和图片库数据</view>
+  </view>
+
+  <view class="content">
+    <button class="debug-btn" bindtap="debugActorImages" disabled="{{loading}}">
+      {{loading ? '调试中...' : '🔍 调试演员图片数据'}}
+    </button>
+
+    <view wx:if="{{debugInfo}}" class="debug-results">
+      <view class="section">
+        <view class="section-title">📊 数据统计</view>
+        <view class="stat-item">
+          <text class="label">总演员数:</text>
+          <text class="value">{{debugInfo.totalActors}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">既无封面照片也无图片库:</text>
+          <text class="value error">{{debugInfo.issues.noImages}}个</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">无封面照片但有图片库:</text>
+          <text class="value warning">{{debugInfo.issues.noCoverButHasGallery}}个</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">封面照片和图片库都存在:</text>
+          <text class="value success">{{debugInfo.issues.hasBoth}}个</text>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-title">👥 演员详情（前3个）</view>
+        <view wx:for="{{debugInfo.actorImageAnalysis}}" wx:key="actorId" wx:for-item="actor" class="actor-item">
+          <view class="actor-name">{{actor.actorName}}</view>
+          <view class="actor-details">
+            <text class="label">封面照片:</text>
+            <text class="value">{{actor.hasImageUrl ? '有' : '无'}}</text>
+          </view>
+          <view class="actor-details">
+            <text class="label">图片库:</text>
+            <text class="value">{{actor.imagesCount}}张</text>
+          </view>
+          <view class="actor-details" wx:if="{{actor.issues.length > 0}}">
+            <text class="label">问题:</text>
+            <text class="value issues">{{actor.issues.join(', ')}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
