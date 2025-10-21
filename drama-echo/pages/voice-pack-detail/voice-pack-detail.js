@@ -1061,29 +1061,11 @@ Page({
             console.log('🎵 格式化时长:', formattedDuration)
             audioContext.destroy()
             resolve(formattedDuration)
-          } else {
-            console.warn('🎵 时长无效，尝试播放获取时长:', duration)
-            // 尝试播放一小段来获取时长
-            audioContext.play()
-            
-            setTimeout(() => {
-              const durationAfterPlay = audioContext.duration
-              console.log('🎵 播放后时长:', durationAfterPlay)
-              audioContext.stop()
+            } else {
+              console.warn('🎵 时长无效，使用默认值:', duration)
               audioContext.destroy()
-              
-              if (durationAfterPlay && !isNaN(durationAfterPlay) && durationAfterPlay > 0) {
-                const minutes = Math.floor(durationAfterPlay / 60)
-                const seconds = Math.floor(durationAfterPlay % 60)
-                const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
-                console.log('🎵 播放后格式化时长:', formattedDuration)
-                resolve(formattedDuration)
-              } else {
-                console.warn('🎵 播放后时长仍无效，使用默认值:', durationAfterPlay)
-                resolve('2:30') // 默认时长
-              }
-            }, 1000) // 播放1秒后获取时长
-          }
+              resolve('2:30') // 默认时长
+            }
         }, 500) // 等待500ms让音频完全加载
       })
       
