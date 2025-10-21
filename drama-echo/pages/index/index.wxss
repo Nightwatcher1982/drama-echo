@@ -72,10 +72,12 @@ height: 176rpx;
   padding: 30rpx;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24rpx;
   border: 1px solid rgba(242, 233, 246, 0.56);
   box-shadow: 0 4rpx 24rpx rgba(187, 155, 228, 0.32);
   transition: all 0.3s ease;
+  min-height: 100rpx;
 }
 
 .user-info:active {
@@ -107,6 +109,7 @@ height: 176rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .user-name {
@@ -116,25 +119,8 @@ height: 176rpx;
   font-weight: 500;
   color: #333333;
   text-transform: uppercase;
-  position: relative;
-}
-
-.user-name::before {
-  content: '「';
-  position: absolute;
-  left: -20rpx;
-  top: 0;
-  color: #8B38A2;
-  font-size: 28rpx;
-}
-
-.user-name::after {
-  content: '」';
-  position: absolute;
-  right: -20rpx;
-  top: 0;
-  color: #8B38A2;
-  font-size: 28rpx;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .user-stats {
