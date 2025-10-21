@@ -232,6 +232,11 @@
                <view class="function-title">数据清理</view>
                <view class="function-desc">清理测试数据，生产环境上线前使用</view>
              </view>
+             <view class="function-item" bindtap="goToDebugActorImages">
+               <view class="function-icon">🔍</view>
+               <view class="function-title">演员图片调试</view>
+               <view class="function-desc">调试演员封面照片和图片库数据</view>
+             </view>
         </view>
       </view>
     </view>

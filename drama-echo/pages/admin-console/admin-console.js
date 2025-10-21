@@ -1031,6 +1031,13 @@ Page({
     })
   },
 
+  // 跳转到演员图片调试页面
+  goToDebugActorImages() {
+    wx.navigateTo({
+      url: '/pages/debug-actor-images/debug-actor-images'
+    })
+  },
+
   // 切换模块
   switchModule(e) {
     const module = e.currentTarget.dataset.module
