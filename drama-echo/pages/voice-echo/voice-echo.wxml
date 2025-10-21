@@ -1,9 +1,11 @@
-<!--戏剧回响首页-->
+<!--戏剧回响页面-->
 <view class="container">
-  <!-- 顶部导航 -->
-  <view class="header">
-    <view class="app-title">戏剧回响</view>
-    <view class="app-subtitle">收藏你喜爱演员的专属声音</view>
+  <!-- 顶部标题卡片 -->
+  <view class="title-card">
+    <view class="title-content">
+      <view class="title-text">戏剧回响</view>
+      <view class="subtitle-text">收藏你喜爱演员的专属声音</view>
+    </view>
   </view>
 
   <!-- 加载状态 -->
@@ -20,38 +22,43 @@
     <button class="empty-btn" bind:tap="goToInit">初始化数据</button>
   </view>
 
-  <!-- 轮播图区域（显示所有演员图片） -->
-  <swiper wx:elif="{{!loading && allImages.length > 0}}" class="carousel-swiper" current="{{currentSlide}}" circular="{{allImages.length > 1}}" duration="300" autoplay="{{false}}" indicator-dots="{{allImages.length > 1}}" indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff" bindchange="onSwiperChange">
-    <swiper-item wx:for="{{allImages}}" wx:key="index">
-      <view class="carousel-slide" bindtap="onCarouselTap">
-        <image class="slide-cover" mode="aspectFill" src="{{item.url}}" />
-      </view>
-    </swiper-item>
-  </swiper>
+  <!-- 主要内容区域 -->
+  <view wx:elif="{{!loading && currentActor}}" class="main-content">
+    <!-- 演员头像区域 -->
+    <view class="actor-avatar-section">
+      <image class="actor-avatar" mode="aspectFill" src="{{currentActor.imageUrl}}" />
+    </view>
 
-  <!-- 演员信息区域 -->
-  <view wx:if="{{!loading && currentActor}}" class="actor-info-section">
-    <view class="actor-details">
-      <view class="actor-name-display">{{currentActor.name}}</view>
-      <view class="actor-title-display">{{currentActor.title}}</view>
+    <!-- 演员信息卡片 -->
+    <view class="actor-info-card">
+      <view class="actor-header">
+        <view class="actor-name">{{currentActor.name}}</view>
+        <view class="actor-title">{{currentActor.title}}</view>
+      </view>
+      
       <view class="actor-description">{{currentActor.description}}</view>
-
-      <view class="stats-container">
-        <view class="stat-item">
-          <text class="stat-number">{{currentActor.stats.guardianCount}}</text>
-          <text class="stat-label">守护者</text>
+      
+      <view class="stats-row">
+        <view class="stat-box">
+          <view class="stat-number">{{currentActor.stats.guardianCount}}</view>
+          <view class="stat-label">守护者</view>
         </view>
-        <view class="stat-item">
-          <text class="stat-number">{{currentActor.stats.voicePackCount}}</text>
-          <text class="stat-label">语音包</text>
+        <view class="stat-box">
+          <view class="stat-number">{{currentActor.stats.voicePackCount}}</view>
+          <view class="stat-label">语音包</view>
         </view>
       </view>
-
-
-      <button class="enter-actor-space" bind:tap="enterActorSpace">
-        进入专属空间 ✨
+      
+      <button class="enter-space-btn" bind:tap="enterActorSpace">
+        <text class="btn-text">进入专属空间</text>
+        <image class="star-icon" src="/images/figma-assets/star-decoration.png" mode="aspectFit"></image>
       </button>
     </view>
+  </view>
+
+  <!-- 轮播指示器 -->
+  <view wx:if="{{!loading && allImages.length > 1}}" class="carousel-indicators">
+    <view wx:for="{{allImages}}" wx:key="index" class="indicator {{currentSlide === index ? 'active' : ''}}" bindtap="onIndicatorTap" data-index="{{index}}"></view>
   </view>
 
   <view class="bottom-spacing"></view>
