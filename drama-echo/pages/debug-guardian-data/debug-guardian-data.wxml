@@ -1,0 +1,66 @@
+<!--调试守护者数据页面-->
+<view class="container">
+  <view class="header">
+    <view class="title">🔍 守护者数据调试</view>
+    <view class="subtitle">调试和修复守护者计数问题</view>
+  </view>
+
+  <view class="content">
+    <button class="debug-btn" bindtap="debugGuardianData" disabled="{{loading}}">
+      {{loading ? '调试中...' : '🔍 调试守护者数据'}}
+    </button>
+
+    <view wx:if="{{debugInfo}}" class="debug-results">
+      <view class="section">
+        <view class="section-title">📊 数据统计</view>
+        <view class="stat-item">
+          <text class="label">演员数量:</text>
+          <text class="value">{{debugInfo.actors}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">语音包数量:</text>
+          <text class="value">{{debugInfo.voicePacks}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">新购买记录:</text>
+          <text class="value">{{debugInfo.newPurchases}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">旧购买记录:</text>
+          <text class="value">{{debugInfo.oldPurchases}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="label">粉丝榜记录:</text>
+          <text class="value">{{debugInfo.fanRanking}}</text>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-title">👥 守护者计数详情</view>
+        <view wx:for="{{debugInfo.actorGuardianCounts}}" wx:key="actorId" class="actor-item">
+          <view class="actor-name">{{item.actorName}}</view>
+          <view class="actor-details">
+            <text class="label">语音包ID:</text>
+            <text class="value">{{item.packIds.join(', ')}}</text>
+          </view>
+          <view class="actor-details">
+            <text class="label">新购买记录:</text>
+            <text class="value">{{item.newPurchases}}条</text>
+          </view>
+          <view class="actor-details">
+            <text class="label">旧购买记录:</text>
+            <text class="value">{{item.oldPurchases}}条</text>
+          </view>
+          <view class="actor-details">
+            <text class="label">唯一用户数:</text>
+            <text class="value guardian-count">{{item.uniqueUsers}}人</text>
+          </view>
+          <view class="actor-details">
+            <text class="label">当前守护者计数:</text>
+            <text class="value guardian-count">{{item.currentGuardianCount}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

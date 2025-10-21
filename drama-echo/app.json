@@ -22,7 +22,12 @@
     "pages/debug-guardian/debug-guardian",
     "pages/debug-actor-data/debug-actor-data",
     "pages/test-guardian-flow/test-guardian-flow",
-    "pages/debug-permissions/debug-permissions"
+    "pages/admin-data/admin-data",
+    "pages/fix-sales-data/fix-sales-data",
+    "pages/wish-pool-admin/wish-pool-admin",
+    "pages/optimize-indexes/optimize-indexes",
+    "pages/clear-data/clear-data",
+    "pages/debug-guardian-data/debug-guardian-data"
   ],
   "window": {
     "backgroundTextStyle": "dark",
