@@ -20,7 +20,7 @@ const WECHAT_PAY_CONFIG = {
 }
 
 // 开发环境标识
-const IS_DEVELOPMENT = true
+const IS_DEVELOPMENT = false
 
 // 日志记录函数
 function log(level, message, data = {}) {
