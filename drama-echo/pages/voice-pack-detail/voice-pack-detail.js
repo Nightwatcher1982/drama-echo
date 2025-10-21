@@ -990,6 +990,12 @@ Page({
         // 延迟验证页面数据是否已更新
         setTimeout(() => {
           console.log('🎵 延迟验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
+          
+          // 强制刷新页面数据
+          this.setData({
+            'packInfo.voices': updatedVoices
+          })
+          console.log('🎵 强制刷新页面数据完成')
         }, 100)
       }
     } catch (error) {
