@@ -761,6 +761,15 @@ Page({
       console.log('saveActor: 即将提交的payload:', payload)
       const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: payload })
       console.log('saveActor: 云函数返回:', res)
+      
+      if (res.result.code !== 0) {
+        throw new Error(res.result.message || '保存失败')
+      }
+      
+      console.log('✅ 演员保存成功，准备刷新本地数据')
+      
+      // 保存成功后，刷新本地演员数据
+      await this.loadActors()
 
       if (res && res.result && res.result.code === 0) {
         wx.showToast({ title: '保存成功', icon: 'success' })
