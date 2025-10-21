@@ -930,6 +930,13 @@ Page({
         // 更新语音数据中的音频URL和时长
         const updatedVoices = await Promise.all(
           packData.voices.map(async (voice, index) => {
+            console.log(`🎵 处理语音${index + 1}:`, {
+              title: voice.title,
+              originalAudioUrl: voice.audioUrl,
+              originalPreviewUrl: voice.previewUrl,
+              originalDuration: voice.duration
+            })
+            
             let audioUrl = voice.audioUrl || voice.previewUrl
             
             // 如果是云存储URL，获取临时链接
@@ -937,6 +944,9 @@ Page({
               const tempFile = tempRes.fileList.find(file => file.fileID === audioUrl)
               if (tempFile && tempFile.status === 0) {
                 audioUrl = tempFile.tempFileURL
+                console.log(`🎵 语音${index + 1}获取临时链接成功:`, audioUrl)
+              } else {
+                console.warn(`🎵 语音${index + 1}获取临时链接失败:`, tempFile)
               }
             }
             
@@ -944,11 +954,14 @@ Page({
             let actualDuration = voice.duration || '2:30' // 默认时长
             if (audioUrl) {
               try {
+                console.log(`🎵 开始获取语音${index + 1}时长，URL:`, audioUrl)
                 actualDuration = await this.getAudioDuration(audioUrl)
                 console.log(`🎵 语音${index + 1}实际时长:`, actualDuration)
               } catch (error) {
                 console.warn(`🎵 获取语音${index + 1}时长失败:`, error)
               }
+            } else {
+              console.warn(`🎵 语音${index + 1}没有有效的音频URL`)
             }
             
             return {
@@ -974,40 +987,56 @@ Page({
   getAudioDuration(audioUrl) {
     return new Promise((resolve, reject) => {
       try {
+        console.log('🎵 开始获取音频时长，URL:', audioUrl)
+        
         // 创建音频上下文
         const audioContext = wx.createInnerAudioContext()
         
         audioContext.src = audioUrl
+        
         audioContext.onCanplay(() => {
+          console.log('🎵 音频可播放，获取时长...')
           // 获取音频时长
           const duration = audioContext.duration
+          console.log('🎵 原始时长:', duration)
           audioContext.destroy()
           
-          if (duration && !isNaN(duration)) {
+          if (duration && !isNaN(duration) && duration > 0) {
             // 转换为 mm:ss 格式
             const minutes = Math.floor(duration / 60)
             const seconds = Math.floor(duration % 60)
             const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+            console.log('🎵 格式化时长:', formattedDuration)
             resolve(formattedDuration)
           } else {
+            console.warn('🎵 时长无效，使用默认值:', duration)
             resolve('2:30') // 默认时长
           }
         })
         
         audioContext.onError((error) => {
-          console.warn('音频加载失败:', error)
+          console.warn('🎵 音频加载失败:', error, 'URL:', audioUrl)
           audioContext.destroy()
           resolve('2:30') // 默认时长
         })
         
+        audioContext.onLoad(() => {
+          console.log('🎵 音频加载完成')
+        })
+        
+        audioContext.onWaiting(() => {
+          console.log('🎵 音频等待中...')
+        })
+        
         // 设置超时
         setTimeout(() => {
+          console.warn('🎵 获取音频时长超时，URL:', audioUrl)
           audioContext.destroy()
           resolve('2:30') // 默认时长
-        }, 5000)
+        }, 8000) // 增加超时时间到8秒
         
       } catch (error) {
-        console.warn('创建音频上下文失败:', error)
+        console.warn('🎵 创建音频上下文失败:', error)
         resolve('2:30') // 默认时长
       }
     })
