@@ -109,17 +109,6 @@
       </view>
     </view>
   </view>
-  <view class="share-button-box">
-    <button wx:if="{{packInfo.actorName}}" 
-            class="share-button"
-            open-type="share"
-            data-pack-id="{{packInfo._id}}"
-            data-pack-name="{{packInfo.name}}"
-            data-pack-sales="{{packInfo.sales}}"
-            bind:tap="setShareContent">
-      📤 分享
-    </button>
-  </view>
 
   <!-- 复购数量选择弹窗 -->
   <view class="repurchase-modal" wx:if="{{showRepurchaseModal}}" catchtouchmove="preventTouchMove">
