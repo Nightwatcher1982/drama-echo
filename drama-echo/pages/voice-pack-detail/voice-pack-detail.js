@@ -861,8 +861,8 @@ Page({
       console.log('🔍 result.result.data:', result.result.data)
       
       if (result.result.code === 0) {
-        const { orderId, payParams, status } = result.result.data
-        console.log('📊 复购订单创建成功:', { orderId, payParams, status })
+        const { orderId, payParams, status, simulatedPayment } = result.result.data
+        console.log('📊 复购订单创建成功:', { orderId, payParams, status, simulatedPayment })
         console.log('📊 数据类型检查:', {
           orderIdType: typeof orderId,
           payParamsType: typeof payParams,
@@ -870,6 +870,38 @@ Page({
           payParamsValue: payParams,
           statusValue: status
         })
+        
+        // 处理旧格式的数据（兼容性处理）
+        if (simulatedPayment) {
+          console.log('🎭 检测到旧格式数据，直接模拟支付成功')
+          wx.showToast({
+            title: `购买成功！已购买${repurchaseQuantity}份`,
+            icon: 'success',
+            duration: 2000
+          })
+          
+          // 关闭弹窗
+          this.hideRepurchaseModal()
+          
+          // 更新用户购买数量
+          await this.getUserPurchaseCount(packId)
+          
+          // 立即刷新页面数据
+          await this.loadPackInfo(packId)
+          
+          // 通知父页面刷新数据
+          const pages = getCurrentPages()
+          if (pages.length > 1) {
+            const prevPage = pages[pages.length - 2]
+            if (prevPage.route.includes('actor-detail')) {
+              // 刷新演员详情页面的数据
+              prevPage.loadActorDetail && prevPage.loadActorDetail()
+              // 刷新粉丝排行榜
+              prevPage.updateFanRanking && prevPage.updateFanRanking()
+            }
+          }
+          return
+        }
         
         if (payParams && status === 'pending') {
           // 调起微信支付
