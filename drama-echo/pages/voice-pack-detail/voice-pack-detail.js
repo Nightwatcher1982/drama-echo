@@ -162,7 +162,7 @@ Page({
             this.processCloudImages(packData)
             
             // 获取语音文件实际时长
-            this.getVoiceDurations(packData)
+            await this.getVoiceDurations(packData)
             
             // 获取用户购买数量
             await this.getUserPurchaseCount(packId)
@@ -976,15 +976,20 @@ Page({
         )
         
         // 更新页面数据
+        console.log('🎵 准备更新页面数据，当前voices:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
+        
         this.setData({
           'packInfo.voices': updatedVoices
         })
         
         console.log('🎵 语音时长更新完成，页面数据已更新:', updatedVoices.map(v => ({ title: v.title, duration: v.duration })))
         
-        // 验证页面数据是否已更新
+        // 立即验证页面数据是否已更新
+        console.log('🎵 立即验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
+        
+        // 延迟验证页面数据是否已更新
         setTimeout(() => {
-          console.log('🎵 验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
+          console.log('🎵 延迟验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
         }, 100)
       }
     } catch (error) {
