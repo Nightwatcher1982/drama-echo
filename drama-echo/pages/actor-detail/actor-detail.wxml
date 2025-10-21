@@ -22,8 +22,7 @@
     <!-- 粉丝排行榜 -->
     <view class="ranking-section">
       <view class="section-header">
-        <view class="section-title">粉丝支持榜</view>
-        <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+        <view class="section-title">👑 粉丝支持榜</view>
       </view>
       <view class="ranking-list">
         <view wx:for="{{fanRanking}}" wx:key="_id" class="ranking-item rank-{{item.rank}}">
@@ -35,7 +34,7 @@
           </view>
           <view class="fan-avatar">
             <image wx:if="{{item.userAvatar}}" src="{{item.userAvatar}}" class="avatar-image" mode="aspectFill"></image>
-            <view wx:else class="avatar-placeholder">👤</view>
+            <view wx:else class="avatar-placeholder">头像</view>
           </view>
           <view class="fan-info">
             <view class="fan-name">{{item.userNickName}}</view>
@@ -52,7 +51,25 @@
           <view class="empty-text">暂无支持榜，快来成为第一个守护者吧！</view>
         </view>
       </view>
+        <view class="header-actions">
+          <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+        </view>
     </view>
+      
+      <!-- 奖励说明 -->
+      <view class="reward-notice">
+        <view class="notice-header">
+          <view class="notice-icon">🎁</view>
+          <view class="notice-title">月度荣耀活动</view>
+        </view>
+        <view class="notice-content">
+          <view class="notice-text">榜单前三甲用户可获得实物礼包，点击查看详情，了解您的专属福利。</view>
+          <view class="notice-details" bind:tap="showRewardDetails">
+            <text>查看奖励详情</text>
+            <text class="arrow">→</text>
+          </view>
+        </view>
+      </view>
 
     <!-- 语音包展示 -->
     <view class="voice-packs">

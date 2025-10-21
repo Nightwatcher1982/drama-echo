@@ -40,12 +40,47 @@ Page({
   },
 
   async onShow() {
-    // 页面显示时只在必要时更新排行榜
-    if (this.data.actorId && !this.data.loading && (!this.data.fanRanking || this.data.fanRanking.length === 0)) {
-      // 延迟更新，避免阻塞页面显示
-      setTimeout(() => {
+    // 页面显示时智能判断是否需要更新数据
+    if (this.data.actorId && !this.data.loading) {
+      console.log('🔄 演员详情页面显示，检查数据更新')
+      
+      // 检查是否从语音包详情页返回（可能有购买操作）
+      const pages = getCurrentPages()
+      if (pages.length > 1) {
+        const prevPage = pages[pages.length - 2]
+        if (prevPage.route.includes('voice-pack-detail')) {
+          console.log('📦 从语音包详情页返回，强制刷新数据')
+          // 从语音包详情页返回，强制刷新所有数据
+          await this.loadActorDetail()
+          return
+        }
+      }
+      
+      const fanRanking = this.data.fanRanking || []
+      
+      // 如果排行榜为空，立即更新
+      if (fanRanking.length === 0) {
+        console.log('📊 页面显示时发现排行榜为空，立即更新')
         this.updateFanRanking()
-      }, 1000)
+      } else {
+        // 检查数据是否过期
+        const now = new Date()
+        const hasOldData = fanRanking.some(item => {
+          if (!item.updateTime) return true
+          const updateTime = new Date(item.updateTime)
+          const hoursDiff = (now - updateTime) / (1000 * 60 * 60)
+          return hoursDiff > 1
+        })
+        
+        if (hasOldData) {
+          console.log('📊 页面显示时发现排行榜数据过期，立即更新')
+          this.updateFanRanking()
+        } else {
+          console.log('📊 页面显示时排行榜数据看起来新鲜，但为了确保准确性，强制更新一次')
+          // 即使数据看起来新鲜，也强制更新一次以确保准确性
+          this.updateFanRanking()
+        }
+      }
     }
   },
 
@@ -79,18 +114,35 @@ Page({
 
         // 设置页面标题为演员名字
         wx.setNavigationBarTitle({
-          title: actor.name + ' 专属空间'
+          title: actor.name
         })
         
         console.log('✅ 演员详情加载完成，语音包数量:', updatedVoicePacks.length)
         console.log('📊 购买状态统计:', updatedVoicePacks.map(p => ({ name: p.name, isPurchased: p.isPurchased })))
         
-        // 如果排行榜为空，延迟更新排行榜（不阻塞页面显示）
+        // 智能判断是否需要更新排行榜
         if (!fanRanking || fanRanking.length === 0) {
-          console.log('📊 排行榜为空，延迟更新')
-          setTimeout(() => {
+          console.log('📊 排行榜为空，需要更新')
+          // 如果排行榜为空，立即更新（不延迟）
+          this.updateFanRanking()
+        } else {
+          // 检查排行榜数据是否过期（超过1小时）
+          const now = new Date()
+          const hasOldData = fanRanking.some(item => {
+            if (!item.updateTime) return true
+            const updateTime = new Date(item.updateTime)
+            const hoursDiff = (now - updateTime) / (1000 * 60 * 60)
+            return hoursDiff > 1 // 超过1小时认为过期
+          })
+          
+          if (hasOldData) {
+            console.log('📊 排行榜数据过期，需要更新')
             this.updateFanRanking()
-          }, 2000)
+          } else {
+            console.log('📊 排行榜数据新鲜，但为了确保准确性，强制更新一次')
+            // 即使数据看起来新鲜，也强制更新一次以确保准确性
+            this.updateFanRanking()
+          }
         }
       } else {
         throw new Error(res.result.message || '获取演员详情失败')
@@ -150,6 +202,63 @@ Page({
     wx.showToast({
       title: '功能开发中',
       icon: 'none'
+    })
+  },
+
+  // 手动刷新排行榜
+  async refreshRanking() {
+    console.log('🔄 用户手动刷新排行榜')
+    await this.updateFanRanking()
+  },
+
+  // 显示奖励详情
+  showRewardDetails() {
+    const currentDate = new Date()
+    const currentMonth = currentDate.getMonth() + 1
+    const currentYear = currentDate.getFullYear()
+    
+    // 计算本月起始和结束日期
+    const startDate = new Date(currentYear, currentMonth - 1, 1)
+    const endDate = new Date(currentYear, currentMonth, 0)
+    
+    const startDateStr = `${currentMonth}月${startDate.getDate()}日`
+    const endDateStr = `${currentMonth}月${endDate.getDate()}日`
+    
+    const rewardDetails = `🎁 月度荣耀活动详情
+
+📅 活动周期：${currentYear}年${startDateStr} - ${endDateStr}
+
+🏆 排名奖励：
+
+🥇 第一名：
+• 亲签横版拍立得 2张
+• NFC语音相框 1个
+• 唱片冰箱贴 1个
+• 限量光栅卡 1套（共6张）
+
+🥈 第二名：
+• 亲签横版拍立得 1张
+• NFC语音唱片冰箱贴 1个
+• 限量光栅卡 1套（共4张）
+
+🥉 第三名：
+• 亲签mini拍立得 1张
+• NFC语音冰箱贴 1个
+• 限量光栅卡 1套（共2张）
+
+📞 领奖方式：
+活动结束后，获奖用户需通过小程序后台联系，或小红书私信"戏剧回响"领取奖励。
+
+💡 温馨提示：
+• 排名以月末最后一天的数据为准
+• 奖励将在活动结束后7个工作日内发放
+• 如有疑问请联系客服`
+
+    wx.showModal({
+      title: '月度荣耀活动',
+      content: rewardDetails,
+      showCancel: false,
+      confirmText: '我知道了'
     })
   },
 
@@ -681,20 +790,21 @@ Page({
       this.setData({ isUpdatingRanking: true })
       console.log('🔄 更新粉丝排行榜，演员ID:', this.data.actorId)
       
-      // 调用更新排行榜云函数，设置更短的超时时间
+      // 调用更新排行榜云函数，设置合理的超时时间
       const result = await Promise.race([
         wx.cloud.callFunction({
           name: 'updateFanRanking',
           data: { actorId: this.data.actorId }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('云函数调用超时')), 5000) // 5秒超时
+          setTimeout(() => reject(new Error('云函数调用超时')), 8000) // 8秒超时，给云函数更多时间
         )
       ])
       
       if (result.result.code === 0) {
         const data = result.result.data
         console.log('📊 排行榜数据:', data.rankings)
+        
         
         // 更新页面数据
         this.setData({
@@ -800,16 +910,28 @@ Page({
     
     // 找到对应的语音包，获取第一张图片
     const voicePack = this.data.voicePacks.find(pack => pack._id === packId)
-    const firstImage = voicePack?.images?.[0] || voicePack?.photos?.[0] || this.data.actor?.avatar || ''
     
-    console.log('🖼️ 语音包图片:', { voicePack, firstImage })
+    // 优先使用演员封面图，然后是语音包图片
+    const shareImage = this.data.actor?.coverImageUrl || 
+                      this.data.actor?.imageUrl || 
+                      voicePack?.images?.[0] || 
+                      voicePack?.photos?.[0] || 
+                      ''
+    
+    console.log('🖼️ 分享图片获取:', { 
+      voicePack: voicePack?.name,
+      actorCoverImage: this.data.actor?.coverImageUrl,
+      actorImageUrl: this.data.actor?.imageUrl,
+      voicePackImages: voicePack?.images,
+      finalShareImage: shareImage
+    })
     
     // 使用分享图片处理工具
     const shareContent = await ShareImageHandler.createShareContent(
       packName,
       `${actorName}专属语音包，已售${packSales}份`,
       `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`,
-      firstImage
+      shareImage
     )
     
     // 设置分享内容到页面数据
@@ -846,7 +968,9 @@ Page({
     
     // 默认分享内容
     const actorName = this.data.actor?.name || '演员'
-    const defaultImage = this.data.actor?.avatar || '/images/modu.png'
+    const defaultImage = this.data.actor?.coverImageUrl || 
+                        this.data.actor?.imageUrl || 
+                        '/images/modu.png'
     
     return {
       title: `${actorName}的专属空间`,
@@ -869,7 +993,9 @@ Page({
     
     // 默认分享内容
     const actorName = this.data.actor?.name || '演员'
-    const defaultImage = this.data.actor?.avatar || '/images/modu.png'
+    const defaultImage = this.data.actor?.coverImageUrl || 
+                        this.data.actor?.imageUrl || 
+                        '/images/modu.png'
     
     return {
       title: `${actorName}的专属空间 - 精彩语音包`,
