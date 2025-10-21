@@ -19,6 +19,9 @@ const WECHAT_PAY_CONFIG = {
   key_path: ''
 }
 
+// 开发环境标识
+const IS_DEVELOPMENT = true
+
 // 日志记录函数
 function log(level, message, data = {}) {
   const timestamp = new Date().toISOString()
@@ -42,8 +45,14 @@ function validateConfig() {
   return true
 }
 
+// 检查是否为开发环境
+function isDevelopment() {
+  return IS_DEVELOPMENT
+}
+
 module.exports = {
   getWechatPayConfig,
   validateConfig,
-  log
+  log,
+  isDevelopment
 }

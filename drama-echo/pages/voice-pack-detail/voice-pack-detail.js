@@ -858,17 +858,21 @@ Page({
       
       if (result.result.code === 0) {
         const { orderId, payParams, status } = result.result.data
+        console.log('📊 复购订单创建成功:', { orderId, payParams, status })
         
         if (payParams && status === 'pending') {
           // 调起微信支付
+          console.log('💰 开始调起微信支付...')
           await this.requestPayment(payParams, orderId, packId, repurchaseQuantity)
         } else {
+          console.error('❌ 支付参数异常:', { payParams, status })
           wx.showToast({
             title: '支付参数错误',
             icon: 'none'
           })
         }
       } else {
+        console.error('❌ 复购订单创建失败:', result.result)
         wx.showToast({
           title: result.result.message || '创建订单失败',
           icon: 'none'
@@ -889,6 +893,44 @@ Page({
     try {
       wx.showLoading({ title: '调起支付中...' })
       
+      // 检查是否为开发环境
+      if (payParams.paySign === 'test_signature_for_development') {
+        // 开发环境：模拟支付成功
+        console.log('🎭 开发环境：模拟支付成功')
+        wx.hideLoading()
+        
+        // 模拟支付成功
+        wx.showToast({
+          title: `购买成功！已购买${quantity}份`,
+          icon: 'success',
+          duration: 2000
+        })
+        
+        // 关闭弹窗
+        this.hideRepurchaseModal()
+        
+        // 更新用户购买数量
+        await this.getUserPurchaseCount(packId)
+        
+        // 立即刷新页面数据
+        await this.loadPackInfo(packId)
+        
+        // 通知父页面刷新数据
+        const pages = getCurrentPages()
+        if (pages.length > 1) {
+          const prevPage = pages[pages.length - 2]
+          if (prevPage.route.includes('actor-detail')) {
+            // 刷新演员详情页面的数据
+            prevPage.loadActorDetail && prevPage.loadActorDetail()
+            // 刷新粉丝排行榜
+            prevPage.updateFanRanking && prevPage.updateFanRanking()
+          }
+        }
+        
+        return
+      }
+      
+      // 生产环境：调起真实的微信支付
       const paymentResult = await wx.requestPayment({
         appId: payParams.appId,
         timeStamp: payParams.timeStamp,

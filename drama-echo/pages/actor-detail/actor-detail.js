@@ -712,6 +712,37 @@ Page({
     try {
       wx.showLoading({ title: '调起支付中...' })
       
+      // 检查是否为开发环境
+      if (payParams.paySign === 'test_signature_for_development') {
+        // 开发环境：模拟支付成功
+        console.log('🎭 开发环境：模拟支付成功')
+        wx.hideLoading()
+        
+        // 模拟支付成功
+        wx.showToast({
+          title: '支付成功！',
+          icon: 'success'
+        })
+        
+        // 关闭弹窗
+        this.closePackDetail()
+        
+        // 刷新页面数据，更新购买状态
+        console.log('🔄 支付成功，刷新页面数据...')
+        await this.loadActorDetail()
+        console.log('✅ 页面数据刷新完成')
+        
+        // 延迟跳转到语音包详情页
+        setTimeout(() => {
+          wx.navigateTo({
+            url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
+          })
+        }, 1500)
+        
+        return
+      }
+      
+      // 生产环境：调起真实的微信支付
       const paymentResult = await wx.requestPayment({
         appId: payParams.appId,
         timeStamp: payParams.timeStamp,
