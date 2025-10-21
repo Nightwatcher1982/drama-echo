@@ -76,6 +76,88 @@ Page({
     }
   },
 
+  // 修复演员图片数据
+  async fixActorImages() {
+    try {
+      wx.showModal({
+        title: '确认修复',
+        content: '此操作将修复演员图片数据中的重复问题，是否继续？',
+        success: async (res) => {
+          if (res.confirm) {
+            await this.performFix()
+          }
+        }
+      })
+    } catch (error) {
+      console.error('❌ 修复演员图片数据失败:', error)
+      wx.showToast({
+        title: error.message || '修复失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 执行修复操作
+  async performFix() {
+    try {
+      wx.showLoading({ title: '修复中...' })
+      
+      // 先尝试调用修复云函数
+      try {
+        const res = await wx.cloud.callFunction({
+          name: 'fixActorImages'
+        })
+
+        if (res.result.code === 0) {
+          const { stats } = res.result.data
+          
+          wx.showModal({
+            title: '修复完成',
+            content: `修复统计:\n• 总演员数: ${stats.total}\n• 已修复: ${stats.fixed}个\n• 无需修复: ${stats.noChange}个\n• 错误: ${stats.errors}个`,
+            showCancel: false,
+            success: () => {
+              // 重新加载调试数据
+              this.debugActorImages()
+            }
+          })
+          return
+        }
+      } catch (cloudError) {
+        console.log('修复云函数调用失败，使用备用方案:', cloudError)
+      }
+
+      // 备用方案：直接修复数据
+      const res = await wx.cloud.callFunction({
+        name: 'getActors'
+      })
+
+      if (res.result.code === 0) {
+        const actorsData = res.result.data
+        let fixedCount = 0
+        
+        // 这里只是显示修复建议，不实际修改数据库
+        const needsFix = actorsData.filter(actor => {
+          return actor.imageUrl && actor.images && actor.images.length > 0 && 
+                 actor.images.includes(actor.imageUrl)
+        })
+        
+        wx.showModal({
+          title: '修复建议',
+          content: `发现 ${needsFix.length} 个演员存在图片重复问题:\n\n${needsFix.map(a => a.name).join(', ')}\n\n请手动在后台管理中为这些演员设置不同的封面照片和详情页图片。`,
+          showCancel: false
+        })
+      }
+    } catch (error) {
+      console.error('❌ 执行修复失败:', error)
+      wx.showToast({
+        title: error.message || '修复失败',
+        icon: 'none'
+      })
+    } finally {
+      wx.hideLoading()
+    }
+  },
+
   // 分析演员图片数据（备用方案）
   analyzeActorImages(actorsData) {
     const actorImageAnalysis = actorsData.map(actor => {

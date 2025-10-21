@@ -45,6 +45,22 @@
   opacity: 0.6;
 }
 
+.fix-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  border-radius: 15rpx;
+  padding: 25rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.fix-btn:disabled {
+  opacity: 0.6;
+}
+
 .debug-results {
   margin-top: 30rpx;
 }

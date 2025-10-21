@@ -9,6 +9,10 @@
     <button class="debug-btn" bindtap="debugActorImages" disabled="{{loading}}">
       {{loading ? '调试中...' : '🔍 调试演员图片数据'}}
     </button>
+    
+    <button class="fix-btn" bindtap="fixActorImages" disabled="{{loading}}">
+      🔧 修复图片重复问题
+    </button>
 
     <view wx:if="{{debugInfo}}" class="debug-results">
       <view class="section">

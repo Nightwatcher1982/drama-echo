@@ -461,6 +461,17 @@ Page({
         uploaded.push(up.fileID)
       }
       
+      // 检查是否与封面照片相同
+      const currentCoverImage = this.data.editingActor.imageUrl || this.data.tempImagePath
+      if (uploaded.length > 0 && currentCoverImage && uploaded[0] === currentCoverImage) {
+        wx.showModal({
+          title: '提示',
+          content: '详情页图片不能与封面照片相同，请选择不同的图片',
+          showCancel: false
+        })
+        return
+      }
+      
       // 替换现有图片（因为只支持1张）
       this.setData({ actorImages: uploaded })
       wx.showToast({ title: '详情页图片已添加', icon: 'success' })
@@ -640,14 +651,29 @@ Page({
     try {
       wx.showLoading({ title: '保存中...' })
       let imageUrl = a.imageUrl || ''
+      
+      // 处理封面照片上传
       try {
         if (this.data.tempImagePath) {
           const cloudFolder = a._id || this.data.selectedActorId || `temp_${Date.now()}`
-          const up = await wx.cloud.uploadFile({ cloudPath: `actors/${cloudFolder}/avatar_${Date.now()}.jpg`, filePath: this.data.tempImagePath })
+          const up = await wx.cloud.uploadFile({ 
+            cloudPath: `actors/${cloudFolder}/cover_${Date.now()}.jpg`, 
+            filePath: this.data.tempImagePath 
+          })
           imageUrl = up.fileID
+          console.log('✅ 封面照片上传成功:', imageUrl)
         }
       } catch (upErr) {
-        console.warn('头像上传失败，继续使用原图:', upErr)
+        console.warn('封面照片上传失败，继续使用原图:', upErr)
+      }
+
+      // 确保详情页图片数组不包含封面照片
+      let detailImages = Array.isArray(this.data.actorImages) ? this.data.actorImages : []
+      
+      // 如果详情页图片和封面照片相同，清空详情页图片
+      if (detailImages.length > 0 && detailImages[0] === imageUrl) {
+        console.log('⚠️ 检测到详情页图片与封面照片相同，清空详情页图片')
+        detailImages = []
       }
 
       const isUpdate = !!a._id
@@ -659,8 +685,8 @@ Page({
           title: a.title || '',
           description: a.description || '',
           avatar: a.avatar || '',
-          imageUrl,
-          images: Array.isArray(this.data.actorImages) ? this.data.actorImages : [],
+          imageUrl, // 封面照片
+          images: detailImages, // 详情页图片（确保与封面照片不同）
           status: a.status || 'online',
           tags: Array.isArray(a.tags) ? a.tags : []
         }

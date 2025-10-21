@@ -1,0 +1,9 @@
+{
+  "name": "fixActorImages",
+  "version": "1.0.0",
+  "description": "修复演员图片数据云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
