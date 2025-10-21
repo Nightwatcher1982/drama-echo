@@ -379,7 +379,7 @@ Page({
     // no-op
   },
 
-  openEditActor(e) {
+  async openEditActor(e) {
     let actor = e.currentTarget.dataset.actor
     const actorIdFromBtn = e.currentTarget.dataset.actorId
     if (!actor && actorIdFromBtn) {
@@ -398,13 +398,41 @@ Page({
       images: actor.images
     })
     
-    // 封面照片和图片库独立管理，不互相影响
-    this.setData({ 
-      showActorModal: true, 
-      editingActor: { ...actor }, 
-      tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
-      actorImages: actor.images || [] // 图片库独立管理
-    })
+    // 获取最新的演员数据，确保包含最新的封面照片和图片库
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'getActorDetail',
+        data: { actorId: actor._id }
+      })
+      
+      if (res.result.code === 0) {
+        const latestActor = res.result.data.actor
+        console.log('✅ 获取最新演员数据:', {
+          actorName: latestActor.name,
+          imageUrl: latestActor.imageUrl,
+          images: latestActor.images
+        })
+        
+        // 使用最新的演员数据
+        this.setData({ 
+          showActorModal: true, 
+          editingActor: { ...latestActor }, 
+          tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
+          actorImages: latestActor.images || [] // 图片库独立管理
+        })
+      } else {
+        throw new Error(res.result.message || '获取演员详情失败')
+      }
+    } catch (error) {
+      console.error('❌ 获取最新演员数据失败，使用缓存数据:', error)
+      // 如果获取最新数据失败，使用缓存数据
+      this.setData({ 
+        showActorModal: true, 
+        editingActor: { ...actor }, 
+        tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
+        actorImages: actor.images || [] // 图片库独立管理
+      })
+    }
   },
   openCreateActor() {
     this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '' }, tempImagePath: '', actorImages: [] })
@@ -678,6 +706,13 @@ Page({
         console.warn('封面照片上传失败，继续使用原图:', upErr)
         imageUrl = a.imageUrl || ''
       }
+      
+      console.log('🔍 封面照片处理结果:', {
+        tempImagePath: this.data.tempImagePath,
+        originalImageUrl: a.imageUrl,
+        finalImageUrl: imageUrl,
+        hasNewImage: !!this.data.tempImagePath
+      })
 
       // 确保详情页图片数组不包含封面照片
       let detailImages = Array.isArray(this.data.actorImages) ? this.data.actorImages : []
