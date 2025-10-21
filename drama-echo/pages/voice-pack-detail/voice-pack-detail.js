@@ -161,8 +161,7 @@ Page({
             // 异步处理云存储图片，获取临时链接
             this.processCloudImages(packData)
             
-            // 获取语音文件实际时长
-            await this.getVoiceDurations(packData)
+            // 语音时长获取功能已移除
             
             // 获取用户购买数量
             await this.getUserPurchaseCount(packId)

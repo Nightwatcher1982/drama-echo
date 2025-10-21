@@ -1,21 +1,31 @@
 <!-- 语音包详情页 -->
 <view class="container">
   <!-- 顶部导航 -->
-  <view class="header">
+  <view class="top-bar">
     <view class="nav-bar">
-      <view class="nav-left" bindtap="goBack">
-        <text class="back-icon">‹</text>
-      </view>
-      <view class="nav-title">{{packInfo.name}}</view>
-      <button class="nav-right share-btn" open-type="share" bind:tap="setShareContent">
-        <text class="share-icon">⋯</text>
-      </button>
+      <view class="nav-title"></view>
+    </view>
+  </view>
+  <view class="top-bar">
+    <view class="nav-bar">
+      <view class="nav-back" bind:tap="goBackFn">＜</view>
+      <view class="nav-title">语音包详情</view>
     </view>
   </view>
 
   <!-- 语音包图片展示区域 -->
   <view class="photo-section">
-    <swiper class="photo-swiper" indicator-dots="{{packInfo.images && packInfo.images.length > 1}}" autoplay="{{false}}" circular="{{packInfo.images && packInfo.images.length > 1}}">
+    <swiper 
+      class="photo-swiper" 
+      indicator-dots="{{packInfo.images && packInfo.images.length > 1}}" 
+      autoplay="{{packInfo.images && packInfo.images.length > 1}}" 
+      circular="{{packInfo.images && packInfo.images.length > 1}}"
+      interval="3000"
+      duration="500"
+      indicator-color="rgba(255, 255, 255, 0.5)"
+      indicator-active-color="#ffffff"
+      bindchange="onSwiperChange"
+    >
       <swiper-item wx:for="{{packInfo.images}}" wx:key="index">
         <image 
           src="{{item}}" 
@@ -27,6 +37,10 @@
       </swiper-item>
     </swiper>
     
+    <!-- 图片数量提示 -->
+    <view wx:if="{{packInfo.images && packInfo.images.length > 1}}" class="image-count-indicator">
+      <text class="count-text">{{currentImageIndex + 1}}/{{packInfo.images.length}}</text>
+    </view>
   </view>
 
 
@@ -42,7 +56,6 @@
         <view class="voice-content">
           <view class="voice-title">{{item.title}}</view>
           <view class="voice-meta">
-            <text class="voice-duration">{{item.duration}}</text>
             <text wx:if="{{item.subtitle}}" class="voice-subtitle">{{item.subtitle}}</text>
           </view>
         </view>
@@ -101,6 +114,17 @@
         </view>
       </view>
     </view>
+  </view>
+  <view class="share-button-box">
+    <button wx:if="{{packInfo.actorName}}" 
+            class="share-button"
+            open-type="share"
+            data-pack-id="{{packInfo._id}}"
+            data-pack-name="{{packInfo.name}}"
+            data-pack-sales="{{packInfo.sales}}"
+            bind:tap="setShareContent">
+      📤 分享
+    </button>
   </view>
 
   <!-- 复购数量选择弹窗 -->
