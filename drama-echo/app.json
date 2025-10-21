@@ -27,7 +27,8 @@
     "pages/wish-pool-admin/wish-pool-admin",
     "pages/optimize-indexes/optimize-indexes",
     "pages/clear-data/clear-data",
-    "pages/debug-guardian-data/debug-guardian-data"
+    "pages/debug-guardian-data/debug-guardian-data",
+    "pages/test-guardian-display/test-guardian-display"
   ],
   "window": {
     "backgroundTextStyle": "dark",
