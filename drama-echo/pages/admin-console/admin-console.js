@@ -4,6 +4,7 @@ Page({
   data: {
     isAuthed: false,
     adminPassword: '',
+    currentModule: 'content', // 'content', 'data', 'system'
     actors: [],
     selectedActorId: '',
     selectedActorName: '',
@@ -99,54 +100,61 @@ Page({
 
   onPwdInput(e) { this.setData({ adminPassword: e.detail.value }) },
   async login() {
-    console.log('用户尝试登录')
     const pwd = (this.data.adminPassword || '').trim()
-    console.log('输入的密码:', pwd)
     
-    if (pwd !== 'voice2024' && pwd !== 'admin123') {
-      console.log('密码错误')
-      wx.showToast({ title: '密码错误', icon: 'none' })
+    if (!pwd) {
+      wx.showToast({ title: '请输入密码', icon: 'none' })
       return
     }
     
-    console.log('密码正确，设置认证状态')
-    wx.setStorageSync('adminConsoleAuth', { adminPassword: pwd, ts: Date.now() })
-    // 兼容其他后台页
-    wx.setStorageSync('voiceAdminAuth', { authenticated: true, timestamp: Date.now(), adminPassword: pwd })
-    this.setData({ isAuthed: true, adminPassword: '' })
-    
-    console.log('登录成功，开始加载演员数据')
-    this.loadActors()
+    // 调用云函数验证密码
+    try {
+      wx.showLoading({ title: '验证中...' })
+      
+      const result = await wx.cloud.callFunction({
+        name: 'checkAdminPermission',
+        data: { adminPassword: pwd }
+      })
+      
+      wx.hideLoading()
+      
+      if (result.result.code === 0 && result.result.data.hasPermission) {
+        // 密码正确，设置认证状态
+        wx.setStorageSync('adminConsoleAuth', { adminPassword: pwd, ts: Date.now() })
+        // 兼容其他后台页
+        wx.setStorageSync('voiceAdminAuth', { authenticated: true, timestamp: Date.now(), adminPassword: pwd })
+        this.setData({ isAuthed: true, adminPassword: '' })
+        
+        wx.showToast({ title: '登录成功', icon: 'success' })
+        this.loadActors()
+      } else {
+        wx.showToast({ title: '密码错误', icon: 'none' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('登录验证失败:', error)
+      wx.showToast({ title: '验证失败', icon: 'none' })
+    }
   },
 
   async loadActors() {
     try {
       wx.showLoading({ title: '加载演员...' })
-      console.log('开始加载演员数据...')
       
       const res = await wx.cloud.callFunction({ name: 'getActors' })
-      console.log('getActors 云函数返回结果:', res)
-      
       const list = res.result && res.result.data ? res.result.data : []
-      console.log('演员列表数据:', list)
       
       // 兜底过滤：排除软删除（isActive === false），并按 updateTime 降序
       const actors = list
         .filter(a => a.isActive !== false)
         .sort((a,b) => new Date(b.updateTime || 0) - new Date(a.updateTime || 0))
       
-      console.log('过滤后的演员列表:', actors)
-      console.log('演员数量:', actors.length)
-      
       this.setData({ actors })
       
       if (actors.length === 0) {
         wx.showToast({ title: '暂无演员数据', icon: 'none' })
-      } else {
-        console.log('演员数据设置成功，当前 actors:', this.data.actors)
       }
     } catch (e) {
-      console.error('加载演员失败', e)
       wx.showToast({ title: '加载失败: ' + (e.message || '未知错误'), icon: 'none' })
     } finally { 
       wx.hideLoading() 
@@ -154,37 +162,26 @@ Page({
   },
 
   onPickActor(e) {
-    console.log('onPickActor 被调用，事件详情:', e)
-    console.log('当前 actors 数据:', this.data.actors)
-    console.log('选择的索引:', e.detail.value)
-    
     if (!this.data.isAuthed && !this.ensureAuthed()) {
       wx.showToast({ title: '请先登录后台', icon: 'none' })
       return
     }
     
     const idx = Number(e.detail.value)
-    console.log('解析后的索引:', idx)
-    
     const actor = this.data.actors[idx]
-    console.log('选择的演员:', actor)
     
     if (!actor) {
-      console.error('未找到对应索引的演员，索引:', idx, '演员列表长度:', this.data.actors.length)
       wx.showToast({ title: '选择失败，请重试', icon: 'none' })
       return
     }
     
-    console.log('设置选中的演员:', actor.name, actor._id)
     this.setData({ selectedActorId: actor._id, selectedActorName: actor.name })
     this.loadVoicePacks(actor._id)
   },
 
   // 直接选择演员（备用方法）
   selectActorDirect(e) {
-    console.log('selectActorDirect 被调用')
     const actor = e.currentTarget.dataset.actor
-    console.log('直接选择的演员:', actor)
     
     if (!actor) {
       wx.showToast({ title: '选择失败', icon: 'none' })
@@ -194,6 +191,12 @@ Page({
     this.setData({ selectedActorId: actor._id, selectedActorName: actor.name })
     this.loadVoicePacks(actor._id)
     wx.showToast({ title: `已选择: ${actor.name}`, icon: 'success' })
+  },
+
+  // 获取演员语音包数量
+  getActorVoicePackCount(actorId) {
+    const voicePacks = this.data.voicePacks || []
+    return voicePacks.filter(pack => pack.actorId === actorId).length
   },
 
   async loadVoicePacks(actorId) {
@@ -249,14 +252,16 @@ Page({
 
   openPackModal(e) {
     const pack = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.pack : null
+    console.log('openPackModal: 编辑的语音包:', pack)
+    
     this.setData({ 
       showPackModal: true, 
       editingPack: pack ? { 
         ...pack, 
         displayPrice: (pack.price / 100).toFixed(2),
-        images: pack.images || [],
+        images: Array.isArray(pack.images) ? pack.images : [],
         bonusVideoUrl: pack.bonusVideoUrl || '',
-        bonusVideoThumb: pack.bonusVideoThumb && !pack.bonusVideoThumb.startsWith('/') ? pack.bonusVideoThumb : 'https://picsum.photos/300/200?random=1',
+        bonusVideoThumb: pack.bonusVideoThumb && !pack.bonusVideoThumb.startsWith('/') ? pack.bonusVideoThumb : '',
         bonusVideoTitle: pack.bonusVideoTitle || '',
         bonusVideoDuration: pack.bonusVideoDuration || ''
       } : { 
@@ -269,9 +274,12 @@ Page({
         bonusVideoUrl: '',
         bonusVideoThumb: '',
         bonusVideoTitle: '',
-        bonusVideoDuration: ''
+        bonusVideoDuration: '',
+        actorId: this.data.selectedActorId // 确保关联到选中的演员
       } 
     })
+    
+    console.log('openPackModal: 设置后的editingPack:', this.data.editingPack)
   },
   closePackModal() { 
     this.setData({ 
@@ -366,28 +374,44 @@ Page({
     finally { try { wx.hideLoading() } catch(_){} }
   },
 
-  openEditActor() {
-    const a = this.data.actors.find(x => x._id === this.data.selectedActorId)
-    if (!a) return wx.showToast({ title: '未选择演员', icon: 'none' })
+  // 阻止事件冒泡（用于WXML中的catchtap）
+  stopPropagation() {
+    // no-op
+  },
+
+  openEditActor(e) {
+    let actor = e.currentTarget.dataset.actor
+    const actorIdFromBtn = e.currentTarget.dataset.actorId
+    if (!actor && actorIdFromBtn) {
+      actor = this.data.actors.find(x => x._id === actorIdFromBtn)
+    }
+    if (!actor) {
+      // 回退到当前选中的演员
+      const a = this.data.actors.find(x => x._id === this.data.selectedActorId)
+      if (!a) return wx.showToast({ title: '未选择演员', icon: 'none' })
+      actor = a
+    }
     
     // 封面照片和图片库独立管理，不互相影响
     this.setData({ 
       showActorModal: true, 
-      editingActor: { ...a }, 
-      tempImagePath: a.imageUrl || '', // 显示已存在的封面照片
-      actorImages: a.images || [] // 图片库独立管理
+      editingActor: { ...actor }, 
+      tempImagePath: actor.imageUrl || '', // 显示已存在的封面照片
+      actorImages: actor.images || [] // 图片库独立管理
     })
   },
   openCreateActor() {
-    this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '👤' }, tempImagePath: '', actorImages: [] })
+    this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '' }, tempImagePath: '', actorImages: [] })
   },
-  async deleteActor() {
-    if (!this.data.selectedActorId) return wx.showToast({ title: '未选择演员', icon:'none' })
+  async deleteActor(e) {
+    const actorId = e.currentTarget.dataset.actorId
+    const targetActorId = actorId || this.data.selectedActorId
+    if (!targetActorId) return wx.showToast({ title: '未选择演员', icon:'none' })
     const confirm = await new Promise(resolve => { wx.showModal({ title:'确认删除', content:'删除为软删除，可在数据库恢复。确定删除该演员？', success: resolve }) })
     if (!confirm.confirm) return
     try {
       wx.showLoading({ title: '删除中...' })
-      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: { action: 'delete', actorId: this.data.selectedActorId, adminPassword: this.getAdminPassword() } })
+      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: { action: 'delete', actorId: targetActorId, adminPassword: this.getAdminPassword() } })
       if (res.result.code === 0) { 
         wx.showToast({ title: '删除成功', icon:'success' })
         this.setData({ selectedActorId:'', selectedActorName:'', showActorModal:false })
@@ -413,23 +437,40 @@ Page({
   },
   async addActorImages() {
     try {
-      const remain = 5 - this.data.actorImages.length
-      if (remain <= 0) return wx.showToast({ title: '已达上限', icon: 'none' })
-      const res = await wx.chooseMedia({ count: remain, mediaType: ['image'] })
+      // 限制为只能上传1张图片
+      if (this.data.actorImages.length >= 1) {
+        return wx.showToast({ title: '详情页图片仅支持1张', icon: 'none' })
+      }
+      
+      const res = await wx.chooseMedia({ count: 1, mediaType: ['image'] })
       const paths = res.tempFiles.map(f => f.tempFilePath)
       const uploaded = []
       wx.showLoading({ title: '上传中...' })
+      
       for (const p of paths) {
         let filePath = p
-        try { const cr = await wx.compressImage({ src: p, quality: 60 }); filePath = cr.tempFilePath } catch(_){}
-        const up = await wx.cloud.uploadFile({ cloudPath: `actors/${this.data.selectedActorId || Date.now()}/gallery_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`, filePath })
+        try { 
+          const cr = await wx.compressImage({ src: p, quality: 60 })
+          filePath = cr.tempFilePath 
+        } catch(_){}
+        
+        const up = await wx.cloud.uploadFile({ 
+          cloudPath: `actors/${this.data.selectedActorId || Date.now()}/detail_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`, 
+          filePath 
+        })
         uploaded.push(up.fileID)
       }
-      const newList = (this.data.actorImages.concat(uploaded)).slice(0, 5)
-      this.setData({ actorImages: newList })
-      wx.showToast({ title: '已添加', icon: 'success' })
-    } catch (e) { if (!(e && String(e.errMsg||'').includes('cancel'))) wx.showToast({ title: '添加失败', icon: 'none' }) }
-    finally { try { wx.hideLoading() } catch(_){} }
+      
+      // 替换现有图片（因为只支持1张）
+      this.setData({ actorImages: uploaded })
+      wx.showToast({ title: '详情页图片已添加', icon: 'success' })
+    } catch (e) { 
+      if (!(e && String(e.errMsg||'').includes('cancel'))) {
+        wx.showToast({ title: '添加失败', icon: 'none' }) 
+      }
+    } finally { 
+      try { wx.hideLoading() } catch(_){} 
+    }
   },
   removeActorImage(e) {
     const url = e.currentTarget.dataset.url
@@ -598,31 +639,52 @@ Page({
     if (!this.ensureAuthed()) return wx.showToast({ title: '请先登录后台', icon: 'none' })
     try {
       wx.showLoading({ title: '保存中...' })
-      let imageUrl = a.imageUrl
-      if (this.data.tempImagePath) {
-        const up = await wx.cloud.uploadFile({ cloudPath: `actors/${a._id || this.data.selectedActorId || Date.now()}/avatar_${Date.now()}.jpg`, filePath: this.data.tempImagePath })
-        imageUrl = up.fileID
-      }
-      const res = await wx.cloud.callFunction({
-        name: 'adminManageActors',
-        data: {
-          action: a._id ? 'update' : 'create',
-          actorId: a._id || this.data.selectedActorId,
-          adminPassword: this.getAdminPassword(),
-          actorData: { name: a.name, title: a.title||'', description: a.description||'', avatar: a.avatar||'👤', imageUrl, images: this.data.actorImages, status: a.status||'online', tags: a.tags||[] }
+      let imageUrl = a.imageUrl || ''
+      try {
+        if (this.data.tempImagePath) {
+          const cloudFolder = a._id || this.data.selectedActorId || `temp_${Date.now()}`
+          const up = await wx.cloud.uploadFile({ cloudPath: `actors/${cloudFolder}/avatar_${Date.now()}.jpg`, filePath: this.data.tempImagePath })
+          imageUrl = up.fileID
         }
-      })
-      if (res.result.code === 0) { 
+      } catch (upErr) {
+        console.warn('头像上传失败，继续使用原图:', upErr)
+      }
+
+      const isUpdate = !!a._id
+      const payload = {
+        action: isUpdate ? 'update' : 'create',
+        adminPassword: this.getAdminPassword(),
+        actorData: {
+          name: a.name,
+          title: a.title || '',
+          description: a.description || '',
+          avatar: a.avatar || '',
+          imageUrl,
+          images: Array.isArray(this.data.actorImages) ? this.data.actorImages : [],
+          status: a.status || 'online',
+          tags: Array.isArray(a.tags) ? a.tags : []
+        }
+      }
+      if (isUpdate) payload.actorId = a._id
+
+      console.log('saveActor: 即将提交的payload:', payload)
+      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: payload })
+      console.log('saveActor: 云函数返回:', res)
+
+      if (res && res.result && res.result.code === 0) {
         wx.showToast({ title: '保存成功', icon: 'success' })
         this.closeActorModal()
-        // 延迟刷新列表，避免loading冲突
-        setTimeout(() => {
-          this.loadActors()
-        }, 500)
+        setTimeout(() => { this.loadActors() }, 500)
+      } else {
+        const errMsg = res?.result?.message || '保存失败'
+        throw new Error(errMsg)
       }
-      else throw new Error(res.result.message)
-    } catch (e) { wx.showToast({ title: e.message || '保存失败', icon: 'none' }) }
-    finally { try { wx.hideLoading() } catch(_){} }
+    } catch (e) {
+      console.error('saveActor: 异常:', e)
+      wx.showToast({ title: e.message || '保存失败', icon: 'none' })
+    } finally {
+      try { wx.hideLoading() } catch(_){}
+    }
   },
 
   // ====== 图片和视频上传管理 ======
@@ -648,16 +710,25 @@ Page({
         const uploadPromises = res.tempFilePaths.map(async (tempFilePath, index) => {
           console.log(`choosePackImage: 上传第${index + 1}张图片:`, tempFilePath)
           const fileName = `voice-pack-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`
-          const cloudPath = `voice-packs/${this.data.editingPack._id || 'temp'}/${fileName}`
+          
+          // 使用选中的演员ID或临时ID作为路径
+          const packId = this.data.editingPack._id || `temp_${Date.now()}`
+          const cloudPath = `voice-packs/${packId}/${fileName}`
           
           console.log(`choosePackImage: 云存储路径:`, cloudPath)
-          const uploadRes = await wx.cloud.uploadFile({
-            cloudPath,
-            filePath: tempFilePath
-          })
           
-          console.log(`choosePackImage: 第${index + 1}张图片上传结果:`, uploadRes)
-          return uploadRes.fileID
+          try {
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath,
+              filePath: tempFilePath
+            })
+            
+            console.log(`choosePackImage: 第${index + 1}张图片上传结果:`, uploadRes)
+            return uploadRes.fileID
+          } catch (uploadError) {
+            console.error(`choosePackImage: 第${index + 1}张图片上传失败:`, uploadError)
+            throw new Error(`第${index + 1}张图片上传失败: ${uploadError.errMsg || '未知错误'}`)
+          }
         })
         
         console.log('choosePackImage: 等待所有图片上传完成')
@@ -668,6 +739,7 @@ Page({
         editingPack.images = [...editingPack.images, ...uploadedUrls]
         
         console.log('choosePackImage: 更新编辑包数据:', editingPack)
+        console.log('choosePackImage: 更新后的图片数组:', editingPack.images)
         this.setData({ editingPack })
         
         this.hideLoadingWithTrack('choosePackImage', loadingId)
@@ -695,9 +767,28 @@ Page({
 
   removePackImage(e) {
     const index = e.currentTarget.dataset.index
+    console.log('🗑️ 删除图片，索引:', index)
+    
+    if (index === undefined || index === null) {
+      console.error('❌ 删除图片失败：索引无效')
+      wx.showToast({ title: '删除失败', icon: 'none' })
+      return
+    }
+    
     const editingPack = { ...this.data.editingPack }
+    console.log('🗑️ 删除前图片数量:', editingPack.images.length)
+    
+    if (!editingPack.images || editingPack.images.length <= index) {
+      console.error('❌ 删除图片失败：图片数组无效或索引超出范围')
+      wx.showToast({ title: '删除失败', icon: 'none' })
+      return
+    }
+    
     editingPack.images.splice(index, 1)
+    console.log('🗑️ 删除后图片数量:', editingPack.images.length)
+    
     this.setData({ editingPack })
+    wx.showToast({ title: '删除成功', icon: 'success' })
   },
 
   previewImage(e) {
@@ -834,7 +925,120 @@ Page({
       currentAudioUrl: '',
       currentAudioFileName: ''
     })
-  }
+  },
+
+  // 跳转到数据管理页面
+  goToDataManagement() {
+    wx.navigateTo({
+      url: '/pages/admin-data/admin-data'
+    })
+  },
+
+
+  goToFixSalesData() {
+    wx.navigateTo({
+      url: '/pages/fix-sales-data/fix-sales-data'
+    })
+  },
+
+  // 优化数据库索引
+  async optimizeDatabaseIndexes() {
+    try {
+      wx.showModal({
+        title: '性能分析',
+        content: '此操作将分析数据库性能并提供索引优化建议。是否继续？',
+        success: async (res) => {
+          if (res.confirm) {
+            wx.showLoading({
+              title: '分析中...',
+              mask: true
+            })
+
+            const result = await wx.cloud.callFunction({
+              name: 'optimizeDatabaseIndexes',
+              data: {}
+            })
+
+            wx.hideLoading()
+
+            if (result.result.code === 0) {
+              const data = result.result.data
+              let message = `数据库性能分析完成！\n\n`
+              message += `分析集合数量: ${data.totalCollections}\n\n`
+              message += `分析结果:\n`
+              data.analysis.slice(0, 5).forEach(item => {
+                message += `• ${item}\n`
+              })
+              if (data.analysis.length > 5) {
+                message += `• ... 还有 ${data.analysis.length - 5} 项分析结果\n`
+              }
+
+              wx.showModal({
+                title: '分析完成',
+                content: message,
+                confirmText: '查看建议',
+                cancelText: '知道了',
+                success: (res) => {
+                  if (res.confirm) {
+                    // 显示详细建议
+                    const recommendations = data.recommendations.join('\n')
+                    wx.showModal({
+                      title: '索引优化建议',
+                      content: recommendations,
+                      showCancel: false,
+                      confirmText: '知道了'
+                    })
+                  }
+                }
+              })
+            } else {
+              wx.showToast({
+                title: '分析失败',
+                icon: 'error'
+              })
+            }
+          }
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      console.error('索引优化失败:', error)
+      wx.showToast({
+        title: '优化失败',
+        icon: 'error'
+      })
+    }
+  },
+
+  // 跳转到许愿池管理页面
+  goToWishPoolAdmin() {
+    wx.navigateTo({
+      url: '/pages/wish-pool-admin/wish-pool-admin'
+    })
+  },
+
+  // 跳转到索引优化页面
+  goToOptimizeIndexes() {
+    wx.navigateTo({
+      url: '/pages/optimize-indexes/optimize-indexes'
+    })
+  },
+
+  // 跳转到数据清理页面
+  goToClearData() {
+    wx.navigateTo({
+      url: '/pages/clear-data/clear-data'
+    })
+  },
+
+  // 切换模块
+  switchModule(e) {
+    const module = e.currentTarget.dataset.module
+    this.setData({
+      currentModule: module
+    })
+  },
+
 })
 
 
