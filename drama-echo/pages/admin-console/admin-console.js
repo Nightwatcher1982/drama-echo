@@ -392,11 +392,17 @@ Page({
       actor = a
     }
     
+    console.log('🔍 打开编辑演员模态框:', {
+      actorName: actor.name,
+      imageUrl: actor.imageUrl,
+      images: actor.images
+    })
+    
     // 封面照片和图片库独立管理，不互相影响
     this.setData({ 
       showActorModal: true, 
       editingActor: { ...actor }, 
-      tempImagePath: actor.imageUrl || '', // 显示已存在的封面照片
+      tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
       actorImages: actor.images || [] // 图片库独立管理
     })
   },
@@ -655,16 +661,22 @@ Page({
       // 处理封面照片上传
       try {
         if (this.data.tempImagePath) {
+          // 用户选择了新的封面照片
           const cloudFolder = a._id || this.data.selectedActorId || `temp_${Date.now()}`
           const up = await wx.cloud.uploadFile({ 
             cloudPath: `actors/${cloudFolder}/cover_${Date.now()}.jpg`, 
             filePath: this.data.tempImagePath 
           })
           imageUrl = up.fileID
-          console.log('✅ 封面照片上传成功:', imageUrl)
+          console.log('✅ 新封面照片上传成功:', imageUrl)
+        } else {
+          // 用户没有选择新图片，保持原有封面照片
+          imageUrl = a.imageUrl || ''
+          console.log('📷 保持原有封面照片:', imageUrl)
         }
       } catch (upErr) {
         console.warn('封面照片上传失败，继续使用原图:', upErr)
+        imageUrl = a.imageUrl || ''
       }
 
       // 确保详情页图片数组不包含封面照片
