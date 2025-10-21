@@ -132,7 +132,7 @@ exports.main = async (event, context) => {
       }
     }
     
-    // 处理演员数据，获取对应的语音包预览
+    // 处理演员数据，获取对应的语音包预览并计算守护者计数
     const actorsWithPacks = await Promise.all(
       result.data.map(async (actor) => {
         // 获取该演员的热门语音包（最多4个）
@@ -145,8 +145,44 @@ exports.main = async (event, context) => {
           .limit(4)
           .get()
         
+        // 计算守护者数量（购买过该演员语音包的唯一用户数）
+        let guardianCount = 0
+        try {
+          const actorPackIds = (packsResult.data || []).map(p => p._id)
+          if (actorPackIds.length > 0) {
+            const $ = db.command
+            const [newPurchasesRes, oldPurchasesRes] = await Promise.all([
+              db.collection('user_purchases').where({ packId: $.in(actorPackIds), status: 'completed' }).get(),
+              db.collection('userPurchases').where({ voicePackId: $.in(actorPackIds) }).get()
+            ])
+            const uniqueUsers = new Set()
+            ;(newPurchasesRes.data || []).forEach(r => r._openid && uniqueUsers.add(r._openid))
+            ;(oldPurchasesRes.data || []).forEach(r => r._openid && uniqueUsers.add(r._openid))
+            guardianCount = uniqueUsers.size
+            
+            // 若数据库中的守护者统计为0或与计算不一致，尝试更新
+            try {
+              const current = actor.stats?.guardianCount || 0
+              if (current !== guardianCount) {
+                await db.collection('actors').doc(actor._id).update({
+                  data: { 'stats.guardianCount': guardianCount }
+                })
+                console.log(`✅ 更新演员 ${actor.name} 守护者计数: ${current} -> ${guardianCount}`)
+              }
+            } catch (e) {
+              console.log(`更新演员 ${actor.name} 守护者计数失败(可忽略):`, e.message)
+            }
+          }
+        } catch (e) {
+          console.log(`计算演员 ${actor.name} 守护者计数失败(可忽略):`, e.message)
+        }
+        
         return {
           ...actor,
+          stats: {
+            ...(actor.stats || {}),
+            guardianCount
+          },
           packs: packsResult.data.map(pack => ({
             icon: pack.icon,
             name: pack.name,
