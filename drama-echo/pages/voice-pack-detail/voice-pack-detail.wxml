@@ -157,6 +157,7 @@
   audioUrl="{{currentAudioUrl}}"
   fileName="{{currentAudioFileName}}"
   coverImage="{{packInfo.images && packInfo.images[0] ? packInfo.images[0] : ''}}"
+  coverImages="{{packInfo.images || []}}"
   playlist="{{packInfo.voices}}"
   currentIndex="{{currentPlaying}}"
   bind:close="closeAudioPlayer">

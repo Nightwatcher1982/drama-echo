@@ -1,3 +1,21 @@
+
+
+.nav-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nav-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 32rpx;
+  color: #fff;
+  letter-spacing: 0.02em;
+  margin-top: 64rpx;
+}
+
 /* 音频播放器组件样式 - 唱片机风格 */
 .audio-player {
   position: fixed;
@@ -5,7 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, #8B4513 0%, #A0522D 30%, #8B4513 100%);
+  background: #c8a1f1 linear-gradient(155deg, #F7C8F4 0%,#F7C8F4 25%,#e1c3e4 35%, #A36BD1 50%, #CEB1F7 100%) no-repeat !important;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -63,12 +81,11 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(circle, #654321 0%, #8B4513 30%, #654321 70%, #2F1B14 100%);
+  background: radial-gradient(circle, #1a1a1a 0%, #2d2d2d 20%, #1a1a1a 100%);
   position: relative;
   box-shadow: 
     inset 0 0 40rpx rgba(0, 0, 0, 0.6),
     0 0 60rpx rgba(0, 0, 0, 0.4);
-  border: 8rpx solid #2F1B14;
 }
 
 /* 唱片样式 */
@@ -98,6 +115,20 @@
   overflow: hidden;
   background: #333;
   box-shadow: inset 0 0 20rpx rgba(0, 0, 0, 0.5);
+}
+
+/* 封面轮播样式 */
+.cover-swiper {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.cover-swiper .swiper-item {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 .cover-image {
@@ -310,13 +341,13 @@
 }
 
 .btn-icon {
-  font-size: 32rpx;
+  font-size: 48rpx;
   color: white;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
 }
 
 .main-play-btn .btn-icon {
-  font-size: 40rpx;
+  font-size: 56rpx;
 }
 
 
@@ -412,10 +443,10 @@
   }
   
   .btn-icon {
-    font-size: 24rpx;
+    font-size: 48rpx;
   }
   
-  .main-play-btn .btn-icon {
+  .main-play-btn .btn-icon { 
     font-size: 32rpx;
   }
   

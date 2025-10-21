@@ -1,5 +1,12 @@
 <!-- 音频播放器组件 - 唱片机风格 -->
 <view class="audio-player" wx:if="{{show}}">
+  <!-- 顶部导航 -->
+  <view class="top-bar">
+    <view class="nav-bar">
+      <view class="nav-title"></view>
+    </view>
+  </view>
+  
   <!-- 播放器头部 -->
   <view class="player-header">
     <view class="back-btn" bind:tap="closePlayer">
@@ -7,7 +14,6 @@
     </view>
     <view class="header-title">{{fileName || '音频文件'}}</view>
     <view class="close-btn" bind:tap="closePlayer">
-      <text class="close-icon">×</text>
     </view>
   </view>
   
@@ -20,7 +26,19 @@
         <view class="record" style="transform: rotate({{rotationAngle}}deg);">
           <!-- 唱片封面 -->
           <view class="record-cover">
-            <image wx:if="{{coverImage}}" src="{{coverImage}}" class="cover-image" mode="aspectFill"></image>
+            <swiper wx:if="{{coverImages && coverImages.length > 0}}" 
+                    class="cover-swiper" 
+                    autoplay="{{coverImages.length > 1}}"
+                    interval="4000"
+                    duration="800"
+                    circular="{{coverImages.length > 1}}"
+                    indicator-dots="{{false}}"
+                    bindchange="onCoverImageChange">
+              <swiper-item wx:for="{{coverImages}}" wx:key="index">
+                <image src="{{item}}" class="cover-image" mode="aspectFill"></image>
+              </swiper-item>
+            </swiper>
+            <image wx:elif="{{coverImage}}" src="{{coverImage}}" class="cover-image" mode="aspectFill"></image>
             <view wx:else class="cover-placeholder">
               <text class="placeholder-icon">🎵</text>
             </view>
@@ -82,13 +100,13 @@
   <!-- 播放控制区域 -->
   <view class="player-controls">
     <view class="control-btn prev-btn" bind:tap="playPrevious">
-      <text class="btn-icon">⏮</text>
+      <text class="btn-icon">﹤</text>
     </view>
     <view class="control-btn main-play-btn {{isPlaying ? 'playing' : ''}}" bind:tap="{{isPlaying ? 'pauseAudio' : 'playAudio'}}">
-      <text class="btn-icon">{{isPlaying ? '⏸' : '▶'}}</text>
+      <text class="btn-icon">{{isPlaying ? '■' : '▷'}}</text>
     </view>
     <view class="control-btn next-btn" bind:tap="playNext">
-      <text class="btn-icon">⏭</text>
+      <text class="btn-icon">﹥</text>
     </view>
   </view>
 </view>
