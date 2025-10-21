@@ -907,15 +907,18 @@ Page({
 
   // 获取语音文件实际时长
   async getVoiceDurations(packData) {
-    if (!packData.voices || packData.voices.length === 0) {
+    // 使用当前页面数据中的voices，而不是传入的packData
+    const currentVoices = this.data.packInfo.voices || packData.voices || []
+    if (currentVoices.length === 0) {
+      console.log('🎵 没有语音数据，跳过时长获取')
       return
     }
     
     try {
-      console.log('🎵 开始获取语音文件实际时长，数量:', packData.voices.length)
+      console.log('🎵 开始获取语音文件实际时长，数量:', currentVoices.length)
       
       // 获取云存储音频文件的临时链接
-      const cloudAudioUrls = packData.voices
+      const cloudAudioUrls = currentVoices
         .map(voice => voice.audioUrl || voice.previewUrl)
         .filter(url => url && url.startsWith('cloud://'))
       
@@ -929,7 +932,7 @@ Page({
         
         // 更新语音数据中的音频URL和时长
         const updatedVoices = await Promise.all(
-          packData.voices.map(async (voice, index) => {
+          currentVoices.map(async (voice, index) => {
             console.log(`🎵 处理语音${index + 1}:`, {
               title: voice.title,
               originalAudioUrl: voice.audioUrl,
@@ -972,11 +975,17 @@ Page({
           })
         )
         
+        // 更新页面数据
         this.setData({
           'packInfo.voices': updatedVoices
         })
         
-        console.log('🎵 语音时长更新完成:', updatedVoices.map(v => ({ title: v.title, duration: v.duration })))
+        console.log('🎵 语音时长更新完成，页面数据已更新:', updatedVoices.map(v => ({ title: v.title, duration: v.duration })))
+        
+        // 验证页面数据是否已更新
+        setTimeout(() => {
+          console.log('🎵 验证页面数据更新结果:', this.data.packInfo.voices.map(v => ({ title: v.title, duration: v.duration })))
+        }, 100)
       }
     } catch (error) {
       console.error('🎵 获取语音时长失败:', error)
