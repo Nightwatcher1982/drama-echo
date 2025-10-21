@@ -989,17 +989,55 @@ Page({
       try {
         console.log('🎵 开始获取音频时长，URL:', audioUrl)
         
-        // 创建音频上下文
-        const audioContext = wx.createInnerAudioContext()
+        // 首先尝试使用wx.getFileInfo获取文件信息
+        if (audioUrl && !audioUrl.startsWith('http')) {
+          wx.getFileInfo({
+            filePath: audioUrl,
+            success: (res) => {
+              console.log('🎵 文件信息:', res)
+              // 如果文件大小很小，可能是短音频
+              if (res.size < 100000) { // 小于100KB
+                resolve('0:30') // 短音频默认30秒
+              } else if (res.size < 500000) { // 小于500KB
+                resolve('1:30') // 中等音频默认1分30秒
+              } else {
+                resolve('3:00') // 长音频默认3分钟
+              }
+            },
+            fail: (error) => {
+              console.warn('🎵 获取文件信息失败:', error)
+              // 继续使用音频上下文方法
+              this.getAudioDurationByContext(audioUrl, resolve)
+            }
+          })
+          return
+        }
         
-        audioContext.src = audioUrl
+        // 对于HTTP URL，直接使用音频上下文
+        this.getAudioDurationByContext(audioUrl, resolve)
         
-        audioContext.onCanplay(() => {
-          console.log('🎵 音频可播放，获取时长...')
-          // 获取音频时长
+      } catch (error) {
+        console.warn('🎵 创建音频上下文失败:', error)
+        resolve('2:30') // 默认时长
+      }
+    })
+  },
+
+  // 使用音频上下文获取时长
+  getAudioDurationByContext(audioUrl, resolve) {
+    try {
+      // 创建音频上下文
+      const audioContext = wx.createInnerAudioContext()
+      
+      audioContext.src = audioUrl
+      
+      audioContext.onCanplay(() => {
+        console.log('🎵 音频可播放，获取时长...')
+        
+        // 等待一下让音频完全加载
+        setTimeout(() => {
           const duration = audioContext.duration
           console.log('🎵 原始时长:', duration)
-          audioContext.destroy()
           
           if (duration && !isNaN(duration) && duration > 0) {
             // 转换为 mm:ss 格式
@@ -1007,38 +1045,58 @@ Page({
             const seconds = Math.floor(duration % 60)
             const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
             console.log('🎵 格式化时长:', formattedDuration)
+            audioContext.destroy()
             resolve(formattedDuration)
           } else {
-            console.warn('🎵 时长无效，使用默认值:', duration)
-            resolve('2:30') // 默认时长
+            console.warn('🎵 时长无效，尝试播放获取时长:', duration)
+            // 尝试播放一小段来获取时长
+            audioContext.play()
+            
+            setTimeout(() => {
+              const durationAfterPlay = audioContext.duration
+              console.log('🎵 播放后时长:', durationAfterPlay)
+              audioContext.stop()
+              audioContext.destroy()
+              
+              if (durationAfterPlay && !isNaN(durationAfterPlay) && durationAfterPlay > 0) {
+                const minutes = Math.floor(durationAfterPlay / 60)
+                const seconds = Math.floor(durationAfterPlay % 60)
+                const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+                console.log('🎵 播放后格式化时长:', formattedDuration)
+                resolve(formattedDuration)
+              } else {
+                console.warn('🎵 播放后时长仍无效，使用默认值:', durationAfterPlay)
+                resolve('2:30') // 默认时长
+              }
+            }, 1000) // 播放1秒后获取时长
           }
-        })
-        
-        audioContext.onError((error) => {
-          console.warn('🎵 音频加载失败:', error, 'URL:', audioUrl)
-          audioContext.destroy()
-          resolve('2:30') // 默认时长
-        })
-        
-        audioContext.onLoad(() => {
-          console.log('🎵 音频加载完成')
-        })
-        
-        audioContext.onWaiting(() => {
-          console.log('🎵 音频等待中...')
-        })
-        
-        // 设置超时
-        setTimeout(() => {
-          console.warn('🎵 获取音频时长超时，URL:', audioUrl)
-          audioContext.destroy()
-          resolve('2:30') // 默认时长
-        }, 8000) // 增加超时时间到8秒
-        
-      } catch (error) {
-        console.warn('🎵 创建音频上下文失败:', error)
+        }, 500) // 等待500ms让音频完全加载
+      })
+      
+      audioContext.onError((error) => {
+        console.warn('🎵 音频加载失败:', error, 'URL:', audioUrl)
+        audioContext.destroy()
         resolve('2:30') // 默认时长
-      }
-    })
+      })
+      
+      audioContext.onLoad(() => {
+        console.log('🎵 音频加载完成')
+      })
+      
+      audioContext.onWaiting(() => {
+        console.log('🎵 音频等待中...')
+      })
+      
+      // 设置超时
+      setTimeout(() => {
+        console.warn('🎵 获取音频时长超时，URL:', audioUrl)
+        audioContext.destroy()
+        resolve('2:30') // 默认时长
+      }, 8000) // 增加超时时间到8秒
+      
+    } catch (error) {
+      console.warn('🎵 创建音频上下文失败:', error)
+      resolve('2:30') // 默认时长
+    }
   }
 })
