@@ -1070,27 +1070,29 @@ Page({
             } else {
               console.warn('🎵 时长无效，使用智能默认值:', duration)
               audioContext.destroy()
-              // 根据音频URL的特征使用不同的默认时长
-              let defaultDuration = '2:30' // 默认值
               
-              if (audioUrl.includes('早安闹钟') || audioUrl.includes('孙一城')) {
+              // 简化的智能默认值逻辑
+              let defaultDuration = '2:30'
+              
+              console.log('🎵 检查URL:', audioUrl)
+              
+              if (audioUrl.includes('早安闹钟')) {
                 defaultDuration = '2:30'
-                console.log('🎵 匹配到早安闹钟，使用时长:', defaultDuration)
+                console.log('🎵 匹配早安闹钟 -> 2:30')
               } else if (audioUrl.includes('晚安故事')) {
                 defaultDuration = '0:26'
-                console.log('🎵 匹配到晚安故事，使用时长:', defaultDuration)
-              } else if (audioUrl.includes('迷雾指南针') || audioUrl.includes('迷雾灯塔针')) {
+                console.log('🎵 匹配晚安故事 -> 0:26')
+              } else if (audioUrl.includes('迷雾指南针')) {
                 defaultDuration = '1:06'
-                console.log('🎵 匹配到迷雾指南针，使用时长:', defaultDuration)
-              } else if (audioUrl.includes('迷雾灯塔') || audioUrl.includes('点亮灯塔')) {
+                console.log('🎵 匹配迷雾指南针 -> 1:06')
+              } else if (audioUrl.includes('迷雾灯塔')) {
                 defaultDuration = '1:27'
-                console.log('🎵 匹配到迷雾灯塔，使用时长:', defaultDuration)
+                console.log('🎵 匹配迷雾灯塔 -> 1:27')
               } else {
-                defaultDuration = '2:30'
-                console.log('🎵 使用通用默认时长:', defaultDuration, 'URL:', audioUrl)
+                console.log('🎵 未匹配，使用默认 -> 2:30')
               }
               
-              console.log('🎵 最终确定的智能默认时长:', defaultDuration)
+              console.log('🎵 返回时长:', defaultDuration)
               resolve(defaultDuration)
             }
         }, 500) // 等待500ms让音频完全加载
