@@ -59,7 +59,6 @@
       <!-- 奖励说明 -->
       <view class="reward-notice">
         <view class="notice-header">
-          <view class="notice-icon">🎁</view>
           <view class="notice-title">月度荣耀活动</view>
         </view>
         <view class="notice-content">
