@@ -513,7 +513,7 @@
   height: 202px;
   position: relative;
   overflow: hidden;
-  border-radius: 0 0 40rpx 40rpx;
+  border-radius: 40rpx;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
 }
 
