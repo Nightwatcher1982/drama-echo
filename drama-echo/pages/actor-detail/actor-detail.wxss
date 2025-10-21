@@ -428,11 +428,14 @@
 
 /* 奖励说明 */
 .reward-notice {
-  background: linear-gradient(135deg, #ff9a8b 0%, #fecfef 50%, #fecfef 100%);
+  background: rgba(245, 247, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid;
+  border-image: linear-gradient(90deg, rgba(233, 239, 246, 0.56), rgba(233, 236, 246, 0.56)) 1;
   border-radius: 40rpx;
   padding: 24rpx;
   margin: 20rpx 0;
-  box-shadow: 0 4rpx 20rpx rgba(255, 154, 139, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
 }
 
 .notice-header {
