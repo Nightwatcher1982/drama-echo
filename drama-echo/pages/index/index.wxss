@@ -104,6 +104,9 @@ height: 176rpx;
 
 .user-details {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-name {
@@ -112,8 +115,26 @@ height: 176rpx;
   font-size: 32rpx;
   font-weight: 500;
   color: #333333;
-  margin-bottom: 8rpx;
   text-transform: uppercase;
+  position: relative;
+}
+
+.user-name::before {
+  content: '「';
+  position: absolute;
+  left: -20rpx;
+  top: 0;
+  color: #8B38A2;
+  font-size: 28rpx;
+}
+
+.user-name::after {
+  content: '」';
+  position: absolute;
+  right: -20rpx;
+  top: 0;
+  color: #8B38A2;
+  font-size: 28rpx;
 }
 
 .user-stats {

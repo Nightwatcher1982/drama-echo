@@ -17,7 +17,6 @@
       <view class="avatar-placeholder" wx:else>头像</view>
       <view class="user-details">
         <text class="user-name">{{displayName}}</text>
-        <text class="user-stats">已收藏 {{userPurchaseCount || 897}}个专属声音</text>
       </view>
       <view class="profile-btn">个人中心 ></view>
     </view>
