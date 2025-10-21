@@ -462,12 +462,30 @@ Page({
   onActorInput(e) { const f = e.currentTarget.dataset.field; const v = e.detail.value; const a = { ...this.data.editingActor }; a[f] = v; this.setData({ editingActor: a }) },
   async chooseActorImage() {
     try {
+      console.log('🔍 开始选择封面照片...')
       const res = await wx.chooseMedia({ count: 1, mediaType: ['image'] })
       const p = res.tempFiles[0].tempFilePath
       let out = p
       try { const cr = await wx.compressImage({ src: p, quality: 60 }); out = cr.tempFilePath } catch(_){}
+      
+      console.log('✅ 封面照片选择成功:', {
+        originalPath: p,
+        compressedPath: out,
+        currentTempImagePath: this.data.tempImagePath
+      })
+      
       this.setData({ tempImagePath: out })
-    } catch (e) { if (!(e && String(e.errMsg||'').includes('cancel'))) wx.showToast({ title: '选择图片失败', icon: 'none' }) }
+      
+      console.log('📷 设置tempImagePath后:', {
+        tempImagePath: this.data.tempImagePath,
+        editingActorImageUrl: this.data.editingActor.imageUrl
+      })
+    } catch (e) { 
+      console.error('❌ 选择封面照片失败:', e)
+      if (!(e && String(e.errMsg||'').includes('cancel'))) {
+        wx.showToast({ title: '选择图片失败', icon: 'none' }) 
+      }
+    }
   },
   async addActorImages() {
     try {

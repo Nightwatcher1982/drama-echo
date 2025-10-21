@@ -36,29 +36,65 @@ exports.main = async (event, context) => {
       }
       
       // 检查是否需要修复
-      if (actor.imageUrl && actor.images && actor.images.length > 0) {
-        // 如果封面照片和详情页图片相同，清空详情页图片
-        if (actor.images.includes(actor.imageUrl)) {
-          const newImages = actor.images.filter(img => img !== actor.imageUrl)
+      let needsFix = false
+      let fixAction = ''
+      
+      // 检查1：如果封面照片是detail_开头的，说明封面照片被错误设置
+      if (actor.imageUrl && actor.imageUrl.includes('/detail_')) {
+        needsFix = true
+        fixAction = 'cover_is_detail_image'
+      }
+      
+      // 检查2：如果封面照片和详情页图片相同，清空详情页图片
+      if (actor.imageUrl && actor.images && actor.images.length > 0 && actor.images.includes(actor.imageUrl)) {
+        needsFix = true
+        fixAction = 'duplicate_images'
+      }
+      
+      if (needsFix) {
+        try {
+          let updateData = {}
           
-          try {
+          if (fixAction === 'cover_is_detail_image') {
+            // 如果封面照片是详情页图片，将详情页图片的第一张设为封面照片，清空详情页图片
+            if (actor.images && actor.images.length > 0) {
+              updateData.imageUrl = actor.images[0]
+              updateData.images = []
+              fixResult.action = 'fixed_cover_from_gallery'
+            } else {
+              // 如果没有详情页图片，清空封面照片
+              updateData.imageUrl = ''
+              fixResult.action = 'cleared_invalid_cover'
+            }
+          } else if (fixAction === 'duplicate_images') {
+            // 清空重复的详情页图片
+            const newImages = actor.images.filter(img => img !== actor.imageUrl)
+            updateData.images = newImages
+            fixResult.action = 'removed_duplicate_from_gallery'
+          }
+          
+          if (Object.keys(updateData).length > 0) {
             await db.collection('actors').doc(actor._id).update({
-              data: {
-                images: newImages
-              }
+              data: updateData
             })
             
-            fixResult.after.images = newImages
-            fixResult.after.imagesCount = newImages.length
-            fixResult.fixed = true
-            fixResult.action = 'removed_duplicate_from_gallery'
+            // 更新修复结果
+            if (updateData.imageUrl !== undefined) {
+              fixResult.after.imageUrl = updateData.imageUrl
+            }
+            if (updateData.images !== undefined) {
+              fixResult.after.images = updateData.images
+              fixResult.after.imagesCount = updateData.images.length
+            }
             
-            console.log(`✅ 修复演员 ${actor.name}: 从图片库中移除重复的封面照片`)
-          } catch (error) {
-            console.error(`❌ 修复演员 ${actor.name} 失败:`, error)
-            fixResult.action = 'error'
-            fixResult.error = error.message
+            fixResult.fixed = true
+            
+            console.log(`✅ 修复演员 ${actor.name}: ${fixResult.action}`)
           }
+        } catch (error) {
+          console.error(`❌ 修复演员 ${actor.name} 失败:`, error)
+          fixResult.action = 'error'
+          fixResult.error = error.message
         }
       }
       
