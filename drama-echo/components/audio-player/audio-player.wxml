@@ -30,7 +30,7 @@
                     class="cover-swiper" 
                     autoplay="{{coverImages.length > 1}}"
                     interval="4000"
-                    duration="800"
+                    duration="1600"
                     circular="{{coverImages.length > 1}}"
                     indicator-dots="{{false}}"
                     bindchange="onCoverImageChange">
