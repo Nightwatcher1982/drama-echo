@@ -1092,13 +1092,14 @@ Page({
         resolve('2:30') // 默认时长
       })
       
-      audioContext.onLoad(() => {
-        console.log('🎵 音频加载完成')
-      })
+      // 移除不支持的onLoad和onWaiting方法
+      // audioContext.onLoad(() => {
+      //   console.log('🎵 音频加载完成')
+      // })
       
-      audioContext.onWaiting(() => {
-        console.log('🎵 音频等待中...')
-      })
+      // audioContext.onWaiting(() => {
+      //   console.log('🎵 音频等待中...')
+      // })
       
       // 设置超时
       setTimeout(() => {
