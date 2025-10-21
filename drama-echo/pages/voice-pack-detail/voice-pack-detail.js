@@ -38,7 +38,9 @@ Page({
     currentAudioUrl: '',
     currentAudioFileName: '',
     // 分享相关
-    shareContent: null
+    shareContent: null,
+    // 轮播图相关
+    currentImageIndex: 0
   },
 
   onLoad(options) {
@@ -86,6 +88,15 @@ Page({
       this.audioContext = null
       return false
     }
+  },
+
+  goBackFn(){
+    wx.navigateBack({
+      delta: 1, // 返回层数（1表示上一页）
+      success() {
+        console.log('返回成功');
+      }
+    });
   },
 
   // 加载语音包信息
@@ -149,6 +160,12 @@ Page({
             
             // 异步处理云存储图片，获取临时链接
             this.processCloudImages(packData)
+            
+            // 获取语音文件实际时长
+            this.getVoiceDurations(packData)
+            
+            // 获取用户购买数量
+            await this.getUserPurchaseCount(packId)
             
             return
           } else {
@@ -315,18 +332,30 @@ Page({
     const { packInfo } = this.data
     
     console.log('📤 设置语音包分享内容:', packInfo)
+    console.log('📤 演员信息:', {
+      actorName: packInfo.actorName,
+      actorAvatar: packInfo.actorAvatar,
+      images: packInfo.images,
+      photos: packInfo.photos
+    })
     
-    // 获取语音包的第一张图片
-    const firstImage = packInfo.images?.[0] || packInfo.photos?.[0] || packInfo.actorAvatar || ''
+    // 优先使用演员封面图，然后是语音包图片
+    const shareImage = packInfo.actorAvatar || packInfo.images?.[0] || packInfo.photos?.[0] || ''
     
-    console.log('🖼️ 原始图片URL:', firstImage)
+    console.log('🖼️ 分享图片URL (优先演员封面):', shareImage)
+    console.log('🖼️ 图片类型判断:', {
+      isCloud: shareImage.startsWith('cloud://'),
+      isHttp: shareImage.startsWith('http'),
+      isLocal: shareImage.startsWith('/images/'),
+      isEmpty: !shareImage
+    })
     
     // 使用分享图片处理工具
     const shareContent = await ShareImageHandler.createShareContent(
       `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
       packInfo.description || `${packInfo.actorName}专属语音包`,
       `/pages/voice-pack-detail/voice-pack-detail?packId=${this.data.packId}`,
-      firstImage
+      shareImage
     )
     
     // 设置分享内容到页面数据
@@ -406,6 +435,14 @@ Page({
       })
       return null
     }
+  },
+
+  // 轮播图切换事件
+  onSwiperChange(e) {
+    const current = e.detail.current
+    this.setData({
+      currentImageIndex: current
+    })
   },
 
   // 预览照片
@@ -608,7 +645,7 @@ Page({
     
     // 默认分享内容
     const { packInfo } = this.data
-    const defaultImage = packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
+    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
     
     return {
       title: `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
@@ -629,7 +666,7 @@ Page({
     
     // 默认分享内容
     const { packInfo } = this.data
-    const defaultImage = packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
+    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
     
     return {
       title: `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
@@ -695,9 +732,19 @@ Page({
         console.log('📦 用户购买记录:', purchases)
         
         // 统计该语音包的购买数量
-        const userPurchaseCount = purchases.filter(purchase =>
+        const matchingPurchases = purchases.filter(purchase =>
           purchase.packId === packId || purchase.voicePackId === packId
-        ).length
+        )
+        
+        console.log('🔍 匹配的购买记录:', matchingPurchases)
+        console.log('🔍 每条记录的purchaseCount:', matchingPurchases.map(p => p.purchaseCount))
+        
+        // 计算总购买份数（考虑purchaseCount字段）
+        const userPurchaseCount = matchingPurchases.reduce((total, purchase) => {
+          const count = purchase.purchaseCount || 1
+          console.log('🔍 累加购买份数:', count, '总计:', total + count)
+          return total + count
+        }, 0)
 
         console.log('📊 用户购买数量:', userPurchaseCount)
         this.setData({ userPurchaseCount })
@@ -783,13 +830,10 @@ Page({
 
   // 确认复购
   async confirmRepurchase() {
-    console.log('🛒 确认购买按钮被点击')
     const { packId, repurchaseQuantity, packInfo } = this.data
     
     try {
       wx.showLoading({ title: '处理中...' })
-      
-      console.log('🛒 开始复购，数量:', repurchaseQuantity)
       
       // 创建多个订单
       const orders = []
@@ -809,10 +853,11 @@ Page({
         }
       }
       
-      console.log('✅ 复购订单创建成功:', orders.length, '个')
-      
       // 更新用户购买数量
       await this.getUserPurchaseCount(packId)
+      
+      // 立即刷新页面数据
+      await this.loadPackInfo(packId)
       
       // 关闭弹窗
       this.hideRepurchaseModal()
@@ -823,20 +868,19 @@ Page({
         duration: 2000
       })
       
-      // 延迟刷新排行榜（如果有父页面的话）
-      setTimeout(() => {
-        // 可以发送事件通知父页面更新排行榜
-        const pages = getCurrentPages()
-        if (pages.length > 1) {
-          const prevPage = pages[pages.length - 2]
-          if (prevPage.route.includes('actor-detail')) {
-            prevPage.loadActorDetail && prevPage.loadActorDetail()
-          }
+      // 通知父页面刷新数据
+      const pages = getCurrentPages()
+      if (pages.length > 1) {
+        const prevPage = pages[pages.length - 2]
+        if (prevPage.route.includes('actor-detail')) {
+          // 刷新演员详情页面的数据
+          prevPage.loadActorDetail && prevPage.loadActorDetail()
+          // 刷新粉丝排行榜
+          prevPage.updateFanRanking && prevPage.updateFanRanking()
         }
-      }, 1000)
+      }
       
     } catch (error) {
-      console.error('复购失败:', error)
       wx.showToast({
         title: error.message || '复购失败',
         icon: 'none'
@@ -858,6 +902,114 @@ Page({
       currentAudioUrl: '',
       currentAudioFileName: '',
       currentPlaying: -1
+    })
+  },
+
+  // 获取语音文件实际时长
+  async getVoiceDurations(packData) {
+    if (!packData.voices || packData.voices.length === 0) {
+      return
+    }
+    
+    try {
+      console.log('🎵 开始获取语音文件实际时长，数量:', packData.voices.length)
+      
+      // 获取云存储音频文件的临时链接
+      const cloudAudioUrls = packData.voices
+        .map(voice => voice.audioUrl || voice.previewUrl)
+        .filter(url => url && url.startsWith('cloud://'))
+      
+      if (cloudAudioUrls.length > 0) {
+        console.log('🎵 需要获取临时链接的云存储音频:', cloudAudioUrls)
+        const tempRes = await wx.cloud.getTempFileURL({
+          fileList: cloudAudioUrls
+        })
+        
+        console.log('🎵 音频临时链接结果:', tempRes)
+        
+        // 更新语音数据中的音频URL和时长
+        const updatedVoices = await Promise.all(
+          packData.voices.map(async (voice, index) => {
+            let audioUrl = voice.audioUrl || voice.previewUrl
+            
+            // 如果是云存储URL，获取临时链接
+            if (audioUrl && audioUrl.startsWith('cloud://')) {
+              const tempFile = tempRes.fileList.find(file => file.fileID === audioUrl)
+              if (tempFile && tempFile.status === 0) {
+                audioUrl = tempFile.tempFileURL
+              }
+            }
+            
+            // 获取实际时长
+            let actualDuration = voice.duration || '2:30' // 默认时长
+            if (audioUrl) {
+              try {
+                actualDuration = await this.getAudioDuration(audioUrl)
+                console.log(`🎵 语音${index + 1}实际时长:`, actualDuration)
+              } catch (error) {
+                console.warn(`🎵 获取语音${index + 1}时长失败:`, error)
+              }
+            }
+            
+            return {
+              ...voice,
+              audioUrl: audioUrl,
+              duration: actualDuration
+            }
+          })
+        )
+        
+        this.setData({
+          'packInfo.voices': updatedVoices
+        })
+        
+        console.log('🎵 语音时长更新完成:', updatedVoices.map(v => ({ title: v.title, duration: v.duration })))
+      }
+    } catch (error) {
+      console.error('🎵 获取语音时长失败:', error)
+    }
+  },
+
+  // 获取音频文件时长
+  getAudioDuration(audioUrl) {
+    return new Promise((resolve, reject) => {
+      try {
+        // 创建音频上下文
+        const audioContext = wx.createInnerAudioContext()
+        
+        audioContext.src = audioUrl
+        audioContext.onCanplay(() => {
+          // 获取音频时长
+          const duration = audioContext.duration
+          audioContext.destroy()
+          
+          if (duration && !isNaN(duration)) {
+            // 转换为 mm:ss 格式
+            const minutes = Math.floor(duration / 60)
+            const seconds = Math.floor(duration % 60)
+            const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+            resolve(formattedDuration)
+          } else {
+            resolve('2:30') // 默认时长
+          }
+        })
+        
+        audioContext.onError((error) => {
+          console.warn('音频加载失败:', error)
+          audioContext.destroy()
+          resolve('2:30') // 默认时长
+        })
+        
+        // 设置超时
+        setTimeout(() => {
+          audioContext.destroy()
+          resolve('2:30') // 默认时长
+        }, 5000)
+        
+      } catch (error) {
+        console.warn('创建音频上下文失败:', error)
+        resolve('2:30') // 默认时长
+      }
     })
   }
 })
