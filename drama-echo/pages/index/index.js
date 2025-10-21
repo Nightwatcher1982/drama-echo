@@ -54,7 +54,13 @@ Page({
       // 3. 设置今日剧院
       this.setTodayTheater()
       
-      // 4. 添加云函数测试功能（开发环境）
+      // 4. 加载用户购买记录
+      await this.loadUserPurchaseCount()
+      
+      // 5. 加载演员头像数据
+      await this.loadActorAvatars()
+      
+      // 6. 添加云函数测试功能（开发环境）
       if (wx.getSystemInfoSync().platform === 'devtools') {
         this.testCloudFunction = this.testVoicePackDetail
       }
@@ -283,17 +289,78 @@ Page({
     })
   },
 
-  goToDebugPermissions() {
-    wx.navigateTo({
-      url: '/pages/debug-permissions/debug-permissions'
-    })
-  },
-
   // 跳转到个人中心
   goToProfile() {
     wx.navigateTo({
       url: '/pages/profile/profile'
     })
+  },
+
+  // 加载用户购买记录数量
+  async loadUserPurchaseCount() {
+    try {
+      if (!app.checkLoginStatus()) {
+        console.log('用户未登录，跳过购买记录加载')
+        return
+      }
+
+      console.log('🔍 开始加载用户购买记录...')
+      
+      const result = await wx.cloud.callFunction({
+        name: 'getUserPurchases',
+        data: { userId: 'current' }
+      })
+
+      if (result.result.code === 0) {
+        const purchases = result.result.data.purchases || []
+        console.log('📦 用户购买记录:', purchases.length, '条')
+        
+        // 计算总购买数量（考虑purchaseCount字段）
+        const totalPurchaseCount = purchases.reduce((total, purchase) => {
+          return total + (purchase.purchaseCount || 1)
+        }, 0)
+        
+        console.log('📊 用户总购买数量:', totalPurchaseCount)
+        this.setData({ userPurchaseCount: totalPurchaseCount })
+      } else {
+        console.error('获取用户购买记录失败:', result.result.message)
+        this.setData({ userPurchaseCount: 0 })
+      }
+    } catch (error) {
+      console.error('加载用户购买记录失败:', error)
+      this.setData({ userPurchaseCount: 0 })
+    }
+  },
+
+  // 加载演员头像数据
+  async loadActorAvatars() {
+    try {
+      console.log('🔍 开始加载演员头像数据...')
+      
+      const result = await wx.cloud.callFunction({
+        name: 'getActors'
+      })
+
+      if (result.result.code === 0) {
+        const actors = result.result.data || []
+        console.log('👥 获取到演员数据:', actors.length, '个')
+        
+        // 提取演员的封面照片作为头像
+        const actorAvatars = actors.map(actor => {
+          // 优先使用封面照片，如果没有则使用图片库第一张
+          return actor.imageUrl || (actor.images && actor.images[0]) || '/images/default-actor.png'
+        })
+        
+        console.log('🖼️ 演员头像数据:', actorAvatars)
+        this.setData({ actorAvatars })
+      } else {
+        console.error('获取演员数据失败:', result.result.message)
+        // 保持默认的模拟数据
+      }
+    } catch (error) {
+      console.error('加载演员头像数据失败:', error)
+      // 保持默认的模拟数据
+    }
   },
   
   // 跳转到管理员助手
