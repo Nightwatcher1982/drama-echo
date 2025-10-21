@@ -20,11 +20,6 @@ Component({
       type: String,
       value: ''
     },
-    // 多张封面图片数组
-    coverImages: {
-      type: Array,
-      value: []
-    },
     // 播放列表
     playlist: {
       type: Array,
@@ -435,12 +430,6 @@ Component({
       } else {
         wx.showToast({ title: '音频文件不可用', icon: 'none' })
       }
-    },
-    
-    // 封面图片轮播变化处理
-    onCoverImageChange(e) {
-      const current = e.detail.current
-      console.log('封面图片切换到第', current + 1, '张')
     },
     
     // 关闭播放器
