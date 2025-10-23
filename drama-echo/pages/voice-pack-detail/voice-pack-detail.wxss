@@ -75,6 +75,13 @@
   font-weight: bold;
 }
 
+.nav-title {
+  flex: 1;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
 
 /* 写真照片区域 */
 .photo-section {
@@ -276,6 +283,13 @@
   gap: 16rpx;
 }
 
+.voice-duration {
+  font-size: 24rpx;
+  color: #666;
+  background: rgba(102, 102, 102, 0.1);
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+}
 
 .voice-subtitle {
   font-size: 22rpx;
@@ -293,19 +307,36 @@
 }
 
 .play-btn {
+  width: 80rpx;
+  height: 80rpx;
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: white;
-  padding: 12rpx 24rpx;
-  border-radius: 24rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  box-shadow: 0 4rpx 12rpx rgba(79, 172, 254, 0.3);
-  transition: all 0.3s ease;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 120rpx;
-  height: 60rpx;
+  box-shadow: 0 8rpx 20rpx rgba(79, 172, 254, 0.4);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.play-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.play-btn:active::before {
+  width: 100%;
+  height: 100%;
 }
 
 .play-btn.playing {
@@ -315,11 +346,10 @@
 
 .play-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(79, 172, 254, 0.3);
 }
 
 .play-icon {
-  font-size: 24rpx;
+  font-size: 32rpx;
   color: white;
   margin-left: 2rpx;
 }
@@ -765,6 +795,19 @@
   align-items: center;
 }
 
+.nav-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 32rpx;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.nav-back{
+  font-size: 36rpx !important;
+  color: #fff;
+}
 
 /* 打榜复购区域新样式 */
 .support-section {
@@ -832,6 +875,23 @@
   font-weight: 500;
 }
 
+.share-button-box{
+  width: 100% !important;
+  border-radius: 100rpx !important;
+  background: linear-gradient(135deg, #fff 0%, rgb(243, 203, 237) 20%, #fff 80%, rgb(243, 203, 237) 100%);
+  padding: 8rpx;
+  box-sizing: border-box;
+}
+
+.share-button{
+  width: 100% !important;
+  border-radius: 100rpx !important;
+  font-weight: 400 !important;
+  background: linear-gradient(100deg, rgba(251,193,243,.3), rgba(251,186,241,1), rgba(251,186,241,1), rgba(251,193,243,.3));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(233, 47, 143, 0.3);
+  box-sizing: border-box;
+}
 
 /* 响应式适配 */
 @media (max-width: 750rpx) {
@@ -931,11 +991,6 @@
   margin-bottom: 8rpx;
 }
 
-.pack-price {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #4facfe;
-}
 
 .quantity-selector {
   margin-bottom: 30rpx;
@@ -979,26 +1034,6 @@
   text-align: center;
 }
 
-.total-price {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx;
-  background: #f8f9ff;
-  border-radius: 16rpx;
-  margin-bottom: 30rpx;
-}
-
-.total-label {
-  font-size: 28rpx;
-  color: #666;
-}
-
-.total-amount {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #4facfe;
-}
 
 .repurchase-modal .modal-footer {
   display: flex;

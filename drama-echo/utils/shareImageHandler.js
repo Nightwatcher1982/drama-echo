@@ -5,10 +5,16 @@ class ShareImageHandler {
   static async processShareImage(originalImageUrl) {
     console.log('🖼️ 处理分享图片URL:', originalImageUrl)
     
+    // 如果图片URL为空，使用默认图片
+    if (!originalImageUrl) {
+      console.log('⚠️ 图片URL为空，使用默认图片')
+      return '/images/modu.png'
+    }
+    
     // 如果是本地图片，直接返回
-    if (!originalImageUrl || originalImageUrl.startsWith('/images/')) {
+    if (originalImageUrl.startsWith('/images/')) {
       console.log('✅ 使用本地图片:', originalImageUrl)
-      return originalImageUrl || '/images/modu.png'
+      return originalImageUrl
     }
     
     // 如果是云存储图片，获取临时链接
@@ -23,15 +29,9 @@ class ShareImageHandler {
           const tempUrl = tempRes.fileList[0].tempFileURL
           console.log('✅ 获取临时链接成功:', tempUrl)
           
-          // 验证图片是否可访问
-          const isValid = await this.validateImageUrl(tempUrl)
-          if (isValid) {
-            console.log('✅ 图片验证通过，使用临时链接')
-            return tempUrl
-          } else {
-            console.log('❌ 图片验证失败，使用备用图片')
-            return '/images/modu.png'
-          }
+          // 对于分享图片，直接返回临时链接，不进行验证（避免超时）
+          console.log('✅ 使用云存储临时链接作为分享图片')
+          return tempUrl
         } else {
           console.log('❌ 获取临时链接失败，使用备用图片')
           return '/images/modu.png'
@@ -42,17 +42,10 @@ class ShareImageHandler {
       }
     }
     
-    // 如果是HTTP/HTTPS链接，验证后返回
+    // 如果是HTTP/HTTPS链接，直接返回（分享时不需要验证）
     if (originalImageUrl.startsWith('http')) {
-      console.log('🔗 验证HTTP图片链接...')
-      const isValid = await this.validateImageUrl(originalImageUrl)
-      if (isValid) {
-        console.log('✅ HTTP图片验证通过')
-        return originalImageUrl
-      } else {
-        console.log('❌ HTTP图片验证失败，使用备用图片')
-        return '/images/modu.png'
-      }
+      console.log('✅ 使用HTTP图片链接:', originalImageUrl)
+      return originalImageUrl
     }
     
     // 其他情况使用备用图片

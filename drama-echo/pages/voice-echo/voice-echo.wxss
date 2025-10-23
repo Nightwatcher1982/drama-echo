@@ -10,26 +10,25 @@ page {
 }
 
 .container {
-  width: 100% !important;
+  width: 686rpx;
   min-height: 100vh;
   background: transparent;
   color: #333;
   position: relative;
   padding: 0;
-  margin: 0;
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
 /* 顶部标题卡片 - 基于Figma Frame 1321319070 */
 .title-card {
-  margin: 4rpx;
+  margin: 24rpx auto;
   background: rgba(255, 255, 255, 0.49);
   backdrop-filter: blur(4rpx);
-  border-radius: 24rpx;
+  border-radius: 48rpx;
   border: 0.5px solid rgba(242, 233, 246, 1);
   box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
-  padding: 6rpx;
-  height: 72rpx;
+  padding: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,9 +43,11 @@ page {
 
 .title-text {
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 24rpx;
-  font-weight: 300;
-  color: #5F639C;
+  font-size: 48rpx;
+  font-weight: 500;
+  background: -webkit-linear-gradient(10deg,#6A31A6, #8A37A3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   line-height: 1em;
   text-align: center;
 }
@@ -62,10 +63,10 @@ page {
 
 /* 主要内容区域 - 基于Figma Frame 1321319069 */
 .main-content {
-  margin: 4rpx;
+  margin: 24rpx auto;
   background: rgba(255, 255, 255, 0.49);
   backdrop-filter: blur(4rpx);
-  border-radius: 24rpx;
+  border-radius: 48rpx;
   border: 0.5px solid rgba(242, 233, 246, 1);
   box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
   overflow: hidden;
@@ -75,9 +76,8 @@ page {
 /* 演员头像区域 - 基于Figma image 44 */
 .actor-avatar-section {
   position: relative;
-  height: 320rpx;
+  height: 640rpx;
   overflow: hidden;
-  margin-top: -21rpx;
 }
 
 .actor-avatar {
@@ -89,9 +89,10 @@ page {
 /* 演员信息卡片 - 基于Figma Frame 1321319073 */
 .actor-info-card {
   padding: 0;
-  background: rgba(255, 255, 255, 0.49);
+  margin-top: -48rpx;
+  background: linear-gradient(180deg, #F5DEFC 0%, #fff 20%);
   backdrop-filter: blur(4rpx);
-  border-radius: 0 0 24rpx 24rpx;
+  border-radius: 48rpx;
   min-height: 320rpx;
   position: relative;
   display: flex;
@@ -106,7 +107,6 @@ page {
   left: 0;
   width: 100%;
   height: 64rpx;
-  background: linear-gradient(180deg, rgba(185, 29, 236, 0.2) 0%, rgba(185, 29, 236, 0) 100%);
   z-index: 1;
 }
 
@@ -116,11 +116,14 @@ page {
   align-items: baseline;
   gap: 8rpx;
   margin: 20rpx 24rpx 8rpx;
+  padding-top: 24rpx;
   position: relative;
   z-index: 2;
 }
 
 .actor-name {
+  min-width: 80px;
+  max-width: 200px;
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 40rpx;
   font-weight: 600;
@@ -130,10 +133,10 @@ page {
 
 .actor-title {
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 400;
   color: #8C36A3;
-  line-height: 1em;
+  line-height: 1.4em;
 }
 
 .actor-description {
@@ -153,7 +156,7 @@ page {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  margin: 20rpx;
+  margin: 24rpx 24rpx 12rpx;
   position: relative;
   z-index: 2;
 }
@@ -167,7 +170,7 @@ page {
   gap: 8rpx;
   padding: 24rpx 0;
   background: linear-gradient(180deg, rgba(97, 46, 164, 1) 0%, rgba(150, 58, 162, 1) 100%);
-  border-radius: 12rpx;
+  border-radius: 24rpx;
 }
 
 .stat-number {
@@ -191,17 +194,18 @@ page {
 
 /* 进入专属空间按钮 - 基于Figma Frame 1321319078 */
 .enter-space-btn {
+  width: 624rpx !important;
   height: 100rpx;
   background: linear-gradient(180deg, rgba(149, 0, 229, 1) 0%, rgba(195, 29, 237, 1) 100%);
   border: 1px solid rgba(119, 5, 180, 1);
-  border-radius: 12rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
   position: relative;
   overflow: hidden;
-  margin: 20rpx;
+  margin: 24rpx 0 36rpx;
   box-shadow: 0px 0px 0px 5px rgba(255, 255, 255, 1), 
               0px 0px 0px 4px rgba(243, 234, 248, 1), 
               0px 3.713615894317627px 4.845815658569336px 0px rgba(149, 0, 229, 0.15), 

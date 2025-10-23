@@ -75,13 +75,9 @@ Component({
         totalTracks: playlist.length,
         currentTrackIndex: this.data.currentIndex
       })
-      if (playlist.length > 0 && playlist[this.data.currentIndex]) {
+      if (playlist.length > 0) {
         this.setData({
           currentTrack: playlist[this.data.currentIndex]
-        })
-      } else {
-        this.setData({
-          currentTrack: null
         })
       }
     },

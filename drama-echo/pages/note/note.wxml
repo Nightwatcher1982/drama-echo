@@ -197,9 +197,9 @@
       />
     </view>
 
-    <!-- 购买渠道 -->
+    <!-- 获取渠道 -->
     <view class="form-group">
-      <view class="form-label">购买渠道</view>
+      <view class="form-label">获取渠道</view>
       <picker 
         class="form-picker"
         mode="selector"

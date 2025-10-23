@@ -8,9 +8,9 @@
   <!-- 空状态 -->
   <view wx:elif="{{empty}}" class="empty-container">
     <view class="empty-icon">🎵</view>
-    <view class="empty-title">暂无购买的语音包</view>
-    <view class="empty-desc">去戏剧回响页面购买你喜欢的语音包吧</view>
-    <button class="empty-btn" bindtap="goToVoiceEcho">去购买</button>
+    <view class="empty-title">暂无收藏的语音包</view>
+    <view class="empty-desc">去戏剧回响页面收藏你喜欢的语音包吧</view>
+    <button class="empty-btn" bindtap="goToVoiceEcho">去收藏</button>
   </view>
 
   <!-- 语音包列表 -->
@@ -44,7 +44,10 @@
           <view class="pack-actor">{{item.actorName}}</view>
           <view class="pack-desc">{{item.packDescription || '暂无描述'}}</view>
           <view class="pack-meta">
-            <view class="pack-price">¥{{item.price}}</view>
+            <view class="pack-count" wx:if="{{item.purchaseCount > 1}}">
+              <text class="count-label">收藏份数：</text>
+              <text class="count-number">{{item.purchaseCount}}</text>
+            </view>
             <view class="pack-date">{{item.purchaseDate}}</view>
           </view>
         </view>

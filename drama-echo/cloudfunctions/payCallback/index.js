@@ -186,7 +186,21 @@ async function updateOrderStatus(orderNo, transactionId, payTime) {
 // 主函数
 exports.main = async (event, context) => {
   try {
-    console.log('收到支付回调:', event)
+    console.log('收到支付回调:', JSON.stringify(event, null, 2))
+    console.log('请求方法:', event.httpMethod)
+    console.log('请求体:', event.body)
+    
+    // 处理GET请求（用于微信服务器测试回调URL）
+    if (event.httpMethod === 'GET' || !event.body) {
+      console.log('收到GET请求或空请求体，返回成功状态')
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        body: 'OK'
+      }
+    }
     
     // 获取请求体（XML格式）
     const xmlData = event.body || event.xmlData
@@ -247,8 +261,8 @@ exports.main = async (event, context) => {
   } catch (error) {
     console.error('处理支付回调失败:', error)
     return {
-      statusCode: 500,
-      body: generateXML('FAIL', '处理支付回调失败')
+      statusCode: 200, // 即使处理失败也要返回200，避免微信重复通知
+      body: generateXML('SUCCESS', 'OK')
     }
   }
 }

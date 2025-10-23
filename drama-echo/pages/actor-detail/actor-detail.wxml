@@ -59,10 +59,11 @@
       <!-- 奖励说明 -->
       <view class="reward-notice">
         <view class="notice-header">
-          <view class="notice-title">月度荣耀活动</view>
+          <view class="notice-icon">🎁</view>
+          <view class="notice-title">月度奖励活动</view>
         </view>
         <view class="notice-content">
-          <view class="notice-text">榜单前三甲用户可获得实物礼包，点击查看详情，了解您的专属福利。</view>
+          <view class="notice-text">戏剧回响小程序会在月末给榜单前三名的用户发放线下奖励</view>
           <view class="notice-details" bind:tap="showRewardDetails">
             <text>查看奖励详情</text>
             <text class="arrow">→</text>
@@ -95,13 +96,12 @@
           
           <!-- 右侧内容 -->
           <view class="pack-right">
-            <view class="pack-price">¥{{item.formattedPrice}}</view>
             <view class="pack-buttons">
               <view class="buy-button"
                     data-pack-id="{{item._id}}"
                     data-is-purchased="{{item.isPurchased}}"
                     catch:tap="{{item.isPurchased ? 'goToPackDetail' : 'showPackDetail'}}">
-                {{item.isPurchased ? '▶️ 播放' : '💰 购买'}}
+                {{item.isPurchased ? '▶️ 播放' : (isVirtualPaymentSupported ? '获取' : '功能暂不可用')}}
               </view>
               <button wx:if="{{item.isPurchased}}" 
                       class="share-button"
@@ -159,20 +159,6 @@
           </view>
         </view>
         
-        <!-- 价格信息 -->
-        <view class="price-info-section">
-          <view class="price-item">
-            <text class="price-label">套餐价格：</text>
-            <text class="price-value">¥{{(currentPackDetail.packagePrice || 0) / 100}}</text>
-          </view>
-          <view class="price-item" wx:if="{{currentPackDetail.originalPrice && currentPackDetail.originalPrice > currentPackDetail.packagePrice}}">
-            <text class="price-label">原价：</text>
-            <text class="original-price">¥{{(currentPackDetail.originalPrice || 0) / 100}}</text>
-          </view>
-          <view class="save-info" wx:if="{{currentPackDetail.saveAmount && currentPackDetail.saveAmount > 0}}">
-            <text class="save-text">节省 ¥{{(currentPackDetail.saveAmount || 0) / 100}}</text>
-          </view>
-        </view>
         
         <!-- 详细信息 -->
         <view class="detail-info-section">
@@ -195,7 +181,7 @@
       
       <view class="modal-footer">
         <button class="modal-buy-btn" bind:tap="goToPackDetailFromModal">
-          {{currentPackDetail.isPurchased ? '进入详情页' : '立即购买'}}
+          {{currentPackDetail.isPurchased ? '进入详情页' : (isVirtualPaymentSupported ? '立即获取' : '由于相关规范，iOS功能暂不可用')}}
         </button>
       </view>
     </view>

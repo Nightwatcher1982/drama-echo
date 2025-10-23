@@ -1455,24 +1455,6 @@
   text-align: center;
 }
 
-.hint-small {
-  font-size: 20rpx;
-  color: #ccc;
-  display: block;
-  margin-top: 8rpx;
-}
-
-.current-image-hint {
-  text-align: center;
-  margin-top: 10rpx;
-}
-
-.hint-text {
-  font-size: 24rpx;
-  color: #28a745;
-  font-weight: 500;
-}
-
 /* 视频上传样式 */
 .video-upload-section { margin-top: 12rpx; }
 .video-upload-area { height: 200rpx; border: 2rpx dashed #d1d5db; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; background: #f9fafb; }

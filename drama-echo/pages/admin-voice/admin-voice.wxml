@@ -42,7 +42,7 @@
         <view wx:for="{{actors}}" wx:key="_id" class="actor-card {{selectedActorId === item._id ? 'selected' : ''}}" bindtap="selectActor" data-actor="{{item}}">
           <view class="actor-image-container">
             <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" class="actor-image" mode="aspectFill" />
-            <view wx:else class="actor-avatar">{{item.avatar || '👤'}}</view>
+            <view wx:else class="actor-avatar">{{item.avatar || '头像'}}</view>
           </view>
           <view class="actor-info">
             <view class="actor-name">{{item.name}}</view>
@@ -164,7 +164,7 @@
         <view class="form-group">
           <text class="form-label">选择头像表情</text>
           <view class="avatar-options">
-            <view wx:for="{{['👤', '🎭', '👨', '👩', '🧑', '👨‍🎤', '👩‍🎤']}}" wx:key="*this" 
+            <view wx:for="{{['头像', '🎭', '👨', '👩', '🧑', '👨‍🎤', '👩‍🎤']}}" wx:key="*this" 
                   class="avatar-option {{editingActor.avatar === item ? 'selected' : ''}}"
                   bindtap="selectAvatar" data-avatar="{{item}}">{{item}}</view>
           </view>

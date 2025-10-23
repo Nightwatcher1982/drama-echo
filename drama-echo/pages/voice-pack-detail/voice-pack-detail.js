@@ -40,11 +40,19 @@ Page({
     // 分享相关
     shareContent: null,
     // 轮播图相关
-    currentImageIndex: 0
+    currentImageIndex: 0,
+    // 虚拟支付支持检查
+    isVirtualPaymentSupported: false
   },
 
   onLoad(options) {
     const packId = options.packId || options.id
+    
+    // 初始化虚拟支付支持检查
+    this.setData({
+      isVirtualPaymentSupported: app.isVirtualPaymentSupported()
+    })
+    
     if (packId) {
       this.setData({ packId })
       this.loadPackInfo(packId)
@@ -133,16 +141,16 @@ Page({
               }
             }
             
-            // 添加格式化价格字段
-            packData.formattedPrice = (packData.packagePrice / 100).toFixed(2)
+            // 添加格式化价格字段（仅在支持虚拟支付时显示）
+            if (this.data.isVirtualPaymentSupported) {
+              packData.formattedPrice = (packData.packagePrice / 100).toFixed(2)
+            } else {
+              packData.formattedPrice = ''
+            }
             
             // 设置用户购买数量（基于购买状态）
             const userPurchaseCount = (packData.packagePurchased || packData.isPurchased) ? 1 : 0
             this.setData({ userPurchaseCount })
-            
-            // 临时：为了测试复购功能，强制设置为已购买状态
-            packData.packagePurchased = true
-            packData.isPurchased = true
             
             // 先显示页面数据
             this.setData({ 
@@ -757,6 +765,12 @@ Page({
 
   // 计算总价
   calculateTotalPrice() {
+    // 在iOS端不计算价格
+    if (!this.data.isVirtualPaymentSupported) {
+      this.setData({ totalPrice: '' })
+      return
+    }
+    
     const { packInfo, repurchaseQuantity } = this.data
     console.log('💰 计算总价:', { packInfo, repurchaseQuantity })
     
@@ -776,6 +790,16 @@ Page({
 
   // 显示复购弹窗
   showRepurchaseModal() {
+    // 检查虚拟支付支持
+    if (!this.data.isVirtualPaymentSupported) {
+      wx.showToast({
+        title: '由于相关规范，iOS功能暂不可用',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
     console.log('🔄 显示复购弹窗')
     console.log('🔄 当前数据状态:', {
       showRepurchaseModal: this.data.showRepurchaseModal,
@@ -827,6 +851,16 @@ Page({
 
   // 确认复购
   async confirmRepurchase() {
+    // 检查虚拟支付支持
+    if (!this.data.isVirtualPaymentSupported) {
+      wx.showToast({
+        title: '由于相关规范，iOS功能暂不可用',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
     const { packId, repurchaseQuantity, packInfo } = this.data
     
     try {
@@ -844,15 +878,22 @@ Page({
       }
       
       // 创建订单并调起支付
-      const result = await wx.cloud.callFunction({
-        name: 'createOrder',
-        data: {
-          packId: packId,
-          userId: userInfo.openid,
-          openid: userInfo.openid,
-          quantity: repurchaseQuantity
-        }
-      })
+      console.log('📞 开始调用createOrder云函数...')
+      const result = await Promise.race([
+        wx.cloud.callFunction({
+          name: 'createOrder',
+          data: {
+            packId: packId,
+            userId: userInfo.openid,
+            openid: userInfo.openid,
+            quantity: repurchaseQuantity
+          }
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('云函数调用超时')), 30000)
+        )
+      ])
+      console.log('✅ 云函数调用完成')
       
       wx.hideLoading()
       
@@ -925,9 +966,27 @@ Page({
       
     } catch (error) {
       wx.hideLoading()
+      console.error('💥 复购异常详情:', {
+        error: error,
+        message: error.message,
+        stack: error.stack,
+        errMsg: error.errMsg,
+        errCode: error.errCode
+      })
+      
+      let errorMessage = '复购失败'
+      if (error.message === '云函数调用超时') {
+        errorMessage = '网络超时，请重试'
+      } else if (error.message) {
+        errorMessage = error.message
+      } else if (error.errMsg) {
+        errorMessage = error.errMsg
+      }
+      
       wx.showToast({
-        title: error.message || '复购失败',
-        icon: 'none'
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
       })
     }
   },
@@ -943,9 +1002,9 @@ Page({
         console.log('🎭 模拟支付成功（开发环境或fallback模式）')
         wx.hideLoading()
         
-        // 模拟支付成功
+        // 模拟获取成功
         wx.showToast({
-          title: `购买成功！已购买${quantity}份`,
+          title: `获取成功！已获取${quantity}份`,
           icon: 'success',
           duration: 2000
         })
@@ -974,21 +1033,135 @@ Page({
         return
       }
       
+      // 检查是否在开发工具环境中
+      const systemInfo = wx.getSystemInfoSync()
+      const isDevTools = systemInfo.platform === 'devtools'
+      
+      if (isDevTools) {
+        // 开发工具环境：模拟支付成功
+        console.log('🎭 开发工具环境，模拟支付成功')
+        wx.hideLoading()
+        
+        // 模拟获取成功
+        wx.showToast({
+          title: `获取成功！已获取${quantity}份`,
+          icon: 'success',
+          duration: 2000
+        })
+        
+        // 关闭弹窗
+        this.hideRepurchaseModal()
+        
+        // 直接调用云函数创建购买记录
+        console.log('🔄 支付成功，创建购买记录...')
+        try {
+          const completePurchaseRes = await wx.cloud.callFunction({
+            name: 'completePurchase',
+            data: {
+              orderId: orderId,
+              packId: packId
+            }
+          })
+          console.log('📦 购买记录创建结果:', completePurchaseRes.result)
+        } catch (error) {
+          console.error('❌ 创建购买记录失败:', error)
+        }
+        
+        // 等待1秒确保数据库更新完成
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // 重试机制：最多重试3次获取购买状态
+        let retryCount = 0
+        let purchaseStatusUpdated = false
+        
+        while (retryCount < 3 && !purchaseStatusUpdated) {
+          console.log(`🔄 第${retryCount + 1}次尝试刷新购买状态...`)
+          
+          // 更新用户购买数量
+          await this.getUserPurchaseCount(packId)
+          
+          // 重新调用云函数获取最新状态
+          try {
+            const res = await wx.cloud.callFunction({
+              name: 'getVoicePackDetail',
+              data: { packId }
+            })
+            
+            if (res.result && res.result.code === 0) {
+              const packData = res.result.data
+              
+              // 检查购买状态是否已更新
+              if (packData.packagePurchased || packData.isPurchased) {
+                if (packData.voices) {
+                  packData.voices.forEach(voice => {
+                    voice.purchased = true
+                    voice.canPreview = true
+                  })
+                }
+                
+                // 添加格式化价格字段
+                if (this.data.isVirtualPaymentSupported) {
+                  packData.formattedPrice = (packData.packagePrice / 100).toFixed(2)
+                } else {
+                  packData.formattedPrice = ''
+                }
+                
+                this.setData({ packInfo: packData })
+                console.log('✅ 购买状态已更新:', packData.packagePurchased || packData.isPurchased)
+                purchaseStatusUpdated = true
+              } else {
+                console.log('⏳ 购买状态尚未更新，等待1秒后重试...')
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                retryCount++
+              }
+            }
+          } catch (error) {
+            console.error('刷新页面数据失败:', error)
+            retryCount++
+          }
+        }
+        
+        if (!purchaseStatusUpdated) {
+          console.log('⚠️ 购买状态更新超时，但继续显示页面')
+        }
+        
+        // 通知父页面刷新数据
+        const pages = getCurrentPages()
+        if (pages.length > 1) {
+          const prevPage = pages[pages.length - 2]
+          if (prevPage.route.includes('actor-detail')) {
+            // 刷新演员详情页面的数据
+            prevPage.loadActorDetail && prevPage.loadActorDetail()
+            // 刷新粉丝排行榜
+            prevPage.updateFanRanking && prevPage.updateFanRanking()
+          }
+        }
+        
+        return
+      }
+      
       // 生产环境：调起真实的微信支付
-      const paymentResult = await wx.requestPayment({
-        appId: payParams.appId,
-        timeStamp: payParams.timeStamp,
-        nonceStr: payParams.nonceStr,
-        package: payParams.package,
-        signType: payParams.signType,
-        paySign: payParams.paySign
-      })
+      console.log('💰 开始调起微信支付...')
+      const paymentResult = await Promise.race([
+        wx.requestPayment({
+          appId: payParams.appId,
+          timeStamp: payParams.timeStamp,
+          nonceStr: payParams.nonceStr,
+          package: payParams.package,
+          signType: payParams.signType,
+          paySign: payParams.paySign
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('支付调起超时')), 15000)
+        )
+      ])
+      console.log('✅ 微信支付调起完成')
       
       wx.hideLoading()
       
-      // 支付成功
+      // 获取成功
       wx.showToast({
-        title: `购买成功！已购买${quantity}份`,
+        title: `获取成功！已获取${quantity}份`,
         icon: 'success',
         duration: 2000
       })
@@ -996,11 +1169,78 @@ Page({
       // 关闭弹窗
       this.hideRepurchaseModal()
       
-      // 更新用户购买数量
-      await this.getUserPurchaseCount(packId)
+      // 直接调用云函数创建购买记录
+      console.log('🔄 支付成功，创建购买记录...')
+      try {
+        const completePurchaseRes = await wx.cloud.callFunction({
+          name: 'completePurchase',
+          data: {
+            orderId: orderId,
+            packId: packId
+          }
+        })
+        console.log('📦 购买记录创建结果:', completePurchaseRes.result)
+      } catch (error) {
+        console.error('❌ 创建购买记录失败:', error)
+      }
       
-      // 立即刷新页面数据
-      await this.loadPackInfo(packId)
+      // 等待1秒确保数据库更新完成
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // 重试机制：最多重试3次获取购买状态
+      let retryCount = 0
+      let purchaseStatusUpdated = false
+      
+      while (retryCount < 3 && !purchaseStatusUpdated) {
+        console.log(`🔄 第${retryCount + 1}次尝试刷新购买状态...`)
+        
+        // 更新用户购买数量
+        await this.getUserPurchaseCount(packId)
+        
+        // 重新调用云函数获取最新状态
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'getVoicePackDetail',
+            data: { packId }
+          })
+          
+          if (res.result && res.result.code === 0) {
+            const packData = res.result.data
+            
+            // 检查购买状态是否已更新
+            if (packData.packagePurchased || packData.isPurchased) {
+              if (packData.voices) {
+                packData.voices.forEach(voice => {
+                  voice.purchased = true
+                  voice.canPreview = true
+                })
+              }
+              
+              // 添加格式化价格字段
+              if (this.data.isVirtualPaymentSupported) {
+                packData.formattedPrice = (packData.packagePrice / 100).toFixed(2)
+              } else {
+                packData.formattedPrice = ''
+              }
+              
+              this.setData({ packInfo: packData })
+              console.log('✅ 购买状态已更新:', packData.packagePurchased || packData.isPurchased)
+              purchaseStatusUpdated = true
+            } else {
+              console.log('⏳ 购买状态尚未更新，等待1秒后重试...')
+              await new Promise(resolve => setTimeout(resolve, 1000))
+              retryCount++
+            }
+          }
+        } catch (error) {
+          console.error('刷新页面数据失败:', error)
+          retryCount++
+        }
+      }
+      
+      if (!purchaseStatusUpdated) {
+        console.log('⚠️ 购买状态更新超时，但继续显示页面')
+      }
       
       // 通知父页面刷新数据
       const pages = getCurrentPages()
@@ -1016,19 +1256,29 @@ Page({
       
     } catch (error) {
       wx.hideLoading()
-      console.error('支付失败:', error)
+      console.error('💥 支付异常详情:', {
+        error: error,
+        message: error.message,
+        errMsg: error.errMsg,
+        errCode: error.errCode
+      })
       
-      if (error.errMsg.includes('cancel')) {
-        wx.showToast({
-          title: '支付已取消',
-          icon: 'none'
-        })
-      } else {
-        wx.showToast({
-          title: '支付失败，请重试',
-          icon: 'none'
-        })
+      let errorMessage = '支付失败'
+      if (error.message === '支付调起超时') {
+        errorMessage = '支付调起超时，请重试'
+      } else if (error.errMsg && error.errMsg.includes('cancel')) {
+        errorMessage = '支付已取消'
+      } else if (error.message) {
+        errorMessage = error.message
+      } else if (error.errMsg) {
+        errorMessage = error.errMsg
       }
+      
+      wx.showToast({
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
+      })
     }
   },
 

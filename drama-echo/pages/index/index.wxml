@@ -42,7 +42,7 @@
     <view class="feature-content">
       <view class="actor-avatars">
         <view class="avatar-stack">
-          <view class="actor-avatar" wx:for="{{actorAvatars}}" wx:key="index" wx:if="{{index < 6}}" style="z-index: {{index}}; left: {{index * 48}}rpx;">
+          <view class="actor-avatar" wx:for="{{actorAvatars}}" wx:key="index" style="z-index: {{index}}; left: {{index * 48}}rpx;">
             <image src="{{item}}" mode="aspectFill" class="avatar-img"></image>
           </view>
         </view>
@@ -57,11 +57,11 @@
   <!-- 次要功能卡片 -->
   <view class="secondary-features">
     <!-- 魔法之书 -->
-    <view class="secondary-card" bindtap="goToMagicBook">
+    <view class="secondary-card coming-soon-card">
       <view class="card-header">
         <view class="card-title">魔法之书</view>
         <view class="title-decoration">～～～</view>
-        <view class="card-subtitle">星座运势·记录心情</view>
+        <view class="card-subtitle">敬请期待</view>
       </view>
       <view class="card-icon">
         <image src="cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/figma-assets/magic-hat-new.png" class="magic-hat-icon" mode="aspectFit"></image>
@@ -69,11 +69,11 @@
     </view>
 
     <!-- 许愿池 -->
-    <view class="secondary-card" bindtap="goToWishPool">
+    <view class="secondary-card coming-soon-card">
       <view class="card-header">
         <view class="card-title">许愿池</view>
         <view class="title-decoration">～～～</view>
-        <view class="card-subtitle">许下愿望·汇聚原力</view>
+        <view class="card-subtitle">敬请期待</view>
       </view>
       <view class="card-icon">
         <image src="cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/figma-assets/wish-star-new.png" class="wish-star-icon" mode="aspectFit"></image>

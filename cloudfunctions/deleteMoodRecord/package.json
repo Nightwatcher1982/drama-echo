@@ -1,9 +1,0 @@
-{
-  "name": "deleteMoodRecord",
-  "version": "1.0.0",
-  "description": "删除心情记录云函数",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
-} 

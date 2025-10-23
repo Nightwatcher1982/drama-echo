@@ -435,15 +435,44 @@ App({
     try {
       const systemInfo = wx.getSystemInfoSync()
       this.globalData.isRealDevice = systemInfo.platform !== 'devtools'
+      
+      // 检测是否为iOS设备
+      this.globalData.isIOS = systemInfo.platform === 'ios'
+      this.globalData.deviceType = systemInfo.platform
+      this.globalData.systemVersion = systemInfo.system
+      
       if (this.globalData.isRealDevice) {
         console.log('🔧 真机环境检测完成')
+        console.log('🔧 设备类型:', this.globalData.deviceType)
+        console.log('🔧 是否为iOS设备:', this.globalData.isIOS)
       } else {
         console.log('🔧 开发工具环境检测完成')
       }
     } catch (error) {
       console.warn('环境检测失败:', error)
       this.globalData.isRealDevice = false
+      this.globalData.isIOS = false
     }
+  },
+
+  // 检查是否支持虚拟支付
+  isVirtualPaymentSupported() {
+    return !this.globalData.isIOS
+  },
+
+  // iOS支付拦截方法
+  interceptPaymentOnIOS(actionName = '此操作') {
+    if (this.globalData.isIOS) {
+      wx.showModal({
+        title: '功能暂不可用',
+        content: `由于相关规范，iOS端暂不支持${actionName}功能。我们正在努力优化，敬请期待！`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#A78BFA'
+      })
+      return true // 表示已拦截
+    }
+    return false // 表示未拦截，可以继续
   },
 
   // 初始化用户登录
@@ -542,10 +571,9 @@ App({
         customProfile.nickName === '为自己设置一个有趣的戏剧昵称吧！' ||
         customProfile.nickName === '请输入您的个性化戏剧昵称' ||
         customProfile.nickName === '微信用户' ||
-        /^\d+\.?\d*$/.test(customProfile.nickName) || // 清理纯数字昵称如"0.21"
         !customProfile.isCustomized ||
         !customProfile.nickName ||
-        customProfile.nickName.length < 2 ||
+        customProfile.nickName.length < 1 ||
         customProfile.nickName.length > 20
     )) {
       console.log('🧹 清理无效的自定义数据:', customProfile.nickName, '原因: 无效格式')
@@ -709,7 +737,8 @@ App({
     const hasValidNickname = this.globalData.userProfile && 
       this.globalData.userProfile.nickName && 
       this.globalData.userProfile.nickName !== '微信用户' &&
-      !/^\d+\.?\d*$/.test(this.globalData.userProfile.nickName)
+      this.globalData.userProfile.nickName.length >= 1 &&
+      this.globalData.userProfile.nickName.length <= 20
     
     const isLoggedIn = hasOpenId && hasUserProfile && hasValidNickname
     
@@ -722,6 +751,11 @@ App({
     })
     
     return isLoggedIn
+  },
+  
+  // 检查是否支持虚拟支付（iOS端不支持）
+  isVirtualPaymentSupported() {
+    return !this.globalData.isIOS
   },
 
   // 增强的用户信息验证
@@ -741,8 +775,8 @@ App({
       return false
     }
     
-    // 检查是否为纯数字昵称
-    if (/^\d+\.?\d*$/.test(userProfile.nickName)) {
+    // 检查昵称长度是否合理
+    if (userProfile.nickName.length < 1 || userProfile.nickName.length > 20) {
       return false
     }
     

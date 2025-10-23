@@ -6,6 +6,12 @@
       <view class="nav-title"></view>
     </view>
   </view>
+  <view class="top-bar">
+    <view class="nav-bar">
+      <view class="nav-back" bind:tap="goBackFn">＜</view>
+      <view class="nav-title">语音包详情</view>
+    </view>
+  </view>
 
   <!-- 语音包图片展示区域 -->
   <view class="photo-section">
@@ -50,6 +56,7 @@
         <view class="voice-content">
           <view class="voice-title">{{item.title}}</view>
           <view class="voice-meta">
+            <text class="voice-duration">{{item.duration}}</text>
             <text wx:if="{{item.subtitle}}" class="voice-subtitle">{{item.subtitle}}</text>
           </view>
         </view>
@@ -104,10 +111,21 @@
       <view class="support-action">
         <view class="support-btn" bindtap="showRepurchaseModal">
           <text class="btn-icon">💎</text>
-          <text class="btn-text">打榜复购</text>
+          <text class="btn-text">{{isVirtualPaymentSupported ? '打榜复购' : '由于相关规范，iOS功能暂不可用'}}</text>
         </view>
       </view>
     </view>
+  </view>
+  <view class="share-button-box">
+    <button wx:if="{{packInfo.actorName}}" 
+            class="share-button"
+            open-type="share"
+            data-pack-id="{{packInfo._id}}"
+            data-pack-name="{{packInfo.name}}"
+            data-pack-sales="{{packInfo.sales}}"
+            bind:tap="setShareContent">
+      📤 分享
+    </button>
   </view>
 
   <!-- 复购数量选择弹窗 -->
@@ -124,12 +142,11 @@
           <image src="{{packInfo.icon}}" class="pack-icon" mode="aspectFill" />
           <view class="pack-details">
             <view class="pack-name">{{packInfo.name}}</view>
-            <view class="pack-price">¥{{packInfo.formattedPrice}}</view>
           </view>
         </view>
         
-        <view class="quantity-selector">
-          <view class="quantity-label">购买数量</view>
+        <view class="quantity-selector" wx:if="{{isVirtualPaymentSupported}}">
+          <view class="quantity-label">获取数量</view>
           <view class="quantity-controls">
             <view class="quantity-btn" bindtap="decreaseQuantity">-</view>
             <view class="quantity-display">{{repurchaseQuantity}}</view>
@@ -137,15 +154,11 @@
           </view>
         </view>
         
-        <view class="total-price">
-          <text class="total-label">总计：</text>
-          <text class="total-amount">¥{{totalPrice}}</text>
-        </view>
       </view>
       
       <view class="modal-footer">
         <view class="modal-btn cancel-btn" bindtap="hideRepurchaseModal">取消</view>
-        <view class="modal-btn confirm-btn" bindtap="confirmRepurchase">确认购买</view>
+        <view class="modal-btn confirm-btn" bindtap="confirmRepurchase">{{isVirtualPaymentSupported ? '确认获取' : '由于相关规范，iOS功能暂不可用'}}</view>
       </view>
     </view>
   </view>

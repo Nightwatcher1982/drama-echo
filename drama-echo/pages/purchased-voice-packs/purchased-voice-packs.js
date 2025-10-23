@@ -30,15 +30,23 @@ Page({
       }
 
       const res = await wx.cloud.callFunction({
-        name: 'getUserPurchases'
+        name: 'getUserPurchases',
+        data: {
+          userId: 'current' // 使用当前用户的openid
+        }
       })
 
       if (res.result.code === 0) {
-        const purchases = res.result.data || []
+        const purchases = res.result.data.purchases || []
+        // 为每个购买记录添加购买份数（如果没有的话）
+        const processedPacks = purchases.map(p => ({
+          ...p,
+          purchaseCount: p.purchaseCount || 1
+        }))
         this.setData({
-          purchasedPacks: purchases,
+          purchasedPacks: processedPacks,
           loading: false,
-          empty: purchases.length === 0
+          empty: processedPacks.length === 0
         })
       } else {
         throw new Error(res.result.message || '获取购买记录失败')

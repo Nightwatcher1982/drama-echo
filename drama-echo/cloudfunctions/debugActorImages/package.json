@@ -1,9 +1,0 @@
-{
-  "name": "debugActorImages",
-  "version": "1.0.0",
-  "description": "调试演员图片数据云函数",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
-}

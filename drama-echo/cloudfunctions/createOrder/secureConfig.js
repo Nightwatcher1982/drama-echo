@@ -19,8 +19,8 @@ const WECHAT_PAY_CONFIG = {
   key_path: ''
 }
 
-// 开发环境标识 - 临时切换到开发环境
-const IS_DEVELOPMENT = true
+// 开发环境标识
+const IS_DEVELOPMENT = false
 
 // 日志记录函数
 function log(level, message, data = {}) {

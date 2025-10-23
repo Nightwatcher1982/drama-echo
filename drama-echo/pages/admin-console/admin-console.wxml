@@ -94,12 +94,12 @@
               </view>
               
               <!-- 操作按钮区域 - 只在选中时显示 -->
-              <view wx:if="{{selectedActorId === item._id}}" class="actor-actions" catchtap="stopPropagation">
-                <button class="action-btn edit" bindtap="openEditActor" data-actor-id="{{item._id}}">
+              <view wx:if="{{selectedActorId === item._id}}" class="actor-actions">
+                <button class="action-btn edit" bindtap="openEditActor" data-actor="{{item}}" catchtap="true">
                   <view class="action-icon">✏️</view>
                   <view class="action-text">编辑</view>
                 </button>
-                <button class="action-btn delete" bindtap="deleteActor" data-actor-id="{{item._id}}">
+                <button class="action-btn delete" bindtap="deleteActor" data-actor-id="{{item._id}}" catchtap="true">
                   <view class="action-icon">🗑️</view>
                   <view class="action-text">删除</view>
                 </button>
@@ -232,11 +232,6 @@
                <view class="function-title">数据清理</view>
                <view class="function-desc">清理测试数据，生产环境上线前使用</view>
              </view>
-             <view class="function-item" bindtap="goToDebugActorImages">
-               <view class="function-icon">🔍</view>
-               <view class="function-title">演员图片调试</view>
-               <view class="function-desc">调试演员封面照片和图片库数据</view>
-             </view>
         </view>
       </view>
     </view>
@@ -334,34 +329,20 @@
         <input class="input" placeholder="演员名称" value="{{editingActor.name}}" bindinput="onActorInput" data-field="name" />
         <input class="input" placeholder="演员称号" value="{{editingActor.title}}" bindinput="onActorInput" data-field="title" />
         <textarea class="textarea" placeholder="演员简介" value="{{editingActor.description}}" bindinput="onActorInput" data-field="description" />
-        <!-- 封面照片上传 -->
-        <view class="form-group">
-          <text class="form-label">封面照片</text>
-          <view class="uploader" bindtap="chooseActorImage">
-            <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" mode="aspectFill" class="img" />
-            <image wx:elif="{{editingActor.imageUrl}}" src="{{editingActor.imageUrl}}" mode="aspectFill" class="img" />
-            <view wx:else class="uploader-hint">点击选择封面照片<br/><text class="hint-small">用于戏剧回响页演员列表显示</text></view>
-          </view>
-          <view wx:if="{{editingActor.imageUrl && !tempImagePath}}" class="current-image-hint">
-            <text class="hint-text">当前封面照片</text>
-          </view>
+        <view class="uploader" bindtap="chooseActorImage">
+          <image wx:if="{{tempImagePath}}" src="{{tempImagePath}}" mode="aspectFill" class="img" />
+          <view wx:else class="uploader-hint">点击选择封面图</view>
         </view>
-        
-        <!-- 详情页图片上传 -->
-        <view class="form-group">
-          <text class="form-label">详情页图片</text>
-          <view class="card small">
-            <view class="section-title">详情页展示图片（仅支持1张）</view>
-            <view class="img-grid">
-              <block wx:for="{{actorImages}}" wx:key="*this">
-                <view class="img-cell">
-                  <image class="img" src="{{item}}" mode="aspectFill" />
-                  <button class="btn-outline btn-s" data-url="{{item}}" bindtap="removeActorImage">删除</button>
-                </view>
-              </block>
-              <view wx:if="{{actorImages.length < 1}}" class="img-cell add" bindtap="addActorImages">+ 添加</view>
-            </view>
-            <view class="upload-hint">仅支持1张图片，用于演员详情页上方展示</view>
+        <view class="card small">
+          <view class="section-title">图片库（最多5张，按上传顺序展示）</view>
+          <view class="img-grid">
+            <block wx:for="{{actorImages}}" wx:key="*this">
+              <view class="img-cell">
+                <image class="img" src="{{item}}" mode="aspectFill" />
+                <button class="btn-outline btn-s" data-url="{{item}}" bindtap="removeActorImage">删除</button>
+              </view>
+            </block>
+            <view wx:if="{{actorImages.length < 5}}" class="img-cell add" bindtap="addActorImages">+ 添加</view>
           </view>
         </view>
       </view>

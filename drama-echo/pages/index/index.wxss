@@ -72,12 +72,10 @@ height: 176rpx;
   padding: 30rpx;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 24rpx;
   border: 1px solid rgba(242, 233, 246, 0.56);
   box-shadow: 0 4rpx 24rpx rgba(187, 155, 228, 0.32);
   transition: all 0.3s ease;
-  min-height: 100rpx;
 }
 
 .user-info:active {
@@ -109,7 +107,6 @@ height: 176rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
 }
 
 .user-name {
@@ -120,7 +117,6 @@ height: 176rpx;
   color: #333333;
   text-transform: uppercase;
   text-align: center;
-  line-height: 1.2;
 }
 
 .user-stats {
@@ -315,6 +311,16 @@ height: 176rpx;
 .secondary-card:active {
   transform: scale(0.98);
   background: rgba(255, 255, 255, 0.2);
+}
+
+.coming-soon-card {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coming-soon-card:active {
+  transform: none;
+  background: rgba(255, 255, 255, 0.49);
 }
 
 .card-header {

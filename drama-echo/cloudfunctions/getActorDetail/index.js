@@ -2,7 +2,7 @@
 const cloud = require('wx-server-sdk')
 
 cloud.init({
-  env: 'cloud1-2gyb3dkq4c474fe4'
+  env: cloud.DYNAMIC_CURRENT_ENV
 })
 
 const db = cloud.database()
@@ -59,14 +59,21 @@ exports.main = async (event, context) => {
       console.log('语音包列表:', voicePacksResult.data.map(p => ({ id: p._id, name: p.name, actorId: p.actorId })))
     }
     
-    // 3. 获取粉丝排行榜（前3名）
-    const rankingResult = await db.collection('fanRanking')
-      .where({
-        actorId: actorId
-      })
-      .orderBy('rank', 'asc')
-      .limit(3)
-      .get()
+    // 3. 获取粉丝排行榜（前3名）- 优化查询
+    let rankingResult = { data: [] }
+    try {
+      rankingResult = await db.collection('fanRanking')
+        .where({
+          actorId: actorId
+        })
+        .orderBy('rank', 'asc')
+        .limit(3)
+        .get()
+      console.log('✅ 粉丝排行榜查询成功:', rankingResult.data.length, '条记录')
+    } catch (error) {
+      console.log('⚠️ 粉丝排行榜查询失败，使用空数据:', error.message)
+      rankingResult = { data: [] }
+    }
     
     // 4. 检查当前用户是否购买过该演员的语音包
     // 先尝试从新集合查询

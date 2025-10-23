@@ -102,7 +102,7 @@ exports.main = async (event, context) => {
       } else if (typeof actorData.avatar === 'string' && actorData.avatar.startsWith('cloud://')) {
         // 云存储路径
         actorAvatar = actorData.avatar
-      } else if (typeof actorData.avatar === 'string' && actorData.avatar.length > 0 && !actorData.avatar.includes('👤')) {
+      } else if (typeof actorData.avatar === 'string' && actorData.avatar.length > 0 && !actorData.avatar.includes('头像')) {
         // 其他有效路径
         actorAvatar = actorData.avatar
       }
@@ -118,6 +118,7 @@ exports.main = async (event, context) => {
     const result = {
       _id: packData._id,
       name: packData.name,
+      actorId: packData.actorId, // 添加演员ID字段
       actorName: actorData.name || '未知演员',
       actorAvatar: actorAvatar,
       actorTitle: actorData.title || '戏剧演员',

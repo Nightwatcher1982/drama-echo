@@ -1,17 +1,10 @@
 {
-  "name": "updateActorGuardianCount",
+  "name": "queryOrder",
   "version": "1.0.0",
-  "description": "更新演员守护者计数",
+  "description": "查询订单支付状态",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"
   }
 }
-
-
-
-
-
-
-
 

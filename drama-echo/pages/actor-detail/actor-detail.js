@@ -19,11 +19,19 @@ Page({
     // 防止重复调用
     isUpdatingRanking: false,
     // 分享相关
-    shareContent: null
+    shareContent: null,
+    // 虚拟支付支持检查
+    isVirtualPaymentSupported: false
   },
 
   async onLoad(options) {
     const { actorId } = options
+    
+    // 初始化虚拟支付支持检查
+    this.setData({
+      isVirtualPaymentSupported: app.isVirtualPaymentSupported()
+    })
+    
     if (!actorId) {
       wx.showToast({
         title: '参数错误',
@@ -100,7 +108,7 @@ Page({
         // 格式化语音包价格（getActorDetail云函数已经包含了购买状态）
         const updatedVoicePacks = voicePacks.map(pack => ({
           ...pack,
-          formattedPrice: (pack.price / 100).toFixed(2)
+          formattedPrice: this.data.isVirtualPaymentSupported ? (pack.price / 100).toFixed(2) : ''
           // isPurchased 字段已经由 getActorDetail 云函数设置
         }))
         
@@ -561,6 +569,15 @@ Page({
           url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
         })
       } else {
+        // 检查虚拟支付支持
+        if (!this.data.isVirtualPaymentSupported) {
+          wx.showToast({
+            title: '由于相关规范，iOS功能暂不可用',
+            icon: 'none',
+            duration: 2000
+          })
+          return
+        }
         console.log('🛒 未购买，开始支付流程...')
         // 未购买，先尝试检查云函数是否可用
         try {
@@ -718,9 +735,9 @@ Page({
         console.log('🎭 模拟支付成功（开发环境或fallback模式）')
         wx.hideLoading()
         
-        // 模拟支付成功
+        // 模拟获取成功
         wx.showToast({
-          title: '支付成功！',
+          title: '获取成功！',
           icon: 'success'
         })
         
@@ -742,6 +759,76 @@ Page({
         return
       }
       
+      // 检查是否在开发工具环境中
+      const systemInfo = wx.getSystemInfoSync()
+      const isDevTools = systemInfo.platform === 'devtools'
+      
+      if (isDevTools) {
+        // 开发工具环境：模拟支付成功
+        console.log('🎭 开发工具环境，模拟支付成功')
+        wx.hideLoading()
+        
+        // 模拟获取成功
+        wx.showToast({
+          title: '获取成功！',
+          icon: 'success'
+        })
+        
+        // 关闭弹窗
+        this.closePackDetail()
+        
+        // 直接调用云函数创建购买记录
+        console.log('🔄 支付成功，创建购买记录...')
+        try {
+          const completePurchaseRes = await wx.cloud.callFunction({
+            name: 'completePurchase',
+            data: {
+              orderId: orderId,
+              packId: packId
+            }
+          })
+          console.log('📦 购买记录创建结果:', completePurchaseRes.result)
+        } catch (error) {
+          console.error('❌ 创建购买记录失败:', error)
+        }
+        
+        // 等待1秒确保数据库更新完成
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // 重试机制：最多重试3次获取购买状态
+        let retryCount = 0
+        let purchaseStatusUpdated = false
+        
+        while (retryCount < 3 && !purchaseStatusUpdated) {
+          console.log(`🔄 第${retryCount + 1}次尝试刷新购买状态...`)
+          await this.loadActorDetail()
+          
+          // 检查购买状态是否已更新
+          const currentPack = this.data.voicePacks.find(pack => pack._id === packId)
+          if (currentPack && currentPack.isPurchased) {
+            console.log('✅ 购买状态已更新')
+            purchaseStatusUpdated = true
+          } else {
+            console.log('⏳ 购买状态尚未更新，等待1秒后重试...')
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            retryCount++
+          }
+        }
+        
+        if (!purchaseStatusUpdated) {
+          console.log('⚠️ 购买状态更新超时，但继续跳转')
+        }
+        
+        console.log('✅ 页面数据刷新完成')
+        
+        // 跳转到语音包详情页
+        wx.navigateTo({
+          url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
+        })
+        
+        return
+      }
+      
       // 生产环境：调起真实的微信支付
       const paymentResult = await wx.requestPayment({
         appId: payParams.appId,
@@ -754,26 +841,63 @@ Page({
       
       wx.hideLoading()
       
-      // 支付成功
+      // 获取成功
       wx.showToast({
-        title: '支付成功！',
+        title: '获取成功！',
         icon: 'success'
       })
       
       // 关闭弹窗
       this.closePackDetail()
       
-      // 刷新页面数据，更新购买状态
-      console.log('🔄 支付成功，刷新页面数据...')
-      await this.loadActorDetail()
+      // 直接创建购买记录（备用方案）
+      console.log('🔄 支付成功，创建购买记录...')
+      try {
+        const completePurchaseRes = await wx.cloud.callFunction({
+          name: 'completePurchase',
+          data: {
+            orderId: orderId,
+            packId: packId
+          }
+        })
+        console.log('📦 购买记录创建结果:', completePurchaseRes.result)
+      } catch (error) {
+        console.error('❌ 创建购买记录失败:', error)
+      }
+      
+      // 等待1秒确保数据库更新完成
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // 重试机制：最多重试3次获取购买状态
+      let retryCount = 0
+      let purchaseStatusUpdated = false
+      
+      while (retryCount < 3 && !purchaseStatusUpdated) {
+        console.log(`🔄 第${retryCount + 1}次尝试刷新购买状态...`)
+        await this.loadActorDetail()
+        
+        // 检查购买状态是否已更新
+        const currentPack = this.data.voicePacks.find(pack => pack._id === packId)
+        if (currentPack && currentPack.isPurchased) {
+          console.log('✅ 购买状态已更新')
+          purchaseStatusUpdated = true
+        } else {
+          console.log('⏳ 购买状态尚未更新，等待1秒后重试...')
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          retryCount++
+        }
+      }
+      
+      if (!purchaseStatusUpdated) {
+        console.log('⚠️ 购买状态更新超时，但继续跳转')
+      }
+      
       console.log('✅ 页面数据刷新完成')
       
-      // 延迟跳转到语音包详情页
-      setTimeout(() => {
-        wx.navigateTo({
-          url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
-        })
-      }, 1500)
+      // 跳转到语音包详情页
+      wx.navigateTo({
+        url: `/pages/voice-pack-detail/voice-pack-detail?packId=${packId}`
+      })
       
     } catch (error) {
       wx.hideLoading()
@@ -781,12 +905,12 @@ Page({
       
       if (error.errMsg.includes('cancel')) {
         wx.showToast({
-          title: '支付已取消',
+          title: '操作已取消',
           icon: 'none'
         })
       } else {
         wx.showToast({
-          title: '支付失败，请重试',
+          title: '获取失败，请重试',
           icon: 'none'
         })
       }

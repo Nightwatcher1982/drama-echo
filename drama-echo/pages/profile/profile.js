@@ -9,7 +9,6 @@ Page({
     userData: {},
     todayMagicBookUses: 0,
     purchasedVoicePacks: 0,
-    myVoicePacks: [],
     isAdmin: false,
     // 头像昵称官方采集面板
     showEditorPanel: false,
@@ -61,9 +60,9 @@ Page({
   async loadData() {
     this.loadUserInfo()
     await this.loadUserData()
+    await this.loadPurchasedVoicePacks()
     this.calculateStats()
     this.checkAdminStatus()
-    await this.loadVoicePacks()
   },
   
   // 加载用户数据
@@ -98,7 +97,8 @@ Page({
           userInfo.nickName === '微信用户' || 
           userInfo.isWechatDefault || 
           !userInfo.avatarUrl ||
-          /^\d+\.?\d*$/.test(userInfo.nickName) // 纯数字昵称也需要引导
+          !userInfo.nickName ||
+          userInfo.nickName.length < 1
         )
         if (needOnboarding && !onboardingDone) {
           this.setData({ showOnboardingOverlay: true })
@@ -124,6 +124,34 @@ Page({
       })
     }
   },
+
+  // 加载购买的语音包数量
+  async loadPurchasedVoicePacks() {
+    try {
+      console.log('🔄 加载购买的语音包数量...')
+      
+      const result = await wx.cloud.callFunction({
+        name: 'getUserPurchases',
+        data: { userId: 'current' }
+      })
+      
+      if (result.result && result.result.code === 0) {
+        const purchases = result.result.data.purchases || []
+        const totalCount = purchases.reduce((sum, purchase) => {
+          return sum + (purchase.purchaseCount || 1)
+        }, 0)
+        
+        console.log('📊 购买的语音包数量:', totalCount)
+        this.setData({ purchasedVoicePacks: totalCount })
+      } else {
+        console.log('⚠️ 获取购买记录失败:', result.result)
+        this.setData({ purchasedVoicePacks: 0 })
+      }
+    } catch (error) {
+      console.error('❌ 加载购买语音包数量失败:', error)
+      this.setData({ purchasedVoicePacks: 0 })
+    }
+  },
   
   calculateStats() {
     const userData = app.globalData.userData
@@ -147,32 +175,6 @@ Page({
     if (openid && userInfo) {
       const isAdmin = adminConfig.isAdmin(openid, userInfo)
       this.setData({ isAdmin })
-    }
-  },
-  
-  // 加载已购买的语音包
-  async loadVoicePacks() {
-    try {
-      if (!app.globalData.cloudEnabled) return
-      
-      const res = await wx.cloud.callFunction({
-        name: 'getUserData'
-      })
-      
-      if (res.result.code === 0 && res.result.data.purchases) {
-        const purchases = res.result.data.purchases || []
-        this.setData({ 
-          purchasedVoicePacks: purchases.length,
-          myVoicePacks: purchases.slice(0, 3).map(p => ({
-            id: p.packId,
-            name: p.packName,
-            actorName: p.actorName,
-            actorAvatar: p.actorAvatar || '🎭'
-          }))
-        })
-      }
-    } catch (error) {
-      console.error('加载语音包失败:', error)
     }
   },
   
@@ -623,8 +625,8 @@ Page({
             if (newNickname === '为自己设置一个有趣的戏剧昵称吧！' || 
                 newNickname === '请输入您的个性化戏剧昵称' ||
                 newNickname === '微信用户' ||
-                newNickname.length < 2 ||
-                /^\d+\.?\d*$/.test(newNickname)) { // 纯数字检查
+                newNickname.length < 1 ||
+                newNickname.length > 20) {
               wx.showToast({
                 title: '请输入有效的昵称',
                 icon: 'none'
@@ -757,15 +759,6 @@ Page({
     })
   },
   
-  
-  // 播放语音包
-  playVoicePack(e) {
-    const packId = e.currentTarget.dataset.packId
-    wx.navigateTo({
-      url: `/pages/voice-echo/voice-echo?packId=${packId}`
-    })
-  },
-  
   // 管理员功能（长按头像进入）
   goToAdmin() {
     if (this.data.isAdmin) {
@@ -790,6 +783,56 @@ Page({
     }
   },
   
+  // 联系我们
+  contactUs() {
+    console.log('contactUs 方法被调用')
+    try {
+      wx.showModal({
+        title: '联系我们',
+        content: '添加微信号：emily_huan\n联系戏剧回响',
+        showCancel: true,
+        cancelText: '知道了',
+        confirmText: '复制',
+        success: (res) => {
+          console.log('弹窗用户选择:', res)
+          if (res.confirm) {
+            // 复制微信号到剪贴板
+            wx.setClipboardData({
+              data: 'emily_huan',
+              success: () => {
+                console.log('微信号复制成功')
+                wx.showToast({
+                  title: '微信号已复制',
+                  icon: 'success'
+                })
+              },
+              fail: (error) => {
+                console.error('微信号复制失败:', error)
+                wx.showToast({
+                  title: '复制失败',
+                  icon: 'none'
+                })
+              }
+            })
+          }
+        },
+        fail: (error) => {
+          console.error('弹窗显示失败:', error)
+          wx.showToast({
+            title: '弹窗显示失败',
+            icon: 'none'
+          })
+        }
+      })
+    } catch (error) {
+      console.error('contactUs 方法执行错误:', error)
+      wx.showToast({
+        title: '功能异常',
+        icon: 'none'
+      })
+    }
+  },
+  
   // 清除缓存
   clearData() {
     wx.showModal({
@@ -802,8 +845,7 @@ Page({
           this.setData({
             userData: {},
             todayMagicBookUses: 0,
-            purchasedVoicePacks: 0,
-            myVoicePacks: []
+            purchasedVoicePacks: 0
           })
           wx.showToast({
             title: '清除成功',
@@ -819,16 +861,6 @@ Page({
     wx.showModal({
       title: '戏剧回响',
       content: '版本：v2.1.0\n\n让戏剧照亮你的每一天\n\n专为戏剧爱好者打造的生活记录应用，融合了戏剧魔法书、语音回响和笔记功能。',
-      showCancel: false,
-      confirmText: '知道了'
-    })
-  },
-  
-  // 联系我们
-  contactUs() {
-    wx.showModal({
-      title: '联系我们',
-      content: '邮箱：drama@modu.com\n微信：ModuDrama\n\n欢迎反馈意见和建议',
       showCancel: false,
       confirmText: '知道了'
     })

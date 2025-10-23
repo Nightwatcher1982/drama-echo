@@ -246,7 +246,7 @@ Page({
         name: '',
         title: '',
         description: '',
-        avatar: '👤',
+        avatar: '',
         imageUrl: '',
         tags: [],
         status: 'offline'
@@ -366,7 +366,7 @@ Page({
         name: actor.name,
         title: actor.title || '',
         description: actor.description || '',
-        avatar: actor.avatar || '👤',
+            avatar: actor.avatar || '',
         imageUrl: imageUrl,
         tags: actor.tags || [],
         status: actor.status || 'offline',

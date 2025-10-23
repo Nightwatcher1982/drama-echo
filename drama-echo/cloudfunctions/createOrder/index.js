@@ -12,7 +12,7 @@ cloud.init({
 const db = cloud.database()
 
 // 安全配置加载
-const secureConfig = require('../utils/secureConfig')
+const secureConfig = require('./secureConfig')
 
 // 获取微信支付配置
 const WECHAT_PAY_CONFIG = secureConfig.getWechatPayConfig()
@@ -57,7 +57,7 @@ async function createWechatOrder(orderData) {
     mch_id: WECHAT_PAY_CONFIG.mch_id,
     nonce_str: generateNonceStr(),
     body: orderData.description,
-    out_trade_no: orderData.orderNo,
+    out_trade_no: orderData._id,
     total_fee: orderData.amount, // 金额，单位：分
     spbill_create_ip: '127.0.0.1',
     notify_url: WECHAT_PAY_CONFIG.notify_url,
@@ -75,8 +75,17 @@ async function createWechatOrder(orderData) {
   })
   xmlBody += '</xml>'
   
-  console.log('微信支付请求参数:', params)
-  console.log('XML请求体:', xmlBody)
+  console.log('🔍 微信支付配置信息:', {
+    appid: WECHAT_PAY_CONFIG.appid,
+    mch_id: WECHAT_PAY_CONFIG.mch_id,
+    api_key_length: WECHAT_PAY_CONFIG.api_key.length,
+    api_key_prefix: WECHAT_PAY_CONFIG.api_key.substring(0, 8) + '...',
+    notify_url: WECHAT_PAY_CONFIG.notify_url
+  })
+  
+  console.log('🔍 微信支付请求参数:', params)
+  console.log('🔍 生成的签名:', params.sign)
+  console.log('🔍 XML请求体:', xmlBody)
   
   try {
     // 使用 Node.js 的 https 模块发送请求
@@ -110,10 +119,15 @@ async function createWechatOrder(orderData) {
       req.end()
     })
     
-    console.log('微信支付响应:', response)
+    console.log('🔍 微信支付原始响应:', response)
+    
+    // 解析XML响应
+    const responseData = parseXML(response)
+    console.log('🔍 解析后的微信支付响应:', responseData)
+    
     return response
   } catch (error) {
-    console.error('调用微信支付接口失败:', error)
+    console.error('💥 调用微信支付接口失败:', error)
     throw error
   }
 }
@@ -134,6 +148,18 @@ function parseXML(xmlString) {
 // 主函数
 exports.main = async (event, context) => {
   const { packId, userId, openid, quantity = 1 } = event
+  
+  // 添加部署验证日志 - 2024年10月21日 20:45 版本
+  console.log('🚀🚀🚀 云函数已重新部署 - 版本验证 🚀🚀🚀')
+  console.log('🔍 部署时间: 2024-10-21 20:45:00')
+  console.log('🔍 当前时间:', new Date().toISOString())
+  console.log('🔍 环境设置:', secureConfig.isDevelopment() ? '开发环境' : '生产环境')
+  console.log('🔍 配置信息:', {
+    appid: WECHAT_PAY_CONFIG.appid,
+    mch_id: WECHAT_PAY_CONFIG.mch_id,
+    api_key_length: WECHAT_PAY_CONFIG.api_key.length,
+    notify_url: WECHAT_PAY_CONFIG.notify_url
+  })
   
   // 获取当前用户的openid
   const { OPENID } = cloud.getWXContext()
@@ -240,17 +266,21 @@ exports.main = async (event, context) => {
           
           if (wechatData.return_code === 'SUCCESS' && wechatData.result_code === 'SUCCESS') {
             // 微信支付统一下单成功，返回支付参数
+            const timestamp = Math.floor(Date.now() / 1000).toString()
+            const nonceStr = generateNonceStr()
+            const packageStr = `prepay_id=${wechatData.prepay_id}`
+            
             const payParams = {
               appId: WECHAT_PAY_CONFIG.appid,
-              timeStamp: Math.floor(Date.now() / 1000).toString(),
-              nonceStr: generateNonceStr(),
-              package: `prepay_id=${wechatData.prepay_id}`,
+              timeStamp: timestamp,
+              nonceStr: nonceStr,
+              package: packageStr,
               signType: 'MD5',
               paySign: generateSign({
                 appId: WECHAT_PAY_CONFIG.appid,
-                timeStamp: Math.floor(Date.now() / 1000).toString(),
-                nonceStr: generateNonceStr(),
-                package: `prepay_id=${wechatData.prepay_id}`,
+                timeStamp: timestamp,
+                nonceStr: nonceStr,
+                package: packageStr,
                 signType: 'MD5'
               }, WECHAT_PAY_CONFIG.api_key)
             }

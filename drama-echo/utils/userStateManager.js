@@ -241,7 +241,9 @@ class UserStateManager {
     // 检查昵称是否有效
     if (userProfile.nickName === '微信用户' || 
         userProfile.nickName === '为自己设置一个有趣的戏剧昵称吧！' ||
-        /^\d+\.?\d*$/.test(userProfile.nickName)) {
+        !userProfile.nickName ||
+        userProfile.nickName.length < 1 ||
+        userProfile.nickName.length > 20) {
       console.log('🔧 检测到无效昵称，尝试修复...')
       return await this.refreshUserInfo()
     }

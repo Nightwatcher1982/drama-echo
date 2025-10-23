@@ -374,65 +374,22 @@ Page({
     finally { try { wx.hideLoading() } catch(_){} }
   },
 
-  // 阻止事件冒泡（用于WXML中的catchtap）
-  stopPropagation() {
-    // no-op
-  },
-
-  async openEditActor(e) {
-    let actor = e.currentTarget.dataset.actor
-    const actorIdFromBtn = e.currentTarget.dataset.actorId
-    if (!actor && actorIdFromBtn) {
-      actor = this.data.actors.find(x => x._id === actorIdFromBtn)
-    }
+  openEditActor(e) {
+    const actor = e.currentTarget.dataset.actor
     if (!actor) {
-      // 回退到当前选中的演员
+      // 如果没有传递演员数据，尝试从selectedActorId获取
       const a = this.data.actors.find(x => x._id === this.data.selectedActorId)
       if (!a) return wx.showToast({ title: '未选择演员', icon: 'none' })
       actor = a
     }
     
-    console.log('🔍 打开编辑演员模态框:', {
-      actorName: actor.name,
-      imageUrl: actor.imageUrl,
-      images: actor.images
+    // 封面照片和图片库独立管理，不互相影响
+    this.setData({ 
+      showActorModal: true, 
+      editingActor: { ...actor }, 
+      tempImagePath: actor.imageUrl || '', // 显示已存在的封面照片
+      actorImages: actor.images || [] // 图片库独立管理
     })
-    
-    // 获取最新的演员数据，确保包含最新的封面照片和图片库
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'getActorDetail',
-        data: { actorId: actor._id }
-      })
-      
-      if (res.result.code === 0) {
-        const latestActor = res.result.data.actor
-        console.log('✅ 获取最新演员数据:', {
-          actorName: latestActor.name,
-          imageUrl: latestActor.imageUrl,
-          images: latestActor.images
-        })
-        
-        // 使用最新的演员数据
-        this.setData({ 
-          showActorModal: true, 
-          editingActor: { ...latestActor }, 
-          tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
-          actorImages: latestActor.images || [] // 图片库独立管理
-        })
-      } else {
-        throw new Error(res.result.message || '获取演员详情失败')
-      }
-    } catch (error) {
-      console.error('❌ 获取最新演员数据失败，使用缓存数据:', error)
-      // 如果获取最新数据失败，使用缓存数据
-      this.setData({ 
-        showActorModal: true, 
-        editingActor: { ...actor }, 
-        tempImagePath: '', // 清空临时路径，让用户重新选择或保持现有封面照片
-        actorImages: actor.images || [] // 图片库独立管理
-      })
-    }
   },
   openCreateActor() {
     this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '' }, tempImagePath: '', actorImages: [] })
@@ -462,78 +419,32 @@ Page({
   onActorInput(e) { const f = e.currentTarget.dataset.field; const v = e.detail.value; const a = { ...this.data.editingActor }; a[f] = v; this.setData({ editingActor: a }) },
   async chooseActorImage() {
     try {
-      console.log('🔍 开始选择封面照片...')
       const res = await wx.chooseMedia({ count: 1, mediaType: ['image'] })
       const p = res.tempFiles[0].tempFilePath
       let out = p
       try { const cr = await wx.compressImage({ src: p, quality: 60 }); out = cr.tempFilePath } catch(_){}
-      
-      console.log('✅ 封面照片选择成功:', {
-        originalPath: p,
-        compressedPath: out,
-        currentTempImagePath: this.data.tempImagePath
-      })
-      
       this.setData({ tempImagePath: out })
-      
-      console.log('📷 设置tempImagePath后:', {
-        tempImagePath: this.data.tempImagePath,
-        editingActorImageUrl: this.data.editingActor.imageUrl
-      })
-    } catch (e) { 
-      console.error('❌ 选择封面照片失败:', e)
-      if (!(e && String(e.errMsg||'').includes('cancel'))) {
-        wx.showToast({ title: '选择图片失败', icon: 'none' }) 
-      }
-    }
+    } catch (e) { if (!(e && String(e.errMsg||'').includes('cancel'))) wx.showToast({ title: '选择图片失败', icon: 'none' }) }
   },
   async addActorImages() {
     try {
-      // 限制为只能上传1张图片
-      if (this.data.actorImages.length >= 1) {
-        return wx.showToast({ title: '详情页图片仅支持1张', icon: 'none' })
-      }
-      
-      const res = await wx.chooseMedia({ count: 1, mediaType: ['image'] })
+      const remain = 5 - this.data.actorImages.length
+      if (remain <= 0) return wx.showToast({ title: '已达上限', icon: 'none' })
+      const res = await wx.chooseMedia({ count: remain, mediaType: ['image'] })
       const paths = res.tempFiles.map(f => f.tempFilePath)
       const uploaded = []
       wx.showLoading({ title: '上传中...' })
-      
       for (const p of paths) {
         let filePath = p
-        try { 
-          const cr = await wx.compressImage({ src: p, quality: 60 })
-          filePath = cr.tempFilePath 
-        } catch(_){}
-        
-        const up = await wx.cloud.uploadFile({ 
-          cloudPath: `actors/${this.data.selectedActorId || Date.now()}/detail_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`, 
-          filePath 
-        })
+        try { const cr = await wx.compressImage({ src: p, quality: 60 }); filePath = cr.tempFilePath } catch(_){}
+        const up = await wx.cloud.uploadFile({ cloudPath: `actors/${this.data.selectedActorId || Date.now()}/gallery_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`, filePath })
         uploaded.push(up.fileID)
       }
-      
-      // 检查是否与封面照片相同
-      const currentCoverImage = this.data.editingActor.imageUrl || this.data.tempImagePath
-      if (uploaded.length > 0 && currentCoverImage && uploaded[0] === currentCoverImage) {
-        wx.showModal({
-          title: '提示',
-          content: '详情页图片不能与封面照片相同，请选择不同的图片',
-          showCancel: false
-        })
-        return
-      }
-      
-      // 替换现有图片（因为只支持1张）
-      this.setData({ actorImages: uploaded })
-      wx.showToast({ title: '详情页图片已添加', icon: 'success' })
-    } catch (e) { 
-      if (!(e && String(e.errMsg||'').includes('cancel'))) {
-        wx.showToast({ title: '添加失败', icon: 'none' }) 
-      }
-    } finally { 
-      try { wx.hideLoading() } catch(_){} 
-    }
+      const newList = (this.data.actorImages.concat(uploaded)).slice(0, 5)
+      this.setData({ actorImages: newList })
+      wx.showToast({ title: '已添加', icon: 'success' })
+    } catch (e) { if (!(e && String(e.errMsg||'').includes('cancel'))) wx.showToast({ title: '添加失败', icon: 'none' }) }
+    finally { try { wx.hideLoading() } catch(_){} }
   },
   removeActorImage(e) {
     const url = e.currentTarget.dataset.url
@@ -702,89 +613,31 @@ Page({
     if (!this.ensureAuthed()) return wx.showToast({ title: '请先登录后台', icon: 'none' })
     try {
       wx.showLoading({ title: '保存中...' })
-      let imageUrl = a.imageUrl || ''
-      
-      // 处理封面照片上传
-      try {
-        if (this.data.tempImagePath) {
-          // 用户选择了新的封面照片
-          const cloudFolder = a._id || this.data.selectedActorId || `temp_${Date.now()}`
-          const up = await wx.cloud.uploadFile({ 
-            cloudPath: `actors/${cloudFolder}/cover_${Date.now()}.jpg`, 
-            filePath: this.data.tempImagePath 
-          })
-          imageUrl = up.fileID
-          console.log('✅ 新封面照片上传成功:', imageUrl)
-        } else {
-          // 用户没有选择新图片，保持原有封面照片
-          imageUrl = a.imageUrl || ''
-          console.log('📷 保持原有封面照片:', imageUrl)
-        }
-      } catch (upErr) {
-        console.warn('封面照片上传失败，继续使用原图:', upErr)
-        imageUrl = a.imageUrl || ''
+      let imageUrl = a.imageUrl
+      if (this.data.tempImagePath) {
+        const up = await wx.cloud.uploadFile({ cloudPath: `actors/${a._id || this.data.selectedActorId || Date.now()}/avatar_${Date.now()}.jpg`, filePath: this.data.tempImagePath })
+        imageUrl = up.fileID
       }
-      
-      console.log('🔍 封面照片处理结果:', {
-        tempImagePath: this.data.tempImagePath,
-        originalImageUrl: a.imageUrl,
-        finalImageUrl: imageUrl,
-        hasNewImage: !!this.data.tempImagePath
+      const res = await wx.cloud.callFunction({
+        name: 'adminManageActors',
+        data: {
+          action: a._id ? 'update' : 'create',
+          actorId: a._id || this.data.selectedActorId,
+          adminPassword: this.getAdminPassword(),
+          actorData: { name: a.name, title: a.title||'', description: a.description||'', avatar: a.avatar||'', imageUrl, images: this.data.actorImages, status: a.status||'online', tags: a.tags||[] }
+        }
       })
-
-      // 确保详情页图片数组不包含封面照片
-      let detailImages = Array.isArray(this.data.actorImages) ? this.data.actorImages : []
-      
-      // 如果详情页图片和封面照片相同，清空详情页图片
-      if (detailImages.length > 0 && detailImages[0] === imageUrl) {
-        console.log('⚠️ 检测到详情页图片与封面照片相同，清空详情页图片')
-        detailImages = []
-      }
-
-      const isUpdate = !!a._id
-      const payload = {
-        action: isUpdate ? 'update' : 'create',
-        adminPassword: this.getAdminPassword(),
-        actorData: {
-          name: a.name,
-          title: a.title || '',
-          description: a.description || '',
-          avatar: a.avatar || '',
-          imageUrl, // 封面照片
-          images: detailImages, // 详情页图片（确保与封面照片不同）
-          status: a.status || 'online',
-          tags: Array.isArray(a.tags) ? a.tags : []
-        }
-      }
-      if (isUpdate) payload.actorId = a._id
-
-      console.log('saveActor: 即将提交的payload:', payload)
-      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: payload })
-      console.log('saveActor: 云函数返回:', res)
-      
-      if (res.result.code !== 0) {
-        throw new Error(res.result.message || '保存失败')
-      }
-      
-      console.log('✅ 演员保存成功，准备刷新本地数据')
-      
-      // 保存成功后，刷新本地演员数据
-      await this.loadActors()
-
-      if (res && res.result && res.result.code === 0) {
+      if (res.result.code === 0) { 
         wx.showToast({ title: '保存成功', icon: 'success' })
         this.closeActorModal()
-        setTimeout(() => { this.loadActors() }, 500)
-      } else {
-        const errMsg = res?.result?.message || '保存失败'
-        throw new Error(errMsg)
+        // 延迟刷新列表，避免loading冲突
+        setTimeout(() => {
+          this.loadActors()
+        }, 500)
       }
-    } catch (e) {
-      console.error('saveActor: 异常:', e)
-      wx.showToast({ title: e.message || '保存失败', icon: 'none' })
-    } finally {
-      try { wx.hideLoading() } catch(_){}
-    }
+      else throw new Error(res.result.message)
+    } catch (e) { wx.showToast({ title: e.message || '保存失败', icon: 'none' }) }
+    finally { try { wx.hideLoading() } catch(_){} }
   },
 
   // ====== 图片和视频上传管理 ======
@@ -1128,13 +981,6 @@ Page({
   goToClearData() {
     wx.navigateTo({
       url: '/pages/clear-data/clear-data'
-    })
-  },
-
-  // 跳转到演员图片调试页面
-  goToDebugActorImages() {
-    wx.navigateTo({
-      url: '/pages/debug-actor-images/debug-actor-images'
     })
   },
 

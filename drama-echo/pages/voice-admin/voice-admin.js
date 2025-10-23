@@ -51,7 +51,7 @@ Page({
       name: '',
       title: '',
       description: '',
-      avatar: '👤',
+      avatar: '',
       imageUrl: ''
     },
     tempImagePath: ''
@@ -199,7 +199,7 @@ Page({
             name: actor.name,
             title: actor.title || '',
             description: actor.description || '',
-            avatar: actor.avatar || '👤',
+            avatar: actor.avatar || '',
             imageUrl: imageUrl,
             status: actor.status || 'online',
             tags: actor.tags || []

@@ -48,31 +48,10 @@
       <view class="collection-item-large" bindtap="goToVoiceEcho">
         <view class="collection-icon-large">🎵</view>
         <view class="collection-content">
-          <view class="collection-name">购买的语音包</view>
-          <view class="collection-desc">已购买 {{purchasedVoicePacks || 0}} 个语音包</view>
+          <view class="collection-name">收藏的语音包</view>
+          <view class="collection-desc">已收藏 {{purchasedVoicePacks || 0}} 个语音包</view>
         </view>
         <view class="collection-arrow">〉</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 我的语音包 -->
-  <view class="voice-packs-section glass-card" wx:if="{{myVoicePacks && myVoicePacks.length > 0}}">
-    <view class="section-title">
-      <view class="title-icon">🎵</view>
-      <view class="title-text">最近收听</view>
-      <view class="title-action" bindtap="goToVoiceEcho">查看全部</view>
-    </view>
-    <view class="voice-packs-list">
-      <view class="voice-pack-item" wx:for="{{myVoicePacks}}" wx:key="id">
-        <view class="pack-avatar">{{item.actorAvatar || '🎭'}}</view>
-        <view class="pack-info">
-          <view class="pack-name">{{item.name}}</view>
-          <view class="pack-actor">{{item.actorName}}</view>
-        </view>
-        <view class="pack-action" bindtap="playVoicePack" data-pack-id="{{item.id}}">
-          <text class="play-icon">▶️</text>
-        </view>
       </view>
     </view>
   </view>
@@ -102,6 +81,11 @@
 
   <!-- 设置选项 -->
   <view class="settings-section glass-card">
+    <view class="settings-item" bindtap="contactUs">
+      <view class="settings-icon">💬</view>
+      <view class="settings-text">联系我们</view>
+      <view class="settings-arrow">〉</view>
+    </view>
     <view class="settings-item" bindtap="clearData">
       <view class="settings-icon">🗑️</view>
       <view class="settings-text">清除缓存</view>
@@ -110,11 +94,6 @@
     <view class="settings-item" bindtap="aboutApp">
       <view class="settings-icon">ℹ️</view>
       <view class="settings-text">关于应用</view>
-      <view class="settings-arrow">〉</view>
-    </view>
-    <view class="settings-item" bindtap="contactUs">
-      <view class="settings-icon">📧</view>
-      <view class="settings-text">联系我们</view>
       <view class="settings-arrow">〉</view>
     </view>
     <view class="settings-item logout-item" bindtap="handleLogout" wx:if="{{userInfo.nickName && userInfo.nickName !== '未登录用户'}}">
