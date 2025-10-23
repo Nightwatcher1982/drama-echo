@@ -1,0 +1,443 @@
+
+
+.nav-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nav-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 32rpx;
+  color: #fff;
+  letter-spacing: 0.02em;
+  margin-top: 64rpx;
+}
+
+/* 音频播放器组件样式 - 唱片机风格 */
+.audio-player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #c8a1f1 linear-gradient(155deg, #F7C8F4 0%,#F7C8F4 25%,#e1c3e4 35%, #A36BD1 50%, #CEB1F7 100%) no-repeat !important;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 60rpx 40rpx 40rpx;
+}
+
+/* 播放器头部 */
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 60rpx;
+  padding: 0 20rpx;
+}
+
+.back-btn, .close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.back-icon, .close-icon {
+  font-size: 36rpx;
+  color: white;
+  font-weight: bold;
+}
+
+.header-title {
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 唱片机主体 */
+.record-player-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 60rpx;
+  flex: 1;
+  align-items: center;
+}
+
+.turntable-container {
+  position: relative;
+  width: 600rpx;
+  height: 600rpx;
+}
+
+.turntable-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1a1a1a 0%, #2d2d2d 20%, #1a1a1a 100%);
+  position: relative;
+  box-shadow: 
+    inset 0 0 40rpx rgba(0, 0, 0, 0.6),
+    0 0 60rpx rgba(0, 0, 0, 0.4);
+}
+
+/* 唱片样式 */
+.record {
+  position: absolute;
+  top: 60rpx;
+  left: 60rpx;
+  width: 480rpx;
+  height: 480rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1a1a1a 0%, #2d2d2d 20%, #1a1a1a 100%);
+  box-shadow: 
+    inset 0 0 40rpx rgba(0, 0, 0, 0.8),
+    0 0 50rpx rgba(0, 0, 0, 0.6);
+  transition: transform 0.1s linear;
+}
+
+/* 唱片封面 */
+.record-cover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300rpx;
+  height: 300rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #333;
+  box-shadow: inset 0 0 20rpx rgba(0, 0, 0, 0.5);
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+}
+
+.placeholder-icon {
+  font-size: 100rpx;
+  color: white;
+  opacity: 0.8;
+}
+
+/* 唱片中心孔 - 已隐藏 */
+.record-center {
+  display: none;
+}
+
+/* 唱片纹理 */
+.record-grooves {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.groove {
+  position: absolute;
+  border-radius: 50%;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.groove-1 {
+  top: 20rpx;
+  left: 20rpx;
+  right: 20rpx;
+  bottom: 20rpx;
+}
+
+.groove-2 {
+  top: 60rpx;
+  left: 60rpx;
+  right: 60rpx;
+  bottom: 60rpx;
+}
+
+.groove-3 {
+  top: 100rpx;
+  left: 100rpx;
+  right: 100rpx;
+  bottom: 100rpx;
+}
+
+.groove-4 {
+  top: 140rpx;
+  left: 140rpx;
+  right: 140rpx;
+  bottom: 140rpx;
+}
+
+/* 唱针 */
+.tonearm {
+  position: absolute;
+  top: 40rpx;
+  right: 40rpx;
+  width: 140rpx;
+  height: 140rpx;
+  transform-origin: 35rpx 35rpx;
+  transition: transform 0.3s ease;
+}
+
+.tonearm.playing {
+  transform: rotate(20deg);
+}
+
+.tonearm-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 35rpx;
+  height: 35rpx;
+  background: #8b4513;
+  border-radius: 50%;
+  box-shadow: 0 5rpx 10rpx rgba(0, 0, 0, 0.4);
+  border: 3rpx solid #654321;
+}
+
+.tonearm-arm {
+  position: absolute;
+  top: 17rpx;
+  left: 17rpx;
+  width: 105rpx;
+  height: 8rpx;
+  background: linear-gradient(90deg, #8b4513 0%, #a0522d 50%, #8b4513 100%);
+  border-radius: 4rpx;
+  box-shadow: 0 3rpx 6rpx rgba(0, 0, 0, 0.3);
+}
+
+.tonearm-head {
+  position: absolute;
+  top: 14rpx;
+  right: 0;
+  width: 22rpx;
+  height: 14rpx;
+  background: #654321;
+  border-radius: 4rpx;
+  box-shadow: 0 3rpx 6rpx rgba(0, 0, 0, 0.3);
+}
+
+/* 歌曲信息区域 */
+.song-info-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40rpx;
+  padding: 0 20rpx;
+}
+
+.song-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.artist-name {
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.song-index {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+/* 进度条区域 */
+.progress-section {
+  margin-bottom: 40rpx;
+  padding: 0 20rpx;
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.current-time,
+.duration {
+  color: white;
+  font-size: 28rpx;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.progress-container {
+  position: relative;
+  margin-top: 20rpx;
+}
+
+/* 播放控制区域 */
+.player-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40rpx;
+  margin-bottom: 40rpx;
+}
+
+.control-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.main-play-btn {
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border: none;
+  box-shadow: 0 6rpx 20rpx rgba(231, 76, 60, 0.4);
+}
+
+.main-play-btn.playing {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon {
+  font-size: 48rpx;
+  color: white;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+.main-play-btn .btn-icon {
+  font-size: 56rpx;
+}
+
+
+/* 响应式设计 */
+@media (max-width: 400px) {
+  .audio-player {
+    padding: 40rpx 20rpx 20rpx;
+  }
+  
+  .turntable-container {
+    width: 500rpx;
+    height: 500rpx;
+  }
+  
+  .record {
+    width: 400rpx;
+    height: 400rpx;
+    top: 50rpx;
+    left: 50rpx;
+  }
+  
+  .record-cover {
+    width: 250rpx;
+    height: 250rpx;
+  }
+  
+  .placeholder-icon {
+    font-size: 80rpx;
+  }
+  
+  .groove-1 {
+    top: 15rpx;
+    left: 15rpx;
+    right: 15rpx;
+    bottom: 15rpx;
+  }
+  
+  .groove-2 {
+    top: 45rpx;
+    left: 45rpx;
+    right: 45rpx;
+    bottom: 45rpx;
+  }
+  
+  .groove-3 {
+    top: 75rpx;
+    left: 75rpx;
+    right: 75rpx;
+    bottom: 75rpx;
+  }
+  
+  .groove-4 {
+    top: 105rpx;
+    left: 105rpx;
+    right: 105rpx;
+    bottom: 105rpx;
+  }
+  
+  .tonearm {
+    width: 120rpx;
+    height: 120rpx;
+    top: 30rpx;
+    right: 30rpx;
+    transform-origin: 30rpx 30rpx;
+  }
+  
+  .tonearm-base {
+    width: 30rpx;
+    height: 30rpx;
+  }
+  
+  .tonearm-arm {
+    width: 90rpx;
+    height: 6rpx;
+    top: 15rpx;
+    left: 15rpx;
+  }
+  
+  .tonearm-head {
+    width: 18rpx;
+    height: 12rpx;
+    top: 12rpx;
+  }
+  
+  .control-btn {
+    width: 60rpx;
+    height: 60rpx;
+  }
+  
+  .main-play-btn {
+    width: 80rpx;
+    height: 80rpx;
+  }
+  
+  .btn-icon {
+    font-size: 48rpx;
+  }
+  
+  .main-play-btn .btn-icon { 
+    font-size: 32rpx;
+  }
+  
+  .current-time,
+  .duration {
+    font-size: 24rpx;
+  }
+}

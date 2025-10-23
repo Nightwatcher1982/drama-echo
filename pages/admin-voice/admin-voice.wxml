@@ -42,7 +42,7 @@
         <view wx:for="{{actors}}" wx:key="_id" class="actor-card {{selectedActorId === item._id ? 'selected' : ''}}" bindtap="selectActor" data-actor="{{item}}">
           <view class="actor-image-container">
             <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" class="actor-image" mode="aspectFill" />
-            <view wx:else class="actor-avatar">{{item.avatar || '👤'}}</view>
+            <view wx:else class="actor-avatar">{{item.avatar || '头像'}}</view>
           </view>
           <view class="actor-info">
             <view class="actor-name">{{item.name}}</view>
@@ -164,7 +164,7 @@
         <view class="form-group">
           <text class="form-label">选择头像表情</text>
           <view class="avatar-options">
-            <view wx:for="{{['👤', '🎭', '👨', '👩', '🧑', '👨‍🎤', '👩‍🎤']}}" wx:key="*this" 
+            <view wx:for="{{['头像', '🎭', '👨', '👩', '🧑', '👨‍🎤', '👩‍🎤']}}" wx:key="*this" 
                   class="avatar-option {{editingActor.avatar === item ? 'selected' : ''}}"
                   bindtap="selectAvatar" data-avatar="{{item}}">{{item}}</view>
           </view>
@@ -265,12 +265,15 @@
             </view>
             <view wx:else class="video-preview">
               <video class="preview-video" src="{{editingPack.bonusVideoUrl}}" controls="{{true}}" poster="{{editingPack.bonusVideoThumb}}"></video>
+              <view class="video-actions">
+                <button class="btn-small btn-primary" bindtap="chooseVideoCover">上传封面</button>
+                <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
+                <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
+              </view>
               <view class="video-info">
                 <view class="video-title">{{editingPack.bonusVideoTitle || '花絮视频'}}</view>
                 <view class="video-duration">{{editingPack.bonusVideoDuration || '未知时长'}}</view>
               </view>
-              <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
-              <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
             </view>
           </view>
         </view>

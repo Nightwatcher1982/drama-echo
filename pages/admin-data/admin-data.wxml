@@ -1,0 +1,245 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <view class="title">📊 数据管理中心</view>
+    <view class="subtitle">用户购买记录 & 粉丝打榜统计</view>
+  </view>
+
+  <!-- 管理员验证 -->
+  <view class="auth-section" wx:if="{{!isAuthed}}">
+    <view class="auth-title">管理员身份验证</view>
+    <input class="auth-input" type="password" placeholder="请输入管理密码" value="{{adminPassword}}" bindinput="onPasswordInput" />
+    <button class="btn-primary" bindtap="authenticate">验证身份</button>
+  </view>
+
+  <!-- 主面板 -->
+  <view wx:if="{{isAuthed}}">
+    <!-- 统计概览 -->
+    <view class="stats-section">
+      <view class="section-title">📈 数据概览</view>
+      <view class="stats-grid">
+        <view class="stat-card">
+          <view class="stat-number">{{salesStats.totalPurchases}}</view>
+          <view class="stat-label">总购买次数</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-number">¥{{formatAmount(salesStats.totalSales)}}</view>
+          <view class="stat-label">总销售额</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-number">{{salesStats.todayPurchases}}</view>
+          <view class="stat-label">今日购买</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-number">{{userStats.purchasingUsers}}</view>
+          <view class="stat-label">购买用户数</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-number">{{userStats.conversionRate}}%</view>
+          <view class="stat-label">转化率</view>
+        </view>
+        <view class="stat-card">
+          <view class="stat-number">¥{{formatAmount(salesStats.averageOrderValue)}}</view>
+          <view class="stat-label">平均客单价</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签页 -->
+    <view class="tabs">
+      <view class="tab {{currentTab === 'purchaseRecords' ? 'active' : ''}}" 
+            bindtap="switchTab" data-tab="purchaseRecords">
+        💰 购买记录
+      </view>
+      <view class="tab {{currentTab === 'fanRankings' ? 'active' : ''}}" 
+            bindtap="switchTab" data-tab="fanRankings">
+        🏆 粉丝打榜
+      </view>
+      <view class="tab {{currentTab === 'voicePackSales' ? 'active' : ''}}" 
+            bindtap="switchTab" data-tab="voicePackSales">
+        📊 销售明细
+      </view>
+    </view>
+
+    <!-- 购买记录 -->
+    <view wx:if="{{currentTab === 'purchaseRecords'}}" class="content-section">
+      <view class="section-header">
+        <view class="section-title">💰 用户购买记录</view>
+        <button class="btn-refresh" bindtap="refreshData">🔄 刷新</button>
+      </view>
+      
+      <view class="records-list">
+        <view wx:for="{{purchaseRecords}}" wx:key="_id" class="record-item">
+          <view class="record-header">
+            <view class="user-info">
+              <view class="user-name">{{item.userNickName}}</view>
+              <view class="user-id">{{item.userId}}</view>
+            </view>
+            <view class="record-amount">¥{{formatAmount(item.amount)}}</view>
+          </view>
+          
+          <view class="record-content">
+            <view class="pack-info">
+              <view class="pack-name">{{item.packName}}</view>
+              <view class="actor-name">演员：{{item.actorName}}</view>
+            </view>
+            <view class="record-status status-{{item.status}}">
+              {{item.status === 'completed' ? '已完成' : item.status === 'pending' ? '待处理' : '已退款'}}
+            </view>
+          </view>
+          
+          <view class="record-footer">
+            <view class="purchase-time">{{formatTime(item.purchaseTime)}}</view>
+            <view class="purchase-details">
+              <view class="purchase-type">{{item.purchaseType === 'package' ? '整包购买' : '单曲购买'}}</view>
+              <view class="purchase-count" wx:if="{{item.purchaseCount > 1}}">购买 {{item.purchaseCount}} 份</view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view wx:if="{{purchaseRecords.length === 0 && !loading}}" class="empty-state">
+          <view class="empty-icon">📋</view>
+          <view class="empty-text">暂无购买记录</view>
+        </view>
+        
+        <!-- 加载更多 -->
+        <view wx:if="{{purchasePage < purchaseTotalPages}}" class="load-more" bindtap="loadMorePurchases">
+          <text wx:if="{{!loading}}">加载更多</text>
+          <text wx:else>加载中...</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 粉丝打榜 -->
+    <view wx:if="{{currentTab === 'fanRankings'}}" class="content-section">
+      <view class="section-header">
+        <view class="section-title">🏆 粉丝打榜统计</view>
+        <view class="header-actions">
+          <picker mode="selector" range="{{actors}}" range-key="name" bindchange="onActorChange">
+            <view class="actor-picker">{{selectedActorName || '选择演员'}}</view>
+          </picker>
+          <button class="btn-refresh" bindtap="refreshData">🔄 刷新</button>
+        </view>
+      </view>
+      
+      <view class="rankings-list">
+        <view wx:for="{{fanRankings}}" wx:key="_id" class="ranking-item">
+          <view class="rank-number rank-{{item.rank}}">
+            <text wx:if="{{item.rank === 1}}">🥇</text>
+            <text wx:elif="{{item.rank === 2}}">🥈</text>
+            <text wx:elif="{{item.rank === 3}}">🥉</text>
+            <text wx:else>{{item.rank}}</text>
+          </view>
+          
+          <view class="fan-info">
+            <view class="fan-name">{{item.userNickName}}</view>
+            <view class="fan-stats">
+              <text class="purchase-count">购买 {{item.purchaseCount}} 个</text>
+              <text class="total-spent">消费 ¥{{formatAmount(item.totalSpent)}}</text>
+            </view>
+          </view>
+          
+          <view class="fan-level">
+            <view class="level-text">{{item.level}}</view>
+            <view class="star-level">
+              <text wx:for="{{item.starCount}}" wx:key="*this">⭐</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view wx:if="{{fanRankings.length === 0 && !loading}}" class="empty-state">
+          <view class="empty-icon">🏆</view>
+          <view class="empty-text">暂无打榜数据</view>
+        </view>
+        
+        <!-- 加载更多 -->
+        <view wx:if="{{rankingPage < rankingTotalPages}}" class="load-more" bindtap="loadMoreRankings">
+          <text wx:if="{{!loading}}">加载更多</text>
+          <text wx:else>加载中...</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 语音包销售明细 -->
+    <view wx:if="{{currentTab === 'voicePackSales'}}" class="content-section">
+      <view class="section-header">
+        <view class="section-title">📊 语音包销售明细</view>
+        <button class="btn-refresh" bindtap="refreshData">🔄 刷新</button>
+      </view>
+      
+      <view class="sales-list">
+        <view wx:for="{{voicePackSales}}" wx:key="_id" class="sales-item">
+          <view class="sales-header">
+            <view class="pack-info">
+              <view class="pack-name">{{item.packName}}</view>
+              <view class="actor-name">演员：{{item.actorName}}</view>
+            </view>
+            <view class="sales-rank">
+              <view class="rank-number">#{{index + 1}}</view>
+            </view>
+          </view>
+          
+          <view class="sales-stats">
+            <view class="stat-row">
+              <view class="stat-item">
+                <view class="stat-label">定价</view>
+                <view class="stat-value">¥{{formatAmount(item.price)}}</view>
+              </view>
+              <view class="stat-item">
+                <view class="stat-label">销量</view>
+                <view class="stat-value">{{item.totalSales}} 次</view>
+              </view>
+              <view class="stat-item">
+                <view class="stat-label">收入</view>
+                <view class="stat-value">¥{{formatAmount(item.totalRevenue)}}</view>
+              </view>
+            </view>
+            
+            <view class="stat-row">
+              <view class="stat-item">
+                <view class="stat-label">购买人数</view>
+                <view class="stat-value">{{item.purchaseCount}} 人</view>
+              </view>
+              <view class="stat-item">
+                <view class="stat-label">最后销售</view>
+                <view class="stat-value">{{formatTime(item.lastSaleTime)}}</view>
+              </view>
+              <view class="stat-item">
+                <view class="stat-label">状态</view>
+                <view class="stat-value status-{{item.status}}">
+                  {{item.status === 'active' ? '上架' : '下架'}}
+                </view>
+              </view>
+            </view>
+          </view>
+          
+          <view class="sales-footer">
+            <view class="create-time">创建时间：{{formatTime(item.createTime)}}</view>
+            <view class="conversion-rate" wx:if="{{item.purchaseCount > 0}}">
+              转化率：{{Math.round((item.totalSales / item.purchaseCount) * 100)}}%
+            </view>
+          </view>
+        </view>
+        
+        <!-- 空状态 -->
+        <view wx:if="{{voicePackSales.length === 0 && !loading}}" class="empty-state">
+          <view class="empty-icon">📊</view>
+          <view class="empty-text">暂无销售数据</view>
+        </view>
+        
+        <!-- 加载更多 -->
+        <view wx:if="{{salesPage < salesTotalPages}}" class="load-more" bindtap="loadMoreSales">
+          <text wx:if="{{!loading}}">加载更多</text>
+          <text wx:else>加载中...</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 退出登录 -->
+    <view class="logout-section">
+      <button class="btn-logout" bindtap="logout">退出登录</button>
+    </view>
+  </view>
+</view>

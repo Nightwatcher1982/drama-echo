@@ -1,0 +1,114 @@
+<!--修复销售数据页面-->
+<view class="container">
+  <view class="header">
+    <view class="title">🔧 修复销售数据</view>
+    <view class="subtitle">解决语音包ID与购买记录不匹配的问题</view>
+  </view>
+
+  <view class="steps">
+    <view class="step {{currentStep >= 1 ? 'active' : ''}}">
+      <view class="step-number">1</view>
+      <view class="step-text">分析数据</view>
+    </view>
+    <view class="step {{currentStep >= 2 ? 'active' : ''}}">
+      <view class="step-number">2</view>
+      <view class="step-text">创建映射</view>
+    </view>
+    <view class="step {{currentStep >= 3 ? 'active' : ''}}">
+      <view class="step-number">3</view>
+      <view class="step-text">清理脏数据</view>
+    </view>
+    <view class="step {{currentStep >= 4 ? 'active' : ''}}">
+      <view class="step-number">4</view>
+      <view class="step-text">创建语音包</view>
+    </view>
+    <view class="step {{currentStep >= 5 ? 'active' : ''}}">
+      <view class="step-number">5</view>
+      <view class="step-text">更新销量</view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="action-btn" bindtap="analyzeData" disabled="{{loading}}">
+      {{loading && currentStep === 1 ? '分析中...' : '步骤1：分析数据关联情况'}}
+    </button>
+    
+    <button class="action-btn" bindtap="createMapping" disabled="{{loading || !analysisResult}}">
+      {{loading && currentStep === 2 ? '创建中...' : '步骤2：创建映射关系'}}
+    </button>
+    
+    <button class="action-btn" bindtap="cleanupData" disabled="{{loading || !mappingResult}}">
+      {{loading && currentStep === 3 ? '清理中...' : '步骤3：清理脏数据（删除未匹配的购买记录）'}}
+    </button>
+    
+    <button class="action-btn" bindtap="createMissingPacks" disabled="{{loading || !updateResult}}">
+      {{loading && currentStep === 4 ? '创建中...' : '步骤4：为有购买记录的packId创建语音包'}}
+    </button>
+    
+    <button class="action-btn" bindtap="updateVoicePackSales" disabled="{{loading || !updateResult}}">
+      {{loading && currentStep === 5 ? '更新中...' : '步骤5：更新语音包销量'}}
+    </button>
+    
+    <button class="action-btn secondary" bindtap="copyResult" wx:if="{{analysisResult || mappingResult || updateResult}}">
+      复制结果
+    </button>
+    
+    <button class="action-btn danger" bindtap="resetData">
+      重置数据
+    </button>
+  </view>
+
+  <view class="result-section" wx:if="{{analysisResult}}">
+    <view class="result-title">📊 数据分析结果</view>
+    <view class="result-content">
+      <view class="result-item">
+        <text class="result-label">总语音包数：</text>
+        <text class="result-value">{{analysisResult.totalVoicePacks}}</text>
+      </view>
+      <view class="result-item">
+        <text class="result-label">总购买记录：</text>
+        <text class="result-value">{{analysisResult.totalPurchases}}</text>
+      </view>
+      <view class="result-item">
+        <text class="result-label">匹配率：</text>
+        <text class="result-value">{{analysisResult.matchRate}}%</text>
+      </view>
+      <view class="result-item">
+        <text class="result-label">未匹配购买记录：</text>
+        <text class="result-value">{{analysisResult.unmatchedPurchases.length}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="result-section" wx:if="{{mappingResult}}">
+    <view class="result-title">🔗 映射关系结果</view>
+    <view class="result-content">
+      <view class="result-item">
+        <text class="result-label">找到映射关系：</text>
+        <text class="result-value">{{mappingResult.totalMappings}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="result-section" wx:if="{{updateResult}}">
+    <view class="result-title">✅ 修复结果</view>
+    <view class="result-content">
+      <view class="result-item" wx:if="{{updateResult.totalDeleted !== undefined}}">
+        <text class="result-label">清理的脏数据：</text>
+        <text class="result-value">{{updateResult.totalDeleted}} 条</text>
+      </view>
+      <view class="result-item" wx:if="{{updateResult.totalCreated !== undefined}}">
+        <text class="result-label">创建的语音包：</text>
+        <text class="result-value">{{updateResult.totalCreated}} 个</text>
+      </view>
+      <view class="result-item" wx:if="{{updateResult.debugInfo}}">
+        <text class="result-label">调试信息：</text>
+        <text class="result-value">查看控制台</text>
+      </view>
+      <view class="result-item" wx:if="{{updateResult.totalUpdated !== undefined}}">
+        <text class="result-label">更新的语音包：</text>
+        <text class="result-value">{{updateResult.totalUpdated}} 个</text>
+      </view>
+    </view>
+  </view>
+</view>

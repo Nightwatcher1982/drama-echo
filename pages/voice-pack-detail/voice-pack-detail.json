@@ -1,6 +1,10 @@
 {
+  "navigationBarBackgroundColor": "#F7C7F4",
+  "navigationBarTextStyle": "white",
   "navigationStyle": "custom",
   "navigationBarTitleText": "语音包详情",
   "enablePullDownRefresh": false,
-  "usingComponents": {}
+  "usingComponents": {
+    "audio-player": "/components/audio-player/audio-player"
+  }
 }

@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "演员专属空间",
-  "navigationBarBackgroundColor": "#ff6b6b",
-  "navigationBarTextStyle": "white",
-  "usingComponents": {
-    "voice-player": "/components/voice-player/voice-player"
-  }
-}

@@ -139,13 +139,40 @@ async function updateOrderStatus(orderNo, transactionId, payTime) {
       // 创建用户购买记录
       await db.collection('user_purchases').add({
         data: {
+          _openid: orderData.openid, // 使用 _openid 字段
           userId: orderData.userId,
           packId: orderData.packId,
           orderId: orderNo,
           purchaseTime: new Date(payTime),
-          status: 'active'
+          status: 'completed', // 使用 completed 状态
+          purchaseType: 'package', // 添加购买类型
+          amount: orderData.amount
         }
       })
+      
+      // 更新语音包销量
+      try {
+        await db.collection('voicePacks').doc(orderData.packId).update({
+          data: {
+            sales: db.command.inc(1)
+          }
+        })
+        console.log('销量更新成功:', orderData.packId)
+      } catch (error) {
+        console.error('销量更新失败:', error.message)
+      }
+      
+      // 更新演员守护者计数
+      try {
+        console.log('🔄 更新演员守护者计数...')
+        await wx.cloud.callFunction({
+          name: 'updateActorGuardianCount',
+          data: { actorId: orderData.actorId }
+        })
+        console.log('✅ 演员守护者计数更新完成')
+      } catch (error) {
+        console.error('❌ 更新演员守护者计数失败:', error.message)
+      }
       
       console.log('订单状态更新成功:', orderNo)
     }
@@ -159,7 +186,21 @@ async function updateOrderStatus(orderNo, transactionId, payTime) {
 // 主函数
 exports.main = async (event, context) => {
   try {
-    console.log('收到支付回调:', event)
+    console.log('收到支付回调:', JSON.stringify(event, null, 2))
+    console.log('请求方法:', event.httpMethod)
+    console.log('请求体:', event.body)
+    
+    // 处理GET请求（用于微信服务器测试回调URL）
+    if (event.httpMethod === 'GET' || !event.body) {
+      console.log('收到GET请求或空请求体，返回成功状态')
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        body: 'OK'
+      }
+    }
     
     // 获取请求体（XML格式）
     const xmlData = event.body || event.xmlData
@@ -220,8 +261,8 @@ exports.main = async (event, context) => {
   } catch (error) {
     console.error('处理支付回调失败:', error)
     return {
-      statusCode: 500,
-      body: generateXML('FAIL', '处理支付回调失败')
+      statusCode: 200, // 即使处理失败也要返回200，避免微信重复通知
+      body: generateXML('SUCCESS', 'OK')
     }
   }
 }

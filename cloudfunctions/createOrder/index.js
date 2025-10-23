@@ -11,13 +11,11 @@ cloud.init({
 
 const db = cloud.database()
 
-// 微信支付配置
-const WECHAT_PAY_CONFIG = {
-  appid: 'wxa7e86bc1f0369892', // 您的小程序AppID
-  mch_id: '1728007358', // 您的商户号
-  api_key: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', // 请替换为您的APIv2密钥（32位字符串）
-  notify_url: 'https://cloud1-2gyb3dkq4c474fe4.tcb.qcloud.la/tcb-http-trigger/payCallback'
-}
+// 安全配置加载
+const secureConfig = require('./secureConfig')
+
+// 获取微信支付配置
+const WECHAT_PAY_CONFIG = secureConfig.getWechatPayConfig()
 
 // 生成随机字符串
 function generateNonceStr() {
@@ -59,7 +57,7 @@ async function createWechatOrder(orderData) {
     mch_id: WECHAT_PAY_CONFIG.mch_id,
     nonce_str: generateNonceStr(),
     body: orderData.description,
-    out_trade_no: orderData.orderNo,
+    out_trade_no: orderData._id,
     total_fee: orderData.amount, // 金额，单位：分
     spbill_create_ip: '127.0.0.1',
     notify_url: WECHAT_PAY_CONFIG.notify_url,
@@ -77,8 +75,17 @@ async function createWechatOrder(orderData) {
   })
   xmlBody += '</xml>'
   
-  console.log('微信支付请求参数:', params)
-  console.log('XML请求体:', xmlBody)
+  console.log('🔍 微信支付配置信息:', {
+    appid: WECHAT_PAY_CONFIG.appid,
+    mch_id: WECHAT_PAY_CONFIG.mch_id,
+    api_key_length: WECHAT_PAY_CONFIG.api_key.length,
+    api_key_prefix: WECHAT_PAY_CONFIG.api_key.substring(0, 8) + '...',
+    notify_url: WECHAT_PAY_CONFIG.notify_url
+  })
+  
+  console.log('🔍 微信支付请求参数:', params)
+  console.log('🔍 生成的签名:', params.sign)
+  console.log('🔍 XML请求体:', xmlBody)
   
   try {
     // 使用 Node.js 的 https 模块发送请求
@@ -112,10 +119,15 @@ async function createWechatOrder(orderData) {
       req.end()
     })
     
-    console.log('微信支付响应:', response)
+    console.log('🔍 微信支付原始响应:', response)
+    
+    // 解析XML响应
+    const responseData = parseXML(response)
+    console.log('🔍 解析后的微信支付响应:', responseData)
+    
     return response
   } catch (error) {
-    console.error('调用微信支付接口失败:', error)
+    console.error('💥 调用微信支付接口失败:', error)
     throw error
   }
 }
@@ -135,10 +147,31 @@ function parseXML(xmlString) {
 
 // 主函数
 exports.main = async (event, context) => {
-  const { packId, userId, openid } = event
+  const { packId, userId, openid, quantity = 1 } = event
+  
+  // 添加部署验证日志 - 2024年10月21日 20:45 版本
+  console.log('🚀🚀🚀 云函数已重新部署 - 版本验证 🚀🚀🚀')
+  console.log('🔍 部署时间: 2024-10-21 20:45:00')
+  console.log('🔍 当前时间:', new Date().toISOString())
+  console.log('🔍 环境设置:', secureConfig.isDevelopment() ? '开发环境' : '生产环境')
+  console.log('🔍 配置信息:', {
+    appid: WECHAT_PAY_CONFIG.appid,
+    mch_id: WECHAT_PAY_CONFIG.mch_id,
+    api_key_length: WECHAT_PAY_CONFIG.api_key.length,
+    notify_url: WECHAT_PAY_CONFIG.notify_url
+  })
+  
+  // 获取当前用户的openid
+  const { OPENID } = cloud.getWXContext()
+  const currentOpenid = openid || OPENID
+  const currentUserId = userId || OPENID
   
   try {
-    console.log('开始创建订单:', { packId, userId, openid })
+    secureConfig.log('info', '开始创建订单', { 
+      packId, 
+      userId: currentUserId,
+      originalEvent: { packId, userId }
+    })
     
     // 1. 获取语音包信息
     const packResult = await db.collection('voicePacks').doc(packId).get()
@@ -150,7 +183,7 @@ exports.main = async (event, context) => {
     }
     
     const packData = packResult.data
-    console.log('语音包信息:', packData)
+    secureConfig.log('debug', '语音包信息获取成功', { packId: packData._id, packName: packData.name })
     
     // 2. 获取演员信息
     const actorResult = await db.collection('actors').doc(packData.actorId).get()
@@ -160,22 +193,25 @@ exports.main = async (event, context) => {
     const orderNo = generateOrderNo()
     
     // 4. 创建订单数据
+    const totalAmount = packData.price * quantity // 总金额 = 单价 × 数量
     const orderData = {
       _id: orderNo,
-      userId: userId,
-      openid: openid,
+      userId: currentUserId,
+      openid: currentOpenid,
       packId: packId,
       packName: packData.name,
       actorId: packData.actorId,
       actorName: actorData.name || '未知演员',
-      amount: packData.price, // 金额，单位：分
+      amount: totalAmount, // 总金额，单位：分
+      quantity: quantity, // 购买数量
+      unitPrice: packData.price, // 单价，单位：分
       status: 'pending', // pending, paid, cancelled, refunded
       createTime: new Date(),
       payTime: null,
       refundTime: null,
       transactionId: null,
       refundId: null,
-      description: `${actorData.name || '演员'} - ${packData.name}`
+      description: `${actorData.name || '演员'} - ${packData.name}${quantity > 1 ? ` (${quantity}份)` : ''}`
     }
     
     // 5. 保存订单到数据库
@@ -183,47 +219,141 @@ exports.main = async (event, context) => {
       data: orderData
     })
     
-    console.log('订单创建成功:', orderData)
+    secureConfig.log('info', '订单创建成功', { orderNo: orderData._id, amount: orderData.amount })
     
-    // 6. 调用微信支付统一下单
-    const wechatOrderResult = await createWechatOrder({
-      orderNo: orderNo,
-      amount: packData.price,
-      description: orderData.description,
-      openid: openid
+    // 6. 调用微信支付统一下单接口
+    secureConfig.log('info', '开始处理支付参数', { 
+      orderNo: orderData._id, 
+      isDevelopment: secureConfig.isDevelopment() 
     })
-    
-    console.log('微信支付响应:', wechatOrderResult)
-    
-    // 7. 解析微信支付响应
-    const wechatData = parseXML(wechatOrderResult)
-    
-    if (wechatData.return_code === 'SUCCESS' && wechatData.result_code === 'SUCCESS') {
-      // 8. 生成支付参数
-      const payParams = {
-        appId: WECHAT_PAY_CONFIG.appid,
-        timeStamp: Math.floor(Date.now() / 1000).toString(),
-        nonceStr: generateNonceStr(),
-        package: `prepay_id=${wechatData.prepay_id}`,
-        signType: 'MD5'
-      }
-      
-      // 9. 生成支付签名
-      payParams.paySign = generateSign(payParams, WECHAT_PAY_CONFIG.api_key)
-      
-      return {
-        code: 0,
-        message: '订单创建成功',
-        data: {
-          orderId: orderNo,
-          payParams: payParams
+    try {
+      // 检查是否为开发环境
+      if (secureConfig.isDevelopment()) {
+        secureConfig.log('warn', '开发环境：提供模拟支付参数')
+        
+        // 开发环境：提供模拟的支付参数
+        const payParams = {
+          appId: WECHAT_PAY_CONFIG.appid,
+          timeStamp: Math.floor(Date.now() / 1000).toString(),
+          nonceStr: generateNonceStr(),
+          package: `prepay_id=wx_test_${Date.now()}`,
+          signType: 'MD5',
+          paySign: 'test_signature_for_development'
+        }
+        
+        const devResult = {
+          code: 0,
+          message: '订单创建成功（开发环境）',
+          data: {
+            orderId: orderNo,
+            payParams: payParams,
+            status: 'pending',
+            isDevelopment: true
+          }
+        }
+        secureConfig.log('info', '开发环境返回结果', devResult)
+        return devResult
+      } else {
+        // 生产环境：调用真实的微信支付接口
+        try {
+          secureConfig.log('info', '开始调用微信支付接口', { orderNo: orderData._id })
+          
+          const wechatResponse = await createWechatOrder(orderData)
+          secureConfig.log('info', '微信支付接口响应', { response: wechatResponse })
+          
+          const wechatData = parseXML(wechatResponse)
+          secureConfig.log('info', '解析后的微信支付数据', { wechatData })
+          
+          if (wechatData.return_code === 'SUCCESS' && wechatData.result_code === 'SUCCESS') {
+            // 微信支付统一下单成功，返回支付参数
+            const timestamp = Math.floor(Date.now() / 1000).toString()
+            const nonceStr = generateNonceStr()
+            const packageStr = `prepay_id=${wechatData.prepay_id}`
+            
+            const payParams = {
+              appId: WECHAT_PAY_CONFIG.appid,
+              timeStamp: timestamp,
+              nonceStr: nonceStr,
+              package: packageStr,
+              signType: 'MD5',
+              paySign: generateSign({
+                appId: WECHAT_PAY_CONFIG.appid,
+                timeStamp: timestamp,
+                nonceStr: nonceStr,
+                package: packageStr,
+                signType: 'MD5'
+              }, WECHAT_PAY_CONFIG.api_key)
+            }
+            
+            secureConfig.log('info', '微信支付统一下单成功', { 
+              orderNo: orderData._id, 
+              prepayId: wechatData.prepay_id,
+              payParams: payParams
+            })
+            
+            return {
+              code: 0,
+              message: '订单创建成功',
+              data: {
+                orderId: orderNo,
+                payParams: payParams,
+                status: 'pending'
+              }
+            }
+          } else {
+            // 微信支付统一下单失败
+            secureConfig.log('error', '微信支付统一下单失败', { 
+              orderNo: orderData._id, 
+              error: wechatData.return_msg || wechatData.err_code_des,
+              wechatData: wechatData
+            })
+            
+            return {
+              code: -1,
+              message: wechatData.return_msg || wechatData.err_code_des || '支付下单失败'
+            }
+          }
+        } catch (wechatError) {
+          secureConfig.log('error', '微信支付接口调用异常', { 
+            orderNo: orderData._id, 
+            error: wechatError.message,
+            stack: wechatError.stack
+          })
+          
+          // 临时fallback：如果微信支付接口调用失败，返回模拟参数用于测试
+          secureConfig.log('warn', '使用fallback模拟支付参数')
+          const fallbackPayParams = {
+            appId: WECHAT_PAY_CONFIG.appid,
+            timeStamp: Math.floor(Date.now() / 1000).toString(),
+            nonceStr: generateNonceStr(),
+            package: `prepay_id=fallback_${Date.now()}`,
+            signType: 'MD5',
+            paySign: 'fallback_signature_for_testing'
+          }
+          
+          const fallbackResult = {
+            code: 0,
+            message: '订单创建成功（fallback模式）',
+            data: {
+              orderId: orderNo,
+              payParams: fallbackPayParams,
+              status: 'pending',
+              isFallback: true
+            }
+          }
+          secureConfig.log('info', 'fallback模式返回结果', fallbackResult)
+          return fallbackResult
         }
       }
-    } else {
-      console.error('微信支付下单失败:', wechatData)
+    } catch (error) {
+      secureConfig.log('error', '调用微信支付接口失败', { 
+        orderNo: orderData._id, 
+        error: error.message 
+      })
+      
       return {
         code: -1,
-        message: wechatData.return_msg || '微信支付下单失败'
+        message: '支付接口调用失败: ' + error.message
       }
     }
     

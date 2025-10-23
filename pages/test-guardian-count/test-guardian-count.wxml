@@ -1,0 +1,47 @@
+<!--测试守护者计数更新功能-->
+<view class="container">
+  <view class="header">
+    <view class="title">🧪 守护者计数测试</view>
+    <view class="subtitle">测试演员守护者计数更新功能</view>
+  </view>
+
+  <view class="info-card">
+    <view class="info-item">
+      <text class="label">演员ID:</text>
+      <text class="value">{{actorId}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">当前守护者计数:</text>
+      <text class="value guardian-count">{{guardianCount}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" bind:tap="updateGuardianCount" disabled="{{loading}}">
+      {{loading ? '更新中...' : '🔄 更新守护者计数'}}
+    </button>
+    
+    <button class="btn-secondary" bind:tap="viewPurchaseRecords">
+      🔍 查看购买记录
+    </button>
+    
+    <button class="btn-outline" bind:tap="loadActorInfo">
+      📊 刷新演员信息
+    </button>
+  </view>
+
+  <view class="tips">
+    <view class="tip-title">💡 说明</view>
+    <view class="tip-item">• 守护者计数 = 购买了该演员语音包的不同用户数量</view>
+    <view class="tip-item">• 每次购买语音包后会自动更新守护者计数</view>
+    <view class="tip-item">• 可以手动点击"更新守护者计数"按钮来刷新数据</view>
+  </view>
+</view>
+
+
+
+
+
+
+
+

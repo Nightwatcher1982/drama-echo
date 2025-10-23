@@ -23,10 +23,16 @@ Page({
       bonusVideoUrl: '',
       bonusVideoThumb: '',
       bonusVideoTitle: '',
-      bonusVideoDuration: ''
+      bonusVideoDuration: '',
+      bonusVideoCoverUploaded: false
     },
     editingFile: {},
     currentPackId: '',
+    
+    // 音频播放器相关
+    showAudioPlayer: false,
+    currentAudioUrl: '',
+    currentAudioFileName: '',
     
     // 上传状态
     uploading: false,
@@ -45,7 +51,7 @@ Page({
       name: '',
       title: '',
       description: '',
-      avatar: '👤',
+      avatar: '',
       imageUrl: ''
     },
     tempImagePath: ''
@@ -193,7 +199,7 @@ Page({
             name: actor.name,
             title: actor.title || '',
             description: actor.description || '',
-            avatar: actor.avatar || '👤',
+            avatar: actor.avatar || '',
             imageUrl: imageUrl,
             status: actor.status || 'online',
             tags: actor.tags || []
@@ -236,7 +242,9 @@ Page({
       if (res.result.code === 0) {
         const voicePacks = res.result.data.map(pack => ({
           ...pack,
-          formattedPrice: (pack.price / 100).toFixed(2),
+          priceValue: (pack.price / 100).toFixed(1),
+          priceUnit: '个回响',
+          formattedPrice: `${(pack.price / 100).toFixed(1)}个回响`,
           showFiles: false
         }))
         
@@ -466,20 +474,32 @@ Page({
       count: 1,
       type: 'file',
       extension: ['mp3', 'wav', 'aac', 'm4a'],
-      success: (res) => {
+      success: async (res) => {
         const file = res.tempFiles[0]
         if (file.size && file.size > 20 * 1024 * 1024) {
           wx.showToast({ title: '音频文件不能超过20MB', icon: 'none' })
           return
         }
+        
         const editingFile = { ...this.data.editingFile }
         editingFile.tempFilePath = file.path
         editingFile.fileName = file.name || (file.path ? file.path.split('/').pop() : `audio_${Date.now()}`)
         editingFile.size = file.size
-        // chooseMessageFile 无 duration，这里保持或设默认
-        if (!editingFile.duration || editingFile.duration === 30) {
+        
+        // 自动获取音频文件的真实时长
+        try {
+          wx.showLoading({ title: '获取音频时长...' })
+          const realDuration = await this.getAudioDuration(file.path)
+          editingFile.duration = realDuration
+          console.log('🎵 获取到真实音频时长:', realDuration, '秒')
+        } catch (error) {
+          console.error('🎵 获取音频时长失败:', error)
+          // 如果获取失败，使用默认值
           editingFile.duration = 30
+        } finally {
+          wx.hideLoading()
         }
+        
         this.setData({ editingFile })
         wx.showToast({ title: '文件选择成功', icon: 'success' })
       },
@@ -501,7 +521,7 @@ Page({
 
   // 预览音频
   previewAudio() {
-    const { tempFilePath } = this.data.editingFile
+    const { tempFilePath, fileName, name } = this.data.editingFile
     if (!tempFilePath) {
       wx.showToast({
         title: '没有音频文件',
@@ -510,24 +530,11 @@ Page({
       return
     }
 
-    // 创建音频上下文
-    const audioContext = wx.createInnerAudioContext()
-    audioContext.src = tempFilePath
-    audioContext.play()
-    
-    audioContext.onPlay(() => {
-      wx.showToast({
-        title: '开始播放',
-        icon: 'none'
-      })
-    })
-    
-    audioContext.onError((err) => {
-      console.error('播放失败:', err)
-      wx.showToast({
-        title: '播放失败',
-        icon: 'none'
-      })
+    // 使用新的音频播放器组件
+    this.setData({
+      showAudioPlayer: true,
+      currentAudioUrl: tempFilePath,
+      currentAudioFileName: fileName || name || '音频文件'
     })
   },
 
@@ -552,6 +559,12 @@ Page({
       return
     }
 
+    // 检查当前文件数量
+    const currentPack = this.data.voicePacks.find(pack => pack._id === this.data.currentPackId)
+    const currentFileList = currentPack ? (currentPack.voiceFiles || []) : []
+    console.log('📊 语音管理页面 - 当前文件数量:', currentFileList.length)
+    console.log('📊 语音管理页面 - 当前文件列表:', currentFileList)
+
     try {
       this.setData({ uploading: true })
       wx.showLoading({ title: '上传中...' })
@@ -560,32 +573,54 @@ Page({
       
       // 如果有新文件需要上传
       if (file.tempFilePath) {
+        console.log('📤 语音管理页面 - 开始上传音频文件:', file.fileName)
         const uploadRes = await wx.cloud.uploadFile({
           cloudPath: `voice-packs/${this.data.currentPackId}/${Date.now()}_${file.fileName}`,
           filePath: file.tempFilePath
         })
         cloudFileId = uploadRes.fileID
+        console.log('✅ 语音管理页面 - 音频文件上传成功:', cloudFileId)
       }
       
-      // 保存文件信息到数据库
+      // 创建或更新语音文件对象
+      const fileData = {
+        id: file.id || `file_${Date.now()}`,
+        name: file.name,
+        fileId: cloudFileId,
+        duration: parseInt(file.duration) || 30,
+        description: file.description,
+        size: file.size,
+        createTime: file.createTime || new Date(),
+        updateTime: new Date()
+      }
+      
+      let updatedFileList
+      if (file.id) {
+        // 更新现有文件
+        updatedFileList = currentFileList.map(f => f.id === file.id ? fileData : f)
+        console.log('🔄 语音管理页面 - 更新现有文件')
+      } else {
+        // 添加新文件
+        updatedFileList = [...currentFileList, fileData]
+        console.log('➕ 语音管理页面 - 添加新文件')
+      }
+      
+      console.log('📋 语音管理页面 - 更新后的文件列表长度:', updatedFileList.length)
+      console.log('📋 语音管理页面 - 更新后的文件列表:', updatedFileList)
+      
+      // 调用云函数更新语音包的文件列表
+      console.log('🔄 语音管理页面 - 调用云函数更新文件列表...')
       const res = await wx.cloud.callFunction({
-        name: 'manageVoiceFiles',
+        name: 'adminManageVoicePacks',
         data: {
-          action: file.id ? 'update' : 'add',
+          action: 'upload',
           packId: this.data.currentPackId,
           adminPassword: (wx.getStorageSync('voiceAdminAuth') || {}).adminPassword,
-          fileData: {
-            id: file.id || `file_${Date.now()}`,
-            name: file.name,
-            fileId: cloudFileId,
-            duration: parseInt(file.duration) || 30,
-            description: file.description,
-            size: file.size,
-            createTime: file.createTime || new Date(),
-            updateTime: new Date()
-          }
+          voiceFiles: updatedFileList
         }
       })
+      
+      console.log('📥 语音管理页面 - 云函数返回结果:', res.result)
       
       if (res.result.code === 0) {
         wx.showToast({
@@ -597,9 +632,9 @@ Page({
       } else {
         throw new Error(res.result.message)
       }
-      
+
     } catch (error) {
-      console.error('保存语音文件失败:', error)
+      console.error('❌ 语音管理页面 - 保存语音文件失败:', error)
       wx.showToast({
         title: error.message || '保存失败',
         icon: 'none'
@@ -614,24 +649,11 @@ Page({
   playVoiceFile(e) {
     const file = e.currentTarget.dataset.file
     
-    // 创建音频上下文
-    const audioContext = wx.createInnerAudioContext()
-    audioContext.src = file.fileId
-    audioContext.play()
-    
-    audioContext.onPlay(() => {
-      wx.showToast({
-        title: `播放: ${file.name}`,
-        icon: 'none'
-      })
-    })
-    
-    audioContext.onError((err) => {
-      console.error('播放失败:', err)
-      wx.showToast({
-        title: '播放失败',
-        icon: 'none'
-      })
+    // 使用新的音频播放器组件
+    this.setData({
+      showAudioPlayer: true,
+      currentAudioUrl: file.fileId,
+      currentAudioFileName: file.name || '语音文件'
     })
   },
 
@@ -653,13 +675,21 @@ Page({
     try {
       wx.showLoading({ title: '删除中...' })
       
+      // 获取当前语音包的文件列表
+      const currentPack = this.data.voicePacks.find(pack => pack._id === packId)
+      const currentFileList = currentPack ? (currentPack.voiceFiles || []) : []
+      
+      // 移除要删除的文件
+      const updatedFileList = currentFileList.filter(f => f.id !== fileId)
+      
+      // 调用云函数更新语音包的文件列表
       const res = await wx.cloud.callFunction({
-        name: 'manageVoiceFiles',
+        name: 'adminManageVoicePacks',
         data: {
-          action: 'delete',
+          action: 'upload',
           packId: packId,
-          fileId: fileId,
-          adminPassword: (wx.getStorageSync('voiceAdminAuth') || {}).adminPassword
+          adminPassword: (wx.getStorageSync('voiceAdminAuth') || {}).adminPassword,
+          voiceFiles: updatedFileList
         }
       })
       
@@ -805,7 +835,43 @@ Page({
     editingPack.bonusVideoThumb = ''
     editingPack.bonusVideoTitle = ''
     editingPack.bonusVideoDuration = ''
+    editingPack.bonusVideoCoverUploaded = false
     this.setData({ editingPack })
+  },
+
+  // 选择视频封面
+  async chooseVideoCover() {
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+      
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        wx.showLoading({ title: '上传封面中...' })
+        
+        const fileName = `video-cover-${Date.now()}.jpg`
+        const cloudPath = `voice-packs/${this.data.editingPack._id || 'temp'}/${fileName}`
+        
+        const uploadRes = await wx.cloud.uploadFile({
+          cloudPath,
+          filePath: res.tempFilePaths[0]
+        })
+        
+        const editingPack = { ...this.data.editingPack }
+        editingPack.bonusVideoThumb = uploadRes.fileID
+        editingPack.bonusVideoCoverUploaded = true
+        
+        this.setData({ editingPack })
+        wx.hideLoading()
+        wx.showToast({ title: '封面上传成功', icon: 'success' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('选择封面失败:', error)
+      wx.showToast({ title: '上传失败', icon: 'none' })
+    }
   },
 
   // 格式化时长
@@ -813,5 +879,54 @@ Page({
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  },
+
+  // 关闭音频播放器
+  closeAudioPlayer() {
+    this.setData({
+      showAudioPlayer: false,
+      currentAudioUrl: '',
+      currentAudioFileName: ''
+    })
+  },
+
+  // 获取音频文件的真实时长
+  getAudioDuration(audioPath) {
+    return new Promise((resolve, reject) => {
+      if (!audioPath) {
+        reject(new Error('音频路径为空'))
+        return
+      }
+      
+      // 创建音频上下文
+      const audioContext = wx.createInnerAudioContext()
+      
+      audioContext.src = audioPath
+      
+      // 监听音频加载完成事件
+      audioContext.onCanplay(() => {
+        // 获取音频时长
+        const duration = audioContext.duration
+        audioContext.destroy()
+        
+        if (duration && duration > 0) {
+          resolve(Math.floor(duration)) // 返回整数秒数
+        } else {
+          reject(new Error('无法获取音频时长'))
+        }
+      })
+      
+      // 监听错误事件
+      audioContext.onError((error) => {
+        audioContext.destroy()
+        reject(error)
+      })
+      
+      // 设置超时
+      setTimeout(() => {
+        audioContext.destroy()
+        reject(new Error('获取音频时长超时'))
+      }, 10000) // 10秒超时
+    })
   }
 })

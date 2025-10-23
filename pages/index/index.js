@@ -1,4 +1,5 @@
 const app = getApp()
+const UserStateManager = require('../../utils/userStateManager.js')
 
 Page({
   data: {
@@ -12,29 +13,84 @@ Page({
     userLoggedIn: false,
     userProfile: null,
     displayName: '戏剧爱好者',
+    userPurchaseCount: 897,
     // 新增数据显示
     todayUses: 0,
     totalNotes: 0,
     // nightwatcher管理员检测
     isNightWatcher: false,
     // 环境相关
-    isRealDevice: false
+    isRealDevice: false,
+    // 演员头像数据
+    actorAvatars: [
+      'https://picsum.photos/100/100?random=1',
+      'https://picsum.photos/100/100?random=2',
+      'https://picsum.photos/100/100?random=3',
+      'https://picsum.photos/100/100?random=4',
+      'https://picsum.photos/100/100?random=5',
+      'https://picsum.photos/100/100?random=6',
+      'https://picsum.photos/100/100?random=7',
+      'https://picsum.photos/100/100?random=8'
+    ]
   },
   
   onLoad() {
-    this.updateLoginStatus()
-    this.loadUserData()
-    this.setTodayTheater()
-    
-    // 添加云函数测试功能（开发环境）
-    if (wx.getSystemInfoSync().platform === 'devtools') {
-      this.testCloudFunction = this.testVoicePackDetail
-    }
+    this.initializePage()
   },
   
   onShow() {
-    this.updateLoginStatus()
-    this.loadUserData()
+    this.refreshUserState()
+  },
+
+  // 初始化页面
+  async initializePage() {
+    try {
+      // 1. 刷新用户状态
+      await this.refreshUserState()
+      
+      // 2. 加载用户数据
+      this.loadUserData()
+      
+      // 3. 设置今日剧院
+      this.setTodayTheater()
+      
+      // 4. 加载演员头像数据
+      await this.loadActorAvatars()
+      
+      // 5. 添加云函数测试功能（开发环境）
+      if (wx.getSystemInfoSync().platform === 'devtools') {
+        this.testCloudFunction = this.testVoicePackDetail
+      }
+    } catch (error) {
+      console.error('页面初始化失败:', error)
+    }
+  },
+
+  // 刷新用户状态
+  async refreshUserState() {
+    try {
+      console.log('🔄 刷新用户状态...')
+      
+      // 1. 检查并修复用户信息
+      const userInfoValid = await UserStateManager.checkAndFixUserInfo()
+      if (!userInfoValid) {
+        console.log('⚠️ 用户信息无效，尝试刷新...')
+        await UserStateManager.refreshUserInfo()
+      }
+      
+      // 2. 更新页面用户状态
+      UserStateManager.updatePageUserState(this)
+      
+      // 3. 如果用户已登录，重新加载数据
+      if (UserStateManager.checkLoginStatus()) {
+        this.loadUserData()
+      }
+      
+    } catch (error) {
+      console.error('刷新用户状态失败:', error)
+      // 降级处理：直接更新页面状态
+      UserStateManager.updatePageUserState(this)
+    }
   },
 
   // 更新登录状态
@@ -189,38 +245,25 @@ Page({
   },
   
   goToMagicBook() {
-    if (!app.checkLoginStatus()) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      })
-      return
-    }
-    
-    wx.navigateTo({
-      url: '/pages/magicbook/magicbook'
+    wx.showToast({
+      title: '敬请期待',
+      icon: 'none',
+      duration: 2000
     })
   },
   
   goToEcho() {
-    // 检查登录状态
-    if (!app.checkLoginStatus()) {
-      wx.showModal({
-        title: '需要登录',
-        content: '请先登录后再体验戏剧回响功能',
-        confirmText: '去登录',
-        cancelText: '取消',
-        success: (res) => {
-          if (res.confirm) {
-            this.handleLogin()
-          }
-        }
-      })
-      return
-    }
-
+    // 直接进入戏剧回响页面，不需要登录
     wx.navigateTo({
       url: '/pages/voice-echo/voice-echo'
+    })
+  },
+
+  goToWishPool() {
+    wx.showToast({
+      title: '敬请期待',
+      icon: 'none',
+      duration: 2000
     })
   },
 
@@ -272,14 +315,11 @@ Page({
         console.log('- 语音包名称:', data.name)
         console.log('- 演员姓名:', data.actorName)
         console.log('- 语音数量:', data.voiceCount)
-        console.log('- 套餐价格:', data.packagePrice / 100, '元')
-        console.log('- 原价:', data.originalPrice / 100, '元')
-        console.log('- 节省金额:', data.saveAmount / 100, '元')
         
         if (data.voices && data.voices.length > 0) {
           console.log('- 语音列表:')
           data.voices.forEach((voice, index) => {
-            console.log(`  ${index + 1}. ${voice.title} - ¥${voice.price / 100}`)
+            console.log(`  ${index + 1}. ${voice.title}`)
           })
         }
         
@@ -292,6 +332,41 @@ Page({
     } catch (error) {
       console.error('❌ 云函数调用异常:', error)
       return null
+    }
+  },
+
+  // 加载演员头像数据
+  async loadActorAvatars() {
+    try {
+      console.log('🎭 开始加载演员头像数据...')
+      
+      if (app.globalData.cloudEnabled) {
+        const res = await wx.cloud.callFunction({
+          name: 'getActors',
+          data: {}
+        })
+        
+        if (res.result && res.result.code === 0) {
+          const actors = res.result.data
+          console.log('✅ 获取到演员数据:', actors.length, '个演员')
+          
+          // 提取演员头像，最多显示8个
+          const avatars = actors.slice(0, 8).map(actor => actor.imageUrl || actor.avatar)
+          
+          this.setData({
+            actorAvatars: avatars
+          })
+          
+          console.log('✅ 演员头像已更新:', avatars.length, '个头像')
+        } else {
+          console.error('❌ 获取演员数据失败:', res.result?.message || '未知错误')
+        }
+      } else {
+        console.log('⚠️ 云开发未启用，使用默认头像')
+      }
+    } catch (error) {
+      console.error('❌ 加载演员头像失败:', error)
+      // 保持默认头像不变
     }
   }
 }) 

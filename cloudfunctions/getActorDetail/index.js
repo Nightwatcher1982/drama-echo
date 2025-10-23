@@ -2,7 +2,7 @@
 const cloud = require('wx-server-sdk')
 
 cloud.init({
-  env: 'cloud1-2gyb3dkq4c474fe4'
+  env: cloud.DYNAMIC_CURRENT_ENV
 })
 
 const db = cloud.database()
@@ -44,9 +44,8 @@ exports.main = async (event, context) => {
     }
     
     // 2. 获取该演员的所有语音包（携带语音文件）
-    // 优先从新集合 voice_packs 中获取数据
-    console.log('开始查询新集合 voice_packs，actorId:', actorId)
-    let voicePacksResult = await db.collection('voice_packs')
+    console.log('开始查询语音包，actorId:', actorId)
+    const voicePacksResult = await db.collection('voicePacks')
       .where({
         actorId: actorId,
         isActive: true
@@ -55,73 +54,119 @@ exports.main = async (event, context) => {
       .orderBy('sales', 'desc')
       .get()
     
-    console.log('新集合查询结果:', voicePacksResult.data.length, '个语音包')
+    console.log('✅ 语音包查询结果:', voicePacksResult.data.length, '个语音包')
     if (voicePacksResult.data.length > 0) {
-      console.log('新集合中的语音包:', voicePacksResult.data.map(p => ({ id: p._id, name: p.name, actorId: p.actorId })))
+      console.log('语音包列表:', voicePacksResult.data.map(p => ({ id: p._id, name: p.name, actorId: p.actorId })))
     }
     
-    // 如果新集合中没有数据，从旧集合中获取
-    if (voicePacksResult.data.length === 0) {
-      console.log('新集合中无数据，从旧集合获取')
-      voicePacksResult = await db.collection('voicePacks')
+    // 3. 获取粉丝排行榜（前3名）- 优化查询
+    let rankingResult = { data: [] }
+    try {
+      rankingResult = await db.collection('fanRanking')
         .where({
-          actorId: actorId,
-          isActive: true
+          actorId: actorId
         })
-        .orderBy('isHot', 'desc')
-        .orderBy('sales', 'desc')
+        .orderBy('rank', 'asc')
+        .limit(3)
         .get()
-      console.log('旧集合查询结果:', voicePacksResult.data.length, '个语音包')
-    } else {
-      console.log('✅ 使用新集合数据，共', voicePacksResult.data.length, '个语音包')
+      console.log('✅ 粉丝排行榜查询成功:', rankingResult.data.length, '条记录')
+    } catch (error) {
+      console.log('⚠️ 粉丝排行榜查询失败，使用空数据:', error.message)
+      rankingResult = { data: [] }
     }
-    
-    // 3. 获取粉丝排行榜（前5名）
-    const rankingResult = await db.collection('fanRanking')
-      .where({
-        actorId: actorId
-      })
-      .orderBy('purchaseCount', 'desc')
-      .orderBy('totalSpent', 'desc')
-      .limit(5)
-      .get()
     
     // 4. 检查当前用户是否购买过该演员的语音包
-    const userPurchasesResult = await db.collection('userPurchases')
+    // 先尝试从新集合查询
+    let userPurchasesResult = await db.collection('user_purchases')
       .where({
         _openid: OPENID,
-        actorId: actorId
+        status: 'completed' // 只获取已完成的购买记录
       })
       .get()
     
-    const userPurchasedPacks = userPurchasesResult.data.map(p => p.voicePackId)
+    console.log('新集合用户购买记录:', userPurchasesResult.data.length, '条')
+    
+    // 如果新集合没有数据，从旧集合查询
+    if (userPurchasesResult.data.length === 0) {
+      console.log('新集合无数据，从旧集合查询')
+      userPurchasesResult = await db.collection('userPurchases')
+        .where({
+          _openid: OPENID,
+          actorId: actorId
+        })
+        .get()
+      console.log('旧集合用户购买记录:', userPurchasesResult.data.length, '条')
+    }
+    
+    // 根据集合类型提取语音包ID
+    const userPurchasedPacks = userPurchasesResult.data.map(p => {
+      // 新集合使用 packId，旧集合使用 voicePackId
+      return p.packId || p.voicePackId
+    }).filter(id => id) // 过滤掉空值
     
     // 处理语音包数据，标记用户已购买的包，并返回文件列表（只返回必要字段）
-    const processedVoicePacks = voicePacksResult.data.map(pack => ({
-      _id: pack._id,
-      actorId: pack.actorId, // 添加 actorId 字段
-      name: pack.name,
-      icon: pack.icon,
-      price: pack.price,
-      description: pack.description,
-      isHot: pack.isHot,
-      sales: pack.sales,
-      isPurchased: userPurchasedPacks.includes(pack._id),
-      voiceFiles: (pack.voiceFiles || []).map(f => ({ id: f.id, name: f.name, fileId: f.fileId, duration: f.duration || 0, size: f.size || 0 })),
-      // 添加调试信息
-      debugInfo: {
-        hasVoiceFiles: !!pack.voiceFiles,
-        voiceFilesCount: pack.voiceFiles ? pack.voiceFiles.length : 0,
-        voiceFilesList: pack.voiceFiles ? pack.voiceFiles.map(f => ({ name: f.name, fileId: f.fileId })) : []
+    const processedVoicePacks = voicePacksResult.data.map(pack => {
+      console.log(`📦 处理语音包: ${pack.name}`, {
+        id: pack._id,
+        sales: pack.sales,
+        salesType: typeof pack.sales,
+        isPurchased: userPurchasedPacks.includes(pack._id)
+      })
+      
+      return {
+        _id: pack._id,
+        actorId: pack.actorId, // 添加 actorId 字段
+        name: pack.name,
+        icon: pack.icon,
+        price: pack.price,
+        description: pack.description,
+        isHot: pack.isHot,
+        sales: pack.sales || 0, // 确保销量不为undefined
+        isPurchased: userPurchasedPacks.includes(pack._id),
+        voiceFiles: (pack.voiceFiles || []).map(f => ({ id: f.id, name: f.name, fileId: f.fileId, duration: f.duration || 0, size: f.size || 0 })),
+        // 添加调试信息
+        debugInfo: {
+          hasVoiceFiles: !!pack.voiceFiles,
+          voiceFilesCount: pack.voiceFiles ? pack.voiceFiles.length : 0,
+          voiceFilesList: pack.voiceFiles ? pack.voiceFiles.map(f => ({ name: f.name, fileId: f.fileId })) : [],
+          originalSales: pack.sales,
+          processedSales: pack.sales || 0
+        }
       }
-    }))
+    })
+    
+    // 计算演员专属页面的封面图片URL
+    // 优先使用图片库的第一张照片，如果没有则使用封面照片
+    const actor = actorResult.data
+    let coverImageUrl = null
+    
+    if (actor.images && actor.images.length > 0) {
+      // 使用图片库的第一张照片作为专属页面封面
+      coverImageUrl = actor.images[0]
+      console.log('使用图片库第一张照片作为封面:', coverImageUrl)
+    } else if (actor.imageUrl) {
+      // 如果没有图片库，使用封面照片作为fallback
+      coverImageUrl = actor.imageUrl
+      console.log('使用封面照片作为fallback:', coverImageUrl)
+    } else {
+      console.log('演员没有图片库和封面照片，将显示占位符')
+    }
+    
+    // 将计算出的封面图片URL添加到演员数据中
+    const actorWithCoverImage = {
+      ...actor,
+      coverImageUrl: coverImageUrl
+    }
     
     console.log('演员详情获取成功')
+    console.log('封面照片(imageUrl):', actor.imageUrl)
+    console.log('图片库(images):', actor.images)
+    console.log('专属页面封面图片(coverImageUrl):', coverImageUrl)
     
     return {
       code: 0,
       data: {
-        actor: actorResult.data,
+        actor: actorWithCoverImage,
         voicePacks: processedVoicePacks,
         fanRanking: rankingResult.data,
         userPurchasedCount: userPurchasedPacks.length

@@ -233,21 +233,27 @@ Page({
     })
 
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'getLatestDramaShows',
-        data: {
-          action: 'search',
-          query: query
-        }
-      })
+      // 使用模拟数据替代已删除的云函数
+      const mockShows = [
+        { id: '1', title: '《哈姆雷特》', subtitle: '莎士比亚经典悲剧', year: '2024' },
+        { id: '2', title: '《罗密欧与朱丽叶》', subtitle: '莎士比亚经典爱情剧', year: '2024' },
+        { id: '3', title: '《麦克白》', subtitle: '莎士比亚经典悲剧', year: '2024' },
+        { id: '4', title: '《李尔王》', subtitle: '莎士比亚经典悲剧', year: '2024' },
+        { id: '5', title: '《奥赛罗》', subtitle: '莎士比亚经典悲剧', year: '2024' }
+      ]
+      
+      // 简单的关键词匹配
+      const filteredShows = mockShows.filter(show => 
+        show.title.includes(query) || show.subtitle.includes(query)
+      )
 
-      if (res.result.code === 0) {
-        this.setData({
-          searchResults: res.result.data.shows || []
-        })
-      } else {
+      this.setData({
+        searchResults: filteredShows
+      })
+      
+      if (filteredShows.length === 0) {
         wx.showToast({
-          title: res.result.message || '搜索失败',
+          title: '未找到相关剧目',
           icon: 'none'
         })
       }

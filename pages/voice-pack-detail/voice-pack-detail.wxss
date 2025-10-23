@@ -1,8 +1,35 @@
 /* 语音包详情页样式 */
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding-bottom: 120rpx;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.container::before {
+  content: '';
+  position: fixed;
+  top: -25%;
+  right: -12%;
+  width: 280rpx;
+  height: 280rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+.container::after {
+  content: '';
+  position: fixed;
+  bottom: -15%;
+  left: -8%;
+  width: 220rpx;
+  height: 220rpx;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+  animation: float 10s ease-in-out infinite reverse;
+  z-index: -1;
 }
 
 /* 顶部导航 */
@@ -30,6 +57,18 @@
   justify-content: center;
 }
 
+.share-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.share-btn::after {
+  border: none;
+}
+
 .back-icon, .share-icon {
   font-size: 40rpx;
   color: #333;
@@ -46,18 +85,34 @@
 
 /* 写真照片区域 */
 .photo-section {
-  margin-top: calc(80rpx + env(safe-area-inset-top));
   position: relative;
 }
 
 .photo-swiper {
-  height: 500rpx;
+  height: 480px;
 }
 
 .photo-image {
   width: 100%;
   height: 100%;
-  border-radius: 0 0 40rpx 40rpx;
+  border-radius: 40rpx;
+}
+
+/* 图片数量指示器 */
+.image-count-indicator {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20rpx;
+  padding: 8rpx 16rpx;
+  z-index: 10;
+}
+
+.count-text {
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 500;
 }
 
 /* 演员信息卡片 */
@@ -162,7 +217,7 @@
 
 /* 语音列表 */
 .voice-list-section {
-  padding: 40rpx 30rpx;
+  padding: 30rpx 0;
 }
 
 .section-title {
@@ -189,11 +244,18 @@
 }
 
 .voice-item {
-  background: rgba(255, 255, 255, 0.05);
-  margin-bottom: 2rpx;
-  padding: 30rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  margin-bottom: 16rpx;
+  padding: 24rpx;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
+  backdrop-filter: blur(20rpx);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .voice-item.playing {
@@ -204,26 +266,34 @@
   margin-bottom: 0;
 }
 
-.voice-info {
-  margin-bottom: 20rpx;
+.voice-content {
+  flex: 1;
 }
 
 .voice-title {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  color: white;
+  color: #333;
   margin-bottom: 8rpx;
 }
 
-.voice-subtitle {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 8rpx;
+.voice-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .voice-duration {
+  font-size: 24rpx;
+  color: #666;
+  background: rgba(102, 102, 102, 0.1);
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+.voice-subtitle {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.5);
+  color: #999;
 }
 
 .voice-controls {
@@ -232,30 +302,56 @@
   justify-content: space-between;
 }
 
-.control-btn {
+.voice-action {
+  margin-left: 20rpx;
+}
+
+.play-btn {
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  padding: 12rpx 24rpx;
-  border-radius: 24rpx;
-  font-size: 24rpx;
-  font-weight: 500;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(79, 172, 254, 0.4);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.play-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
   transition: all 0.3s ease;
 }
 
-.preview-btn {
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+.play-btn:active::before {
+  width: 100%;
+  height: 100%;
 }
 
-.preview-btn:active {
+.play-btn.playing {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
+}
+
+.play-btn:active {
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.8);
 }
 
-.btn-icon {
-  margin-right: 8rpx;
-  font-size: 20rpx;
+.play-icon {
+  font-size: 32rpx;
+  color: white;
+  margin-left: 2rpx;
 }
 
 .purchase-status {
@@ -412,14 +508,15 @@
 
 /* 花絮视频区域 */
 .bonus-section {
-  padding: 40rpx 30rpx;
+  padding: 20rpx 0;
 }
 
 .video-preview {
   position: relative;
-  border-radius: 20rpx;
+  border-radius: 40rpx;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
+  font-size: 0;
 }
 
 .video-thumb {
@@ -692,6 +789,110 @@
   }
 }
 
+.nav-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nav-title {
+  width: 100%;
+  text-align: center;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 32rpx;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.nav-back{
+  font-size: 36rpx !important;
+  color: #fff;
+}
+
+/* 打榜复购区域新样式 */
+.support-section {
+  padding: 20rpx 0;
+}
+
+.support-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+}
+
+.support-info {
+  flex: 1;
+}
+
+.support-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.support-desc {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.support-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.support-action {
+  margin-left: 20rpx;
+}
+
+.support-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  padding: 16rpx 24rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+}
+
+.support-btn:active {
+  transform: scale(0.95);
+}
+
+.support-btn .btn-icon {
+  font-size: 24rpx;
+}
+
+.support-btn .btn-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.share-button-box{
+  width: 100% !important;
+  border-radius: 100rpx !important;
+  background: linear-gradient(135deg, #fff 0%, rgb(243, 203, 237) 20%, #fff 80%, rgb(243, 203, 237) 100%);
+  padding: 8rpx;
+  box-sizing: border-box;
+}
+
+.share-button{
+  width: 100% !important;
+  border-radius: 100rpx !important;
+  font-weight: 400 !important;
+  background: linear-gradient(100deg, rgba(251,193,243,.3), rgba(251,186,241,1), rgba(251,186,241,1), rgba(251,193,243,.3));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(233, 47, 143, 0.3);
+  box-sizing: border-box;
+}
+
 /* 响应式适配 */
 @media (max-width: 750rpx) {
   .package-pricing {
@@ -704,4 +905,174 @@
     flex-direction: column;
     width: 200rpx;
   }
+}
+
+/* 复购弹窗样式 */
+.repurchase-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.repurchase-modal .modal-content {
+  position: relative;
+  background: white;
+  border-radius: 20rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.repurchase-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.repurchase-modal .modal-close {
+  font-size: 40rpx;
+  color: #999;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
+}
+
+.repurchase-modal .modal-body {
+  padding: 30rpx;
+}
+
+.pack-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #f8f9ff;
+  border-radius: 16rpx;
+}
+
+.pack-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  margin-right: 20rpx;
+}
+
+.pack-details {
+  flex: 1;
+}
+
+.pack-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+
+.quantity-selector {
+  margin-bottom: 30rpx;
+}
+
+.quantity-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30rpx;
+}
+
+.quantity-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #666;
+  font-weight: 600;
+}
+
+.quantity-btn:active {
+  background: #e0e0e0;
+}
+
+.quantity-display {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  min-width: 60rpx;
+  text-align: center;
+}
+
+
+.repurchase-modal .modal-footer {
+  display: flex;
+  padding: 30rpx;
+  gap: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.repurchase-modal .modal-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.repurchase-modal .cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.repurchase-modal .confirm-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+/* 价格显示样式 */
+.price-number {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.price-unit {
+  font-size: 24rpx;
+  color: #666;
+  margin-left: 4rpx;
 }

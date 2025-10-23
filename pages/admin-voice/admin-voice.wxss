@@ -681,6 +681,26 @@
   background: #000;
 }
 
+.video-actions {
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx;
+  background: #f8f9fa;
+}
+
+.video-actions .btn-small {
+  flex: 1;
+  height: 60rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  border: none;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
 .video-info {
   padding: 16rpx;
   background: rgba(0, 0, 0, 0.8);

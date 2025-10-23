@@ -22,39 +22,6 @@ Page({
 
   async onLoad() {
     console.log('voice-echo 页面加载')
-    
-    // 检查登录状态（临时简化，便于调试）
-    try {
-      const loginStatus = app.checkLoginStatus()
-      console.log('登录状态检查结果:', loginStatus)
-      
-      if (!loginStatus) {
-        console.log('用户未登录，但继续加载数据用于测试')
-        // 暂时注释掉登录检查，便于调试
-        /*
-        wx.showModal({
-          title: '需要登录',
-          content: '请先登录后再使用戏剧回响功能',
-          confirmText: '去登录',
-          cancelText: '返回',
-          success: (res) => {
-            if (res.confirm) {
-              wx.switchTab({
-                url: '/pages/index/index'
-              })
-            } else {
-              wx.navigateBack()
-            }
-          }
-        })
-        return
-        */
-      }
-    } catch (loginError) {
-      console.log('登录检查出错，继续加载:', loginError)
-    }
-
-    console.log('开始加载演员数据')
     await this.loadActorsData()
   },
 
@@ -80,101 +47,48 @@ Page({
         name: 'getActors'
       })
 
-      console.log('getActors 云函数返回结果:', res)
-
       if (res.result.code === 0) {
         const actorsData = res.result.data
-        console.log('解析到的演员数据:', actorsData)
         console.log('演员数量:', actorsData.length)
         
-        // 处理所有演员的图片，获取临时访问链接
+        // 快速处理图片数据，先显示页面
         const allImages = []
         const cloudImageUrls = []
-        const addedUrls = new Set() // 用于去重
+        const addedUrls = new Set()
         
         actorsData.forEach(actor => {
-          // 收集所有图片URL（包括主要图片和其他图片）
-          const actorImageUrls = []
-          
-          // 添加主要图片
-          if (actor.imageUrl) {
-            actorImageUrls.push(actor.imageUrl)
-          }
-          
-          // 添加其他图片
-          if (actor.images && actor.images.length > 0) {
-            actorImageUrls.push(...actor.images)
-          }
-          
-          // 去重并添加到allImages
-          actorImageUrls.forEach(imageUrl => {
-            if (!addedUrls.has(imageUrl)) {
-              addedUrls.add(imageUrl)
-              
-              if (imageUrl.startsWith('cloud://')) {
-                cloudImageUrls.push(imageUrl)
-              }
-              
-              allImages.push({
-                url: imageUrl,
-                actorId: actor._id,
-                actorName: actor.name,
-                isCloud: imageUrl.startsWith('cloud://')
-              })
+          if (actor.imageUrl && !addedUrls.has(actor.imageUrl)) {
+            addedUrls.add(actor.imageUrl)
+            
+            if (actor.imageUrl.startsWith('cloud://')) {
+              cloudImageUrls.push(actor.imageUrl)
             }
-          })
-        })
-        
-        console.log('处理后的图片数组:', allImages)
-        console.log('图片总数:', allImages.length)
-        console.log('去重后的图片URLs:', Array.from(addedUrls))
-        console.log('需要获取临时链接的云存储图片:', cloudImageUrls)
-        
-        // 详细日志：显示每个演员的图片情况
-        actorsData.forEach(actor => {
-          console.log(`演员 ${actor.name} 的图片:`, {
-            imageUrl: actor.imageUrl,
-            images: actor.images,
-            totalImages: (actor.imageUrl ? 1 : 0) + (actor.images ? actor.images.length : 0)
-          })
-        })
-        
-        // 如果有云存储图片，先获取临时访问链接
-        if (cloudImageUrls.length > 0) {
-          try {
-            const tempUrlRes = await wx.cloud.getTempFileURL({
-              fileList: cloudImageUrls
+            
+            allImages.push({
+              url: actor.imageUrl,
+              actorId: actor._id,
+              actorName: actor.name,
+              isCloud: actor.imageUrl.startsWith('cloud://')
             })
-            
-            console.log('云存储临时链接结果:', tempUrlRes)
-            
-            // 更新图片URL
-            if (tempUrlRes.fileList && tempUrlRes.fileList.length > 0) {
-              tempUrlRes.fileList.forEach((file, index) => {
-                if (file.status === 0) {
-                  // 找到对应的图片并更新URL
-                  const cloudUrl = cloudImageUrls[index]
-                  const imageItem = allImages.find(img => img.url === cloudUrl)
-                  if (imageItem) {
-                    imageItem.url = file.tempFileURL
-                    imageItem.isCloud = false
-                    console.log(`✅ 图片临时链接获取成功: ${cloudUrl} -> ${file.tempFileURL}`)
-                  }
-                } else {
-                  console.error(`❌ 图片临时链接获取失败: ${cloudImageUrls[index]} - ${file.errMsg}`)
-                }
-              })
-            }
-          } catch (error) {
-            console.error('❌ 获取图片临时链接失败:', error)
           }
-        }
+        })
+        
+        // 立即显示页面，不等待图片处理
+        // 确保每个演员都有正确的stats结构
+        const processedActorsData = actorsData.map(actor => ({
+          ...actor,
+          stats: {
+            guardianCount: actor.stats?.guardianCount || 0,
+            voicePackCount: actor.stats?.voicePackCount || 0,
+            ...actor.stats
+          }
+        }))
         
         this.setData({
-          actorsData: actorsData,
+          actorsData: processedActorsData,
           allImages: allImages,
           totalSlides: allImages.length,
-          currentActor: actorsData[0] || null,
+          currentActor: processedActorsData[0] || null,
           loading: false
         })
 
@@ -183,6 +97,11 @@ Page({
         // 启动自动播放
         if (allImages.length > 1) {
           this.startAutoPlay()
+        }
+        
+        // 异步处理云存储图片，不阻塞页面显示
+        if (cloudImageUrls.length > 0) {
+          this.processCloudImages(cloudImageUrls, allImages)
         }
       } else {
         console.log('云函数返回错误:', res.result.message)
@@ -200,6 +119,42 @@ Page({
       this.setData({ loading: false })
     } finally {
       wx.hideLoading()
+    }
+  },
+
+  // 异步处理云存储图片
+  async processCloudImages(cloudImageUrls, allImages) {
+    try {
+      console.log('开始处理云存储图片，数量:', cloudImageUrls.length)
+      
+      const tempUrlRes = await wx.cloud.getTempFileURL({
+        fileList: cloudImageUrls
+      })
+      
+      // 更新图片URL
+      if (tempUrlRes.fileList && tempUrlRes.fileList.length > 0) {
+        let updatedCount = 0
+        tempUrlRes.fileList.forEach((file, index) => {
+          if (file.status === 0) {
+            const cloudUrl = cloudImageUrls[index]
+            const imageItem = allImages.find(img => img.url === cloudUrl)
+            if (imageItem) {
+              imageItem.url = file.tempFileURL
+              imageItem.isCloud = false
+              updatedCount++
+            }
+          }
+        })
+        
+        // 更新页面数据
+        this.setData({
+          allImages: [...allImages] // 触发页面更新
+        })
+        
+        console.log(`云存储图片处理完成，成功更新 ${updatedCount} 张图片`)
+      }
+    } catch (error) {
+      console.error('处理云存储图片失败:', error)
     }
   },
 
@@ -317,6 +272,9 @@ Page({
     const { currentActor } = this.data
     if (!currentActor) return
 
+    // 隐藏当前页面的加载提示，避免与目标页面的加载提示冲突
+    wx.hideLoading()
+
     wx.navigateTo({
       url: `/pages/actor-detail/actor-detail?actorId=${currentActor._id}`
     })
@@ -325,5 +283,24 @@ Page({
   // 点击轮播图
   onCarouselTap() {
     this.enterActorSpace()
+  },
+
+  // 点击指示器
+  onIndicatorTap(e) {
+    const index = e.currentTarget.dataset.index
+    const { allImages, actorsData } = this.data
+    
+    // 根据点击的指示器找到对应的演员
+    const currentImage = allImages[index]
+    let currentActor = null
+    
+    if (currentImage) {
+      currentActor = actorsData.find(actor => actor._id === currentImage.actorId)
+    }
+    
+    this.setData({ 
+      currentSlide: index, 
+      currentActor: currentActor || actorsData[0] || null 
+    })
   }
 })

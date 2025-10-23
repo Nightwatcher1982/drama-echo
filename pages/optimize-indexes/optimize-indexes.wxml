@@ -1,0 +1,75 @@
+<!--索引优化页面-->
+<view class="container">
+  <view class="page-header">
+    <view class="page-title">数据库性能分析</view>
+    <view class="page-desc">分析数据库性能并提供索引优化建议</view>
+  </view>
+
+  <view class="card">
+    <view class="card-header">
+      <view class="card-title">⚡ 性能优化</view>
+    </view>
+    <view class="card-content">
+      <view class="optimization-info">
+        <view class="info-item">
+          <view class="info-label">优化内容:</view>
+          <view class="info-value">为常用查询字段创建复合索引</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">影响范围:</view>
+          <view class="info-value">用户购买记录、语音包查询、粉丝排行榜等</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">预期提升:</view>
+          <view class="info-value">查询速度提升 60%+</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-header">
+      <view class="card-title">🚀 执行优化</view>
+    </view>
+    <view class="card-content">
+      <button 
+        class="btn-primary btn-large" 
+        bindtap="runOptimization"
+        disabled="{{loading}}"
+        loading="{{loading}}">
+        {{loading ? '分析中...' : '开始分析'}}
+      </button>
+      
+      <view class="optimization-tips">
+        <view class="tip-title">💡 分析说明:</view>
+        <view class="tip-item">• 分析过程安全，不会影响现有数据</view>
+        <view class="tip-item">• 提供具体的索引创建建议</view>
+        <view class="tip-item">• 需要在云开发控制台手动创建索引</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 优化结果 -->
+  <view class="card" wx:if="{{result}}">
+    <view class="card-header">
+      <view class="card-title">📊 优化结果</view>
+    </view>
+    <view class="card-content">
+      <view wx:if="{{result === 'success'}}" class="result-success">
+        <view class="result-icon">✅</view>
+        <view class="result-title">分析完成</view>
+        <view class="result-desc">数据库性能分析完成，已生成索引优化建议</view>
+        
+        <button class="btn-outline" bindtap="viewDetails" wx:if="{{recommendations}}">
+          查看优化建议
+        </button>
+      </view>
+      
+      <view wx:if="{{result === 'error'}}" class="result-error">
+        <view class="result-icon">❌</view>
+        <view class="result-title">优化失败</view>
+        <view class="result-desc">请检查网络连接或稍后重试</view>
+      </view>
+    </view>
+  </view>
+</view>

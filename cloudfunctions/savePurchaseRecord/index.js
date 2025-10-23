@@ -68,13 +68,18 @@ exports.main = async (event, context) => {
     
     // 更新语音包销量
     if (purchaseType === 'package') {
-      await db.collection('voice_packs')
-        .doc(packId)
-        .update({
-          data: {
-            sales: db.command.inc(1)
-          }
-        })
+      try {
+        await db.collection('voicePacks')
+          .doc(packId)
+          .update({
+            data: {
+              sales: db.command.inc(1)
+            }
+          })
+        console.log('销量更新成功:', packId)
+      } catch (error) {
+        console.error('销量更新失败:', error.message)
+      }
     }
     
     return {

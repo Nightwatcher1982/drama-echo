@@ -105,11 +105,18 @@ async function createVoicePack(packData) {
 
 // 更新语音包
 async function updateVoicePack(packId, packData) {
+  const updateData = {
+    ...packData,
+    updateTime: new Date()
+  }
+  
+  // 如果上传了新的视频封面，标记为已上传自定义封面
+  if (packData.bonusVideoThumb && packData.bonusVideoThumb.startsWith('cloud://')) {
+    updateData.bonusVideoCoverUploaded = true
+  }
+  
   await db.collection('voicePacks').doc(packId).update({
-    data: {
-      ...packData,
-      updateTime: new Date()
-    }
+    data: updateData
   })
   
   return {
@@ -155,18 +162,53 @@ async function deleteVoicePack(packId) {
 
 // 处理语音文件上传
 async function handleVoiceUpload(packId, voiceFiles) {
-  // 这里实现语音文件的处理逻辑
-  // 由于微信小程序的限制，可能需要通过其他方式处理文件上传
+  console.log('🎵 处理语音文件上传')
+  console.log('📦 语音包ID:', packId)
+  console.log('📋 文件数量:', voiceFiles ? voiceFiles.length : 0)
+  console.log('📋 文件列表:', voiceFiles)
   
-  await db.collection('voicePacks').doc(packId).update({
-    data: {
-      voiceFiles: voiceFiles,
-      updateTime: new Date()
+  try {
+    // 检查文件数量
+    if (!voiceFiles || !Array.isArray(voiceFiles)) {
+      console.error('❌ 文件列表格式错误')
+      return {
+        code: -1,
+        message: '文件列表格式错误'
+      }
     }
-  })
-  
-  return {
-    code: 0,
-    message: '语音文件上传成功'
+    
+    if (voiceFiles.length > 50) {
+      console.warn('⚠️ 文件数量过多:', voiceFiles.length)
+      return {
+        code: -1,
+        message: '文件数量不能超过50个'
+      }
+    }
+    
+    // 更新数据库
+    console.log('🔄 更新数据库...')
+    const result = await db.collection('voicePacks').doc(packId).update({
+      data: {
+        voiceFiles: voiceFiles,
+        updateTime: new Date()
+      }
+    })
+    
+    console.log('✅ 数据库更新成功:', result)
+    
+    return {
+      code: 0,
+      message: '语音文件上传成功',
+      data: {
+        fileCount: voiceFiles.length,
+        packId: packId
+      }
+    }
+  } catch (error) {
+    console.error('❌ 处理语音文件上传失败:', error)
+    return {
+      code: -1,
+      message: error.message || '语音文件上传失败'
+    }
   }
 }

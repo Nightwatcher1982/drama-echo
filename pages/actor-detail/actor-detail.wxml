@@ -7,47 +7,40 @@
   </view>
 
   <view wx:else>
-    <!-- 顶部头部 -->
-    <view class="header">
-      <view class="header-title">戏剧回响</view>
-      <view class="header-subtitle">专属戏剧演员语音收藏</view>
-    </view>
-
-    <!-- 演员信息卡片 -->
-    <view class="actor-card">
-      <view class="actor-info">
-        <view class="actor-avatar">{{actor.avatar}}</view>
-        <view class="actor-details">
-          <text class="actor-name">{{actor.name}}</text>
-          <text class="actor-title">{{actor.title}}</text>
-          <text class="actor-desc">{{actor.description}}</text>
-          <view class="voice-count">{{actor.stats.voicePackCount}}个语音包</view>
-        </view>
+    <!-- 演员封面照片 -->
+    <view class="actor-cover-section">
+      <view wx:if="{{actor.coverImageUrl}}" class="actor-cover-image">
+        <image src="{{actor.coverImageUrl}}" mode="aspectFill" class="cover-image"></image>
+        <view class="cover-overlay"></view>
       </view>
-    </view>
-
-    <!-- 竞争状态 -->
-    <view class="competition-status">
-      <view class="competition-text">🎭 本月已有 {{actor.stats.guardianCount}} 位粉丝加入收藏，谁将成为下一个守护者？</view>
+      <view wx:else class="actor-cover-placeholder">
+        <view class="placeholder-icon">{{actor.avatar}}</view>
+        <view class="placeholder-text">{{actor.name}}</view>
+      </view>
     </view>
 
     <!-- 粉丝排行榜 -->
     <view class="ranking-section">
       <view class="section-header">
-        <view class="section-title">粉丝支持榜</view>
-        <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+        <view class="section-title">👑 粉丝支持榜</view>
       </view>
       <view class="ranking-list">
-        <view wx:for="{{fanRanking}}" wx:key="_id" class="ranking-item">
-          <view class="rank-number rank-{{index < 3 ? index + 1 : 'other'}}">{{index + 1}}</view>
+        <view wx:for="{{fanRanking}}" wx:key="_id" class="ranking-item rank-{{item.rank}}">
+          <view class="rank-number">
+            <text wx:if="{{item.rank === 1}}">🥇</text>
+            <text wx:elif="{{item.rank === 2}}">🥈</text>
+            <text wx:elif="{{item.rank === 3}}">🥉</text>
+            <text wx:else>{{item.rank}}</text>
+          </view>
+          <view class="fan-avatar">
+            <image wx:if="{{item.userAvatar}}" src="{{item.userAvatar}}" class="avatar-image" mode="aspectFill"></image>
+            <view wx:else class="avatar-placeholder">头像</view>
+          </view>
           <view class="fan-info">
-            <view class="fan-name">{{item.userInfo.nickName}}</view>
+            <view class="fan-name">{{item.userNickName}}</view>
             <view class="purchase-count">已收藏 {{item.purchaseCount}} 个专属声音</view>
           </view>
           <view class="support-level">
-            <view class="star-level">
-              <text wx:for="{{item.starCount}}" wx:for-item="star" wx:key="*this">⭐</text>
-            </view>
             <view class="level-text">{{item.level}}</view>
           </view>
         </view>
@@ -58,45 +51,80 @@
           <view class="empty-text">暂无支持榜，快来成为第一个守护者吧！</view>
         </view>
       </view>
+        <view class="header-actions">
+          <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+        </view>
     </view>
+      
+      <!-- 奖励说明 -->
+      <view class="reward-notice">
+        <view class="notice-header">
+          <view class="notice-icon">🎁</view>
+          <view class="notice-title">月度奖励活动</view>
+        </view>
+        <view class="notice-content">
+          <view class="notice-text">戏剧回响小程序会在月末给榜单前三名的用户发放线下奖励</view>
+          <view class="notice-details" bind:tap="showRewardDetails">
+            <text>查看奖励详情</text>
+            <text class="arrow">→</text>
+          </view>
+        </view>
+      </view>
 
     <!-- 语音包展示 -->
     <view class="voice-packs">
       <view class="section-header">
         <view class="section-title">🎭 精选语音包</view>
       </view>
-      <view class="packs-grid">
+      <view class="packs-list">
         <view wx:for="{{voicePacks}}" wx:key="_id" 
-              class="pack-item {{item.isPurchased ? 'purchased' : ''}} {{item.isSelected ? 'selected' : ''}}"
+              class="pack-item-row {{item.isPurchased ? 'purchased' : ''}} {{item.isSelected ? 'selected' : ''}}"
               data-pack-id="{{item._id}}"
               data-price="{{item.price}}"
               data-is-purchased="{{item.isPurchased}}"
               bind:tap="togglePackSelection"
               bind:longpress="goToPackDetail">
           
-          <!-- 热门标签 -->
-          <view wx:if="{{item.isHot && !item.isPurchased}}" class="hot-badge">HOT</view>
-          
-          <!-- 已购买标签 -->
-          <view wx:if="{{item.isPurchased}}" class="purchased-badge">已拥有</view>
-          
-          <!-- 选中标记 -->
-          <view wx:if="{{item.isSelected}}" class="selected-mark">✓</view>
-          
-          <view class="pack-icon">{{item.icon}}</view>
-          <view class="pack-name">{{item.name}}</view>
-          <view class="pack-price">¥{{item.formattedPrice}}</view>
-          <view class="pack-sales">已售 {{item.sales}} 份</view>
-          
-          <!-- 操作按钮 -->
-          <view class="pack-buttons">
-            <view class="buy-button"
-                  data-pack-id="{{item._id}}"
-                  data-is-purchased="{{item.isPurchased}}"
-                  catch:tap="{{item.isPurchased ? 'goToPackDetail' : 'showPackDetail'}}">
-              {{item.isPurchased ? '▶️ 播放' : '💰 购买'}}
+          <!-- 左侧内容 -->
+          <view class="pack-left">
+            <view class="pack-icon">{{item.icon}}</view>
+            <view class="pack-info">
+              <view class="pack-name">{{item.name}}</view>
+              <view class="pack-meta">
+                <view class="pack-sales">已售 {{item.sales}} 份</view>
+                <view class="pack-price" wx:if="{{isVirtualPaymentSupported && item.priceValue}}">
+                  <text class="price-number">{{item.priceValue}}</text>
+                  <text class="price-unit">个回响</text>
+                </view>
+              </view>
             </view>
           </view>
+          
+          <!-- 右侧内容 -->
+          <view class="pack-right">
+            <view class="pack-buttons">
+              <view class="buy-button"
+                    data-pack-id="{{item._id}}"
+                    data-is-purchased="{{item.isPurchased}}"
+                    catch:tap="{{item.isPurchased ? 'goToPackDetail' : 'showPackDetail'}}">
+                {{item.isPurchased ? '▶️ 播放' : (isVirtualPaymentSupported ? '获取' : '功能暂不可用')}}
+              </view>
+              <button wx:if="{{item.isPurchased}}" 
+                      class="share-button"
+                      open-type="share"
+                      data-pack-id="{{item._id}}"
+                      data-pack-name="{{item.name}}"
+                      data-pack-sales="{{item.sales}}"
+                      bind:tap="setShareContent">
+                📤 分享
+              </button>
+            </view>
+          </view>
+          
+          <!-- 标签 -->
+          <view wx:if="{{item.isHot && !item.isPurchased}}" class="hot-badge">HOT</view>
+          <view wx:if="{{item.isPurchased}}" class="purchased-badge">已拥有</view>
+          <view wx:if="{{item.isSelected}}" class="selected-mark">✓</view>
         </view>
       </view>
     </view>
@@ -137,20 +165,6 @@
           </view>
         </view>
         
-        <!-- 价格信息 -->
-        <view class="price-info-section">
-          <view class="price-item">
-            <text class="price-label">套餐价格：</text>
-            <text class="price-value">¥{{(currentPackDetail.packagePrice || 0) / 100}}</text>
-          </view>
-          <view class="price-item" wx:if="{{currentPackDetail.originalPrice && currentPackDetail.originalPrice > currentPackDetail.packagePrice}}">
-            <text class="price-label">原价：</text>
-            <text class="original-price">¥{{(currentPackDetail.originalPrice || 0) / 100}}</text>
-          </view>
-          <view class="save-info" wx:if="{{currentPackDetail.saveAmount && currentPackDetail.saveAmount > 0}}">
-            <text class="save-text">节省 ¥{{(currentPackDetail.saveAmount || 0) / 100}}</text>
-          </view>
-        </view>
         
         <!-- 详细信息 -->
         <view class="detail-info-section">
@@ -173,7 +187,7 @@
       
       <view class="modal-footer">
         <button class="modal-buy-btn" bind:tap="goToPackDetailFromModal">
-          {{currentPackDetail.isPurchased ? '进入详情页' : '立即购买'}}
+          {{currentPackDetail.isPurchased ? '进入详情页' : (isVirtualPaymentSupported ? '立即获取' : '由于相关规范，iOS功能暂不可用')}}
         </button>
       </view>
     </view>

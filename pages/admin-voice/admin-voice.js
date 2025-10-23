@@ -53,6 +53,7 @@ Page({
       bonusVideoThumb: '',
       bonusVideoTitle: '',
       bonusVideoDuration: '',
+      bonusVideoCoverUploaded: false,
       isHot: false,
       isActive: true
     },
@@ -245,7 +246,7 @@ Page({
         name: '',
         title: '',
         description: '',
-        avatar: '👤',
+        avatar: '',
         imageUrl: '',
         tags: [],
         status: 'offline'
@@ -365,7 +366,7 @@ Page({
         name: actor.name,
         title: actor.title || '',
         description: actor.description || '',
-        avatar: actor.avatar || '👤',
+            avatar: actor.avatar || '',
         imageUrl: imageUrl,
         tags: actor.tags || [],
         status: actor.status || 'offline',
@@ -752,7 +753,43 @@ Page({
     editingPack.bonusVideoThumb = ''
     editingPack.bonusVideoTitle = ''
     editingPack.bonusVideoDuration = ''
+    editingPack.bonusVideoCoverUploaded = false
     this.setData({ editingPack })
+  },
+
+  // 选择视频封面
+  async chooseVideoCover() {
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+      
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        wx.showLoading({ title: '上传封面中...' })
+        
+        const fileName = `video-cover-${Date.now()}.jpg`
+        const cloudPath = `voice-packs/${this.data.editingPack._id || 'temp'}/${fileName}`
+        
+        const uploadRes = await wx.cloud.uploadFile({
+          cloudPath,
+          filePath: res.tempFilePaths[0]
+        })
+        
+        const editingPack = { ...this.data.editingPack }
+        editingPack.bonusVideoThumb = uploadRes.fileID
+        editingPack.bonusVideoCoverUploaded = true
+        
+        this.setData({ editingPack })
+        wx.hideLoading()
+        wx.showToast({ title: '封面上传成功', icon: 'success' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('选择封面失败:', error)
+      wx.showToast({ title: '上传失败', icon: 'none' })
+    }
   },
 
   // 格式化时长

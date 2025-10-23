@@ -4,6 +4,7 @@ Page({
   data: {
     isAuthed: false,
     adminPassword: '',
+    currentModule: 'content', // 'content', 'data', 'system'
     actors: [],
     selectedActorId: '',
     selectedActorName: '',
@@ -14,7 +15,8 @@ Page({
       bonusVideoUrl: '',
       bonusVideoThumb: '',
       bonusVideoTitle: '',
-      bonusVideoDuration: ''
+      bonusVideoDuration: '',
+      bonusVideoCoverUploaded: false
     },
     showFileModal: false,
     editingFile: {},
@@ -24,7 +26,11 @@ Page({
     tempImagePath: '',
     actorImages: [],
     // 添加loading状态跟踪
-    loadingStack: []
+    loadingStack: [],
+    // 音频播放器相关
+    showAudioPlayer: false,
+    currentAudioUrl: '',
+    currentAudioFileName: ''
   },
 
   onLoad() {
@@ -94,54 +100,61 @@ Page({
 
   onPwdInput(e) { this.setData({ adminPassword: e.detail.value }) },
   async login() {
-    console.log('用户尝试登录')
     const pwd = (this.data.adminPassword || '').trim()
-    console.log('输入的密码:', pwd)
     
-    if (pwd !== 'voice2024' && pwd !== 'admin123') {
-      console.log('密码错误')
-      wx.showToast({ title: '密码错误', icon: 'none' })
+    if (!pwd) {
+      wx.showToast({ title: '请输入密码', icon: 'none' })
       return
     }
     
-    console.log('密码正确，设置认证状态')
-    wx.setStorageSync('adminConsoleAuth', { adminPassword: pwd, ts: Date.now() })
-    // 兼容其他后台页
-    wx.setStorageSync('voiceAdminAuth', { authenticated: true, timestamp: Date.now(), adminPassword: pwd })
-    this.setData({ isAuthed: true, adminPassword: '' })
-    
-    console.log('登录成功，开始加载演员数据')
-    this.loadActors()
+    // 调用云函数验证密码
+    try {
+      wx.showLoading({ title: '验证中...' })
+      
+      const result = await wx.cloud.callFunction({
+        name: 'checkAdminPermission',
+        data: { adminPassword: pwd }
+      })
+      
+      wx.hideLoading()
+      
+      if (result.result.code === 0 && result.result.data.hasPermission) {
+        // 密码正确，设置认证状态
+        wx.setStorageSync('adminConsoleAuth', { adminPassword: pwd, ts: Date.now() })
+        // 兼容其他后台页
+        wx.setStorageSync('voiceAdminAuth', { authenticated: true, timestamp: Date.now(), adminPassword: pwd })
+        this.setData({ isAuthed: true, adminPassword: '' })
+        
+        wx.showToast({ title: '登录成功', icon: 'success' })
+        this.loadActors()
+      } else {
+        wx.showToast({ title: '密码错误', icon: 'none' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('登录验证失败:', error)
+      wx.showToast({ title: '验证失败', icon: 'none' })
+    }
   },
 
   async loadActors() {
     try {
       wx.showLoading({ title: '加载演员...' })
-      console.log('开始加载演员数据...')
       
       const res = await wx.cloud.callFunction({ name: 'getActors' })
-      console.log('getActors 云函数返回结果:', res)
-      
       const list = res.result && res.result.data ? res.result.data : []
-      console.log('演员列表数据:', list)
       
       // 兜底过滤：排除软删除（isActive === false），并按 updateTime 降序
       const actors = list
         .filter(a => a.isActive !== false)
         .sort((a,b) => new Date(b.updateTime || 0) - new Date(a.updateTime || 0))
       
-      console.log('过滤后的演员列表:', actors)
-      console.log('演员数量:', actors.length)
-      
       this.setData({ actors })
       
       if (actors.length === 0) {
         wx.showToast({ title: '暂无演员数据', icon: 'none' })
-      } else {
-        console.log('演员数据设置成功，当前 actors:', this.data.actors)
       }
     } catch (e) {
-      console.error('加载演员失败', e)
       wx.showToast({ title: '加载失败: ' + (e.message || '未知错误'), icon: 'none' })
     } finally { 
       wx.hideLoading() 
@@ -149,37 +162,26 @@ Page({
   },
 
   onPickActor(e) {
-    console.log('onPickActor 被调用，事件详情:', e)
-    console.log('当前 actors 数据:', this.data.actors)
-    console.log('选择的索引:', e.detail.value)
-    
     if (!this.data.isAuthed && !this.ensureAuthed()) {
       wx.showToast({ title: '请先登录后台', icon: 'none' })
       return
     }
     
     const idx = Number(e.detail.value)
-    console.log('解析后的索引:', idx)
-    
     const actor = this.data.actors[idx]
-    console.log('选择的演员:', actor)
     
     if (!actor) {
-      console.error('未找到对应索引的演员，索引:', idx, '演员列表长度:', this.data.actors.length)
       wx.showToast({ title: '选择失败，请重试', icon: 'none' })
       return
     }
     
-    console.log('设置选中的演员:', actor.name, actor._id)
     this.setData({ selectedActorId: actor._id, selectedActorName: actor.name })
     this.loadVoicePacks(actor._id)
   },
 
   // 直接选择演员（备用方法）
   selectActorDirect(e) {
-    console.log('selectActorDirect 被调用')
     const actor = e.currentTarget.dataset.actor
-    console.log('直接选择的演员:', actor)
     
     if (!actor) {
       wx.showToast({ title: '选择失败', icon: 'none' })
@@ -189,6 +191,12 @@ Page({
     this.setData({ selectedActorId: actor._id, selectedActorName: actor.name })
     this.loadVoicePacks(actor._id)
     wx.showToast({ title: `已选择: ${actor.name}`, icon: 'success' })
+  },
+
+  // 获取演员语音包数量
+  getActorVoicePackCount(actorId) {
+    const voicePacks = this.data.voicePacks || []
+    return voicePacks.filter(pack => pack.actorId === actorId).length
   },
 
   async loadVoicePacks(actorId) {
@@ -221,7 +229,9 @@ Page({
         console.log('loadVoicePacks: 处理语音包数据')
         const voicePacks = (res.result.data || []).map(p => ({
           ...p,
-          formattedPrice: (p.price / 100).toFixed(2)
+          priceValue: (p.price / 100).toFixed(1),
+          priceUnit: '个回响',
+          formattedPrice: `${(p.price / 100).toFixed(1)}个回响`
         }))
         console.log('loadVoicePacks: 处理后的语音包数据:', voicePacks)
         this.setData({ voicePacks })
@@ -244,14 +254,16 @@ Page({
 
   openPackModal(e) {
     const pack = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.pack : null
+    console.log('openPackModal: 编辑的语音包:', pack)
+    
     this.setData({ 
       showPackModal: true, 
       editingPack: pack ? { 
         ...pack, 
         displayPrice: (pack.price / 100).toFixed(2),
-        images: pack.images || [],
+        images: Array.isArray(pack.images) ? pack.images : [],
         bonusVideoUrl: pack.bonusVideoUrl || '',
-        bonusVideoThumb: pack.bonusVideoThumb && !pack.bonusVideoThumb.startsWith('/') ? pack.bonusVideoThumb : 'https://picsum.photos/300/200?random=1',
+        bonusVideoThumb: pack.bonusVideoThumb && !pack.bonusVideoThumb.startsWith('/') ? pack.bonusVideoThumb : '',
         bonusVideoTitle: pack.bonusVideoTitle || '',
         bonusVideoDuration: pack.bonusVideoDuration || ''
       } : { 
@@ -264,9 +276,12 @@ Page({
         bonusVideoUrl: '',
         bonusVideoThumb: '',
         bonusVideoTitle: '',
-        bonusVideoDuration: ''
+        bonusVideoDuration: '',
+        actorId: this.data.selectedActorId // 确保关联到选中的演员
       } 
     })
+    
+    console.log('openPackModal: 设置后的editingPack:', this.data.editingPack)
   },
   closePackModal() { 
     this.setData({ 
@@ -361,21 +376,35 @@ Page({
     finally { try { wx.hideLoading() } catch(_){} }
   },
 
-  openEditActor() {
-    const a = this.data.actors.find(x => x._id === this.data.selectedActorId)
-    if (!a) return wx.showToast({ title: '未选择演员', icon: 'none' })
-    this.setData({ showActorModal: true, editingActor: { ...a }, tempImagePath: '', actorImages: (a.images || (a.imageUrl ? [a.imageUrl] : [])) })
+  openEditActor(e) {
+    const actor = e.currentTarget.dataset.actor
+    if (!actor) {
+      // 如果没有传递演员数据，尝试从selectedActorId获取
+      const a = this.data.actors.find(x => x._id === this.data.selectedActorId)
+      if (!a) return wx.showToast({ title: '未选择演员', icon: 'none' })
+      actor = a
+    }
+    
+    // 封面照片和图片库独立管理，不互相影响
+    this.setData({ 
+      showActorModal: true, 
+      editingActor: { ...actor }, 
+      tempImagePath: actor.imageUrl || '', // 显示已存在的封面照片
+      actorImages: actor.images || [] // 图片库独立管理
+    })
   },
   openCreateActor() {
-    this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '👤' }, tempImagePath: '', actorImages: [] })
+    this.setData({ showActorModal: true, editingActor: { name: '', title: '', description: '', avatar: '' }, tempImagePath: '', actorImages: [] })
   },
-  async deleteActor() {
-    if (!this.data.selectedActorId) return wx.showToast({ title: '未选择演员', icon:'none' })
+  async deleteActor(e) {
+    const actorId = e.currentTarget.dataset.actorId
+    const targetActorId = actorId || this.data.selectedActorId
+    if (!targetActorId) return wx.showToast({ title: '未选择演员', icon:'none' })
     const confirm = await new Promise(resolve => { wx.showModal({ title:'确认删除', content:'删除为软删除，可在数据库恢复。确定删除该演员？', success: resolve }) })
     if (!confirm.confirm) return
     try {
       wx.showLoading({ title: '删除中...' })
-      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: { action: 'delete', actorId: this.data.selectedActorId, adminPassword: this.getAdminPassword() } })
+      const res = await wx.cloud.callFunction({ name: 'adminManageActors', data: { action: 'delete', actorId: targetActorId, adminPassword: this.getAdminPassword() } })
       if (res.result.code === 0) { 
         wx.showToast({ title: '删除成功', icon:'success' })
         this.setData({ selectedActorId:'', selectedActorName:'', showActorModal:false })
@@ -434,52 +463,139 @@ Page({
   closeFileModal() { this.setData({ showFileModal: false, editingFile: {}, currentPackId: '' }) },
   onFileInput(e) { const f = e.currentTarget.dataset.field; const v = e.detail.value; const file = { ...this.data.editingFile }; file[f] = v; this.setData({ editingFile: file }) },
   chooseAudioFile() {
-    wx.chooseMessageFile({ count: 1, type: 'file', extension: ['mp3','wav','aac','m4a'], success: (res) => {
-      const f = res.tempFiles[0]
-      if (f.size && f.size > 20 * 1024 * 1024) { wx.showToast({ title: '文件不能超过20MB', icon: 'none' }); return }
-      const file = { ...this.data.editingFile }
-      file.tempFilePath = f.path
-      file.fileName = f.name || (f.path ? f.path.split('/').pop() : `audio_${Date.now()}`)
-      file.size = f.size
-      if (!file.duration || file.duration === 30) file.duration = 30
-      this.setData({ editingFile: file })
-    }, fail: (err) => { if (!(err && String(err.errMsg||'').includes('cancel'))) wx.showToast({ title: '选择失败', icon:'none' }) } })
+    wx.chooseMessageFile({ 
+      count: 1, 
+      type: 'file', 
+      extension: ['mp3','wav','aac','m4a'], 
+      success: async (res) => {
+        const f = res.tempFiles[0]
+        if (f.size && f.size > 20 * 1024 * 1024) { 
+          wx.showToast({ title: '文件不能超过20MB', icon: 'none' }); 
+          return 
+        }
+        
+        const file = { ...this.data.editingFile }
+        file.tempFilePath = f.path
+        file.fileName = f.name || (f.path ? f.path.split('/').pop() : `audio_${Date.now()}`)
+        file.size = f.size
+        
+        // 自动获取音频文件的真实时长
+        try {
+          wx.showLoading({ title: '获取音频时长...' })
+          const realDuration = await this.getAudioDuration(f.path)
+          file.duration = realDuration
+          console.log('🎵 获取到真实音频时长:', realDuration, '秒')
+        } catch (error) {
+          console.error('🎵 获取音频时长失败:', error)
+          // 如果获取失败，使用默认值
+          file.duration = 30
+        } finally {
+          wx.hideLoading()
+        }
+        
+        this.setData({ editingFile: file })
+      }, 
+      fail: (err) => { 
+        if (!(err && String(err.errMsg||'').includes('cancel'))) 
+          wx.showToast({ title: '选择失败', icon:'none' }) 
+      } 
+    })
   },
   previewSelectedAudio() {
     const f = this.data.editingFile
     if (!f || !f.tempFilePath) return wx.showToast({ title: '请先选择音频', icon:'none' })
-    const audio = wx.createInnerAudioContext()
-    audio.src = f.tempFilePath
-    audio.play()
-    audio.onEnded(()=>{ audio.destroy() })
-    audio.onError(()=>{ audio.destroy(); wx.showToast({ title: '预览失败', icon:'none' }) })
+    
+    // 使用新的音频播放器组件
+    this.setData({
+      showAudioPlayer: true,
+      currentAudioUrl: f.tempFilePath,
+      currentAudioFileName: f.fileName || f.name || '音频文件'
+    })
   },
   async saveAudioFile() {
     const f = this.data.editingFile
     if (!f.name || !f.name.trim()) return wx.showToast({ title: '请输入文件名称', icon:'none' })
     if (!f.tempFilePath) return wx.showToast({ title: '请选择音频文件', icon:'none' })
+    
+    // 检查当前文件数量
+    const currentFileList = this.data.fileList || []
+    console.log('📊 当前文件数量:', currentFileList.length)
+    console.log('📊 当前文件列表:', currentFileList)
+    
     try {
       this.setData({ uploading: true })
       wx.showLoading({ title: '上传中...' })
-      const up = await wx.cloud.uploadFile({ cloudPath: `voice-packs/${this.data.currentPackId}/${Date.now()}_${f.fileName}`, filePath: f.tempFilePath })
-      const res = await wx.cloud.callFunction({ name: 'manageVoiceFiles', data: { action: 'add', packId: this.data.currentPackId, adminPassword: this.getAdminPassword(), fileData: { id: `file_${Date.now()}`, name: f.name, fileId: up.fileID, duration: parseInt(f.duration)||30, description: f.description || '', size: f.size, createTime: new Date(), updateTime: new Date() } } })
+      
+      // 上传音频文件到云存储
+      console.log('📤 开始上传音频文件:', f.fileName)
+      const up = await wx.cloud.uploadFile({ 
+        cloudPath: `voice-packs/${this.data.currentPackId}/${Date.now()}_${f.fileName}`, 
+        filePath: f.tempFilePath 
+      })
+      console.log('✅ 音频文件上传成功:', up.fileID)
+      
+      // 创建新的语音文件对象
+      const newFile = {
+        id: `file_${Date.now()}`,
+        name: f.name,
+        fileId: up.fileID,
+        duration: parseInt(f.duration) || 30,
+        description: f.description || '',
+        size: f.size,
+        createTime: new Date(),
+        updateTime: new Date()
+      }
+      
+      const updatedFileList = [...currentFileList, newFile]
+      console.log('📋 更新后的文件列表长度:', updatedFileList.length)
+      console.log('📋 更新后的文件列表:', updatedFileList)
+      
+      // 调用云函数更新语音包的文件列表
+      console.log('🔄 调用云函数更新文件列表...')
+      const res = await wx.cloud.callFunction({ 
+        name: 'adminManageVoicePacks', 
+        data: { 
+          action: 'upload', 
+          packId: this.data.currentPackId, 
+          adminPassword: this.getAdminPassword(),
+          voiceFiles: updatedFileList
+        } 
+      })
+      
+      console.log('📥 云函数返回结果:', res.result)
+      
       if (res.result.code === 0) {
         wx.showToast({ title: '保存成功', icon:'success' })
-        // 刷新本地列表，支持继续添加
-        const newItem = { id: `file_${Date.now()}`, name: f.name, fileId: up.fileID, duration: parseInt(f.duration)||30, description: f.description || '', size: f.size }
-        this.setData({ fileList: (this.data.fileList || []).concat([newItem]), editingFile: { name: '', duration: 30, description: '' } })
+        // 更新本地文件列表
+        this.setData({ 
+          fileList: updatedFileList, 
+          editingFile: { name: '', duration: 30, description: '' } 
+        })
         // 延迟刷新列表，避免loading冲突
         setTimeout(() => {
           this.loadVoicePacks(this.data.selectedActorId)
         }, 500)
-      } else { throw new Error(res.result.message) }
-    } catch (e) { console.error('保存音频失败', e); wx.showToast({ title: e.message || '保存失败', icon:'none' }) }
-    finally { this.setData({ uploading: false }); try { wx.hideLoading() } catch(_){} }
+      } else {
+        throw new Error(res.result.message)
+      }
+    } catch (e) {
+      console.error('❌ 保存音频失败:', e);
+      wx.showToast({ title: e.message || '保存失败', icon:'none' })
+    } finally {
+      this.setData({ uploading: false });
+      try { wx.hideLoading() } catch(_){}
+    }
   },
   previewExistingAudio(e) {
     const src = e.currentTarget.dataset.src
     if (!src) return
-    const audio = wx.createInnerAudioContext(); audio.src = src; audio.play(); audio.onEnded(()=>audio.destroy()); audio.onError(()=>audio.destroy())
+    
+    // 使用新的音频播放器组件
+    this.setData({
+      showAudioPlayer: true,
+      currentAudioUrl: src,
+      currentAudioFileName: '已上传的音频文件'
+    })
   },
   async deleteExistingAudio(e) {
     const id = e.currentTarget.dataset.id
@@ -487,17 +603,38 @@ Page({
     if (!confirm.confirm) return
     try {
       wx.showLoading({ title: '删除中...' })
-      const res = await wx.cloud.callFunction({ name: 'manageVoiceFiles', data: { action: 'delete', packId: this.data.currentPackId, fileId: id, adminPassword: this.getAdminPassword() } })
+      
+      // 获取当前文件列表，移除要删除的文件
+      const currentFileList = this.data.fileList || []
+      const updatedFileList = currentFileList.filter(f => f.id !== id)
+      
+      // 调用云函数更新语音包的文件列表
+      const res = await wx.cloud.callFunction({ 
+        name: 'adminManageVoicePacks', 
+        data: { 
+          action: 'upload', 
+          packId: this.data.currentPackId, 
+          adminPassword: this.getAdminPassword(),
+          voiceFiles: updatedFileList
+        } 
+      })
+      
       if (res.result.code === 0) {
-        wx.showToast({ title: '已删除', icon:'success' });
-        this.setData({ fileList: (this.data.fileList || []).filter(f => f.id !== id) })
-        // 延迟刷新列表，避免loading冲突
+        wx.showToast({ title: '删除成功', icon:'success' })
+        // 更新本地文件列表
+        this.setData({ fileList: updatedFileList })
+        // 延迟刷新列表
         setTimeout(() => {
           this.loadVoicePacks(this.data.selectedActorId)
         }, 500)
-      } else throw new Error(res.result.message)
-    } catch (err) { wx.showToast({ title: err.message || '删除失败', icon:'none' }) }
-    finally { try { wx.hideLoading() } catch(_){} }
+      } else {
+        throw new Error(res.result.message)
+      }
+    } catch (err) { 
+      wx.showToast({ title: err.message || '删除失败', icon:'none' }) 
+    } finally { 
+      try { wx.hideLoading() } catch(_){} 
+    }
   },
   async saveActor() {
     const a = { ...this.data.editingActor }
@@ -516,7 +653,7 @@ Page({
           action: a._id ? 'update' : 'create',
           actorId: a._id || this.data.selectedActorId,
           adminPassword: this.getAdminPassword(),
-          actorData: { name: a.name, title: a.title||'', description: a.description||'', avatar: a.avatar||'👤', imageUrl, images: this.data.actorImages, status: a.status||'online', tags: a.tags||[] }
+          actorData: { name: a.name, title: a.title||'', description: a.description||'', avatar: a.avatar||'', imageUrl, images: this.data.actorImages, status: a.status||'online', tags: a.tags||[] }
         }
       })
       if (res.result.code === 0) { 
@@ -555,16 +692,25 @@ Page({
         const uploadPromises = res.tempFilePaths.map(async (tempFilePath, index) => {
           console.log(`choosePackImage: 上传第${index + 1}张图片:`, tempFilePath)
           const fileName = `voice-pack-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`
-          const cloudPath = `voice-packs/${this.data.editingPack._id || 'temp'}/${fileName}`
+          
+          // 使用选中的演员ID或临时ID作为路径
+          const packId = this.data.editingPack._id || `temp_${Date.now()}`
+          const cloudPath = `voice-packs/${packId}/${fileName}`
           
           console.log(`choosePackImage: 云存储路径:`, cloudPath)
-          const uploadRes = await wx.cloud.uploadFile({
-            cloudPath,
-            filePath: tempFilePath
-          })
           
-          console.log(`choosePackImage: 第${index + 1}张图片上传结果:`, uploadRes)
-          return uploadRes.fileID
+          try {
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath,
+              filePath: tempFilePath
+            })
+            
+            console.log(`choosePackImage: 第${index + 1}张图片上传结果:`, uploadRes)
+            return uploadRes.fileID
+          } catch (uploadError) {
+            console.error(`choosePackImage: 第${index + 1}张图片上传失败:`, uploadError)
+            throw new Error(`第${index + 1}张图片上传失败: ${uploadError.errMsg || '未知错误'}`)
+          }
         })
         
         console.log('choosePackImage: 等待所有图片上传完成')
@@ -575,6 +721,7 @@ Page({
         editingPack.images = [...editingPack.images, ...uploadedUrls]
         
         console.log('choosePackImage: 更新编辑包数据:', editingPack)
+        console.log('choosePackImage: 更新后的图片数组:', editingPack.images)
         this.setData({ editingPack })
         
         this.hideLoadingWithTrack('choosePackImage', loadingId)
@@ -602,9 +749,28 @@ Page({
 
   removePackImage(e) {
     const index = e.currentTarget.dataset.index
+    console.log('🗑️ 删除图片，索引:', index)
+    
+    if (index === undefined || index === null) {
+      console.error('❌ 删除图片失败：索引无效')
+      wx.showToast({ title: '删除失败', icon: 'none' })
+      return
+    }
+    
     const editingPack = { ...this.data.editingPack }
+    console.log('🗑️ 删除前图片数量:', editingPack.images.length)
+    
+    if (!editingPack.images || editingPack.images.length <= index) {
+      console.error('❌ 删除图片失败：图片数组无效或索引超出范围')
+      wx.showToast({ title: '删除失败', icon: 'none' })
+      return
+    }
+    
     editingPack.images.splice(index, 1)
+    console.log('🗑️ 删除后图片数量:', editingPack.images.length)
+    
     this.setData({ editingPack })
+    wx.showToast({ title: '删除成功', icon: 'success' })
   },
 
   previewImage(e) {
@@ -689,14 +855,212 @@ Page({
     editingPack.bonusVideoThumb = ''
     editingPack.bonusVideoTitle = ''
     editingPack.bonusVideoDuration = ''
+    editingPack.bonusVideoCoverUploaded = false
     this.setData({ editingPack })
+  },
+
+  // 选择视频封面
+  async chooseVideoCover() {
+    try {
+      const res = await wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera']
+      })
+      
+      if (res.tempFilePaths && res.tempFilePaths.length > 0) {
+        wx.showLoading({ title: '上传封面中...' })
+        
+        const fileName = `video-cover-${Date.now()}.jpg`
+        const cloudPath = `voice-packs/${this.data.editingPack._id || 'temp'}/${fileName}`
+        
+        const uploadRes = await wx.cloud.uploadFile({
+          cloudPath,
+          filePath: res.tempFilePaths[0]
+        })
+        
+        const editingPack = { ...this.data.editingPack }
+        editingPack.bonusVideoThumb = uploadRes.fileID
+        editingPack.bonusVideoCoverUploaded = true
+        
+        this.setData({ editingPack })
+        wx.hideLoading()
+        wx.showToast({ title: '封面上传成功', icon: 'success' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('选择封面失败:', error)
+      wx.showToast({ title: '上传失败', icon: 'none' })
+    }
   },
 
   formatDuration(seconds) {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  },
+
+  // 关闭音频播放器
+  closeAudioPlayer() {
+    this.setData({
+      showAudioPlayer: false,
+      currentAudioUrl: '',
+      currentAudioFileName: ''
+    })
+  },
+
+  // 跳转到数据管理页面
+  goToDataManagement() {
+    wx.navigateTo({
+      url: '/pages/admin-data/admin-data'
+    })
+  },
+
+
+  goToFixSalesData() {
+    wx.navigateTo({
+      url: '/pages/fix-sales-data/fix-sales-data'
+    })
+  },
+
+  // 优化数据库索引
+  async optimizeDatabaseIndexes() {
+    try {
+      wx.showModal({
+        title: '性能分析',
+        content: '此操作将分析数据库性能并提供索引优化建议。是否继续？',
+        success: async (res) => {
+          if (res.confirm) {
+            wx.showLoading({
+              title: '分析中...',
+              mask: true
+            })
+
+            const result = await wx.cloud.callFunction({
+              name: 'optimizeDatabaseIndexes',
+              data: {}
+            })
+
+            wx.hideLoading()
+
+            if (result.result.code === 0) {
+              const data = result.result.data
+              let message = `数据库性能分析完成！\n\n`
+              message += `分析集合数量: ${data.totalCollections}\n\n`
+              message += `分析结果:\n`
+              data.analysis.slice(0, 5).forEach(item => {
+                message += `• ${item}\n`
+              })
+              if (data.analysis.length > 5) {
+                message += `• ... 还有 ${data.analysis.length - 5} 项分析结果\n`
+              }
+
+              wx.showModal({
+                title: '分析完成',
+                content: message,
+                confirmText: '查看建议',
+                cancelText: '知道了',
+                success: (res) => {
+                  if (res.confirm) {
+                    // 显示详细建议
+                    const recommendations = data.recommendations.join('\n')
+                    wx.showModal({
+                      title: '索引优化建议',
+                      content: recommendations,
+                      showCancel: false,
+                      confirmText: '知道了'
+                    })
+                  }
+                }
+              })
+            } else {
+              wx.showToast({
+                title: '分析失败',
+                icon: 'error'
+              })
+            }
+          }
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      console.error('索引优化失败:', error)
+      wx.showToast({
+        title: '优化失败',
+        icon: 'error'
+      })
+    }
+  },
+
+  // 跳转到许愿池管理页面
+  goToWishPoolAdmin() {
+    wx.navigateTo({
+      url: '/pages/wish-pool-admin/wish-pool-admin'
+    })
+  },
+
+  // 跳转到索引优化页面
+  goToOptimizeIndexes() {
+    wx.navigateTo({
+      url: '/pages/optimize-indexes/optimize-indexes'
+    })
+  },
+
+  // 跳转到数据清理页面
+  goToClearData() {
+    wx.navigateTo({
+      url: '/pages/clear-data/clear-data'
+    })
+  },
+
+  // 切换模块
+  switchModule(e) {
+    const module = e.currentTarget.dataset.module
+    this.setData({
+      currentModule: module
+    })
+  },
+
+  // 获取音频文件的真实时长
+  getAudioDuration(audioPath) {
+    return new Promise((resolve, reject) => {
+      if (!audioPath) {
+        reject(new Error('音频路径为空'))
+        return
+      }
+      
+      // 创建音频上下文
+      const audioContext = wx.createInnerAudioContext()
+      
+      audioContext.src = audioPath
+      
+      // 监听音频加载完成事件
+      audioContext.onCanplay(() => {
+        // 获取音频时长
+        const duration = audioContext.duration
+        audioContext.destroy()
+        
+        if (duration && duration > 0) {
+          resolve(Math.floor(duration)) // 返回整数秒数
+        } else {
+          reject(new Error('无法获取音频时长'))
+        }
+      })
+      
+      // 监听错误事件
+      audioContext.onError((error) => {
+        audioContext.destroy()
+        reject(error)
+      })
+      
+      // 设置超时
+      setTimeout(() => {
+        audioContext.destroy()
+        reject(new Error('获取音频时长超时'))
+      }, 10000) // 10秒超时
+    })
   }
+
 })
 
 

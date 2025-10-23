@@ -63,6 +63,8 @@
 
 .user-info {
   flex: 1;
+  min-width: 0;
+  margin-right: 20rpx;
 }
 
 .user-name {
@@ -70,21 +72,32 @@
   font-weight: bold;
   color: #333;
   margin-bottom: 10rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300rpx;
 }
 
 .user-title {
   font-size: 28rpx;
   color: #8B7355;
   font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300rpx;
 }
 
 .edit-btn {
   display: flex;
   align-items: center;
-  padding: 15rpx 25rpx;
-  border: 2rpx solid #FF9A8B;
-  border-radius: 30rpx;
+  padding: 8rpx 12rpx;
+  border: 1rpx solid #FF9A8B;
+  border-radius: 16rpx;
   background: transparent;
+  min-width: auto;
+  flex-shrink: 0;
+  max-width: 140rpx;
 }
 
 /* 头像昵称官方采集面板 */
@@ -127,13 +140,14 @@
 }
 
 .btn-icon {
-  font-size: 24rpx;
-  margin-right: 8rpx;
+  font-size: 16rpx;
+  margin-right: 4rpx;
 }
 
 .btn-text {
-  font-size: 24rpx;
+  font-size: 18rpx;
   color: #FF9A8B;
+  white-space: nowrap;
 }
 
 /* 收藏区块 */
@@ -165,96 +179,60 @@
   cursor: pointer;
 }
 
-.collection-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20rpx;
+.collection-single {
+  display: flex;
+  flex-direction: column;
 }
 
-.collection-item {
-  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
-  border-radius: 20rpx;
-  padding: 25rpx 20rpx;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.collection-item:active {
-  transform: scale(0.95);
-  opacity: 0.8;
-}
-
-.collection-icon {
-  font-size: 48rpx;
-  margin-bottom: 15rpx;
-}
-
-.collection-name {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 10rpx;
-}
-
-.collection-count {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #FF9A8B;
-}
-
-/* 语音包列表 */
-.voice-packs-list {
-  margin-top: 20rpx;
-}
-
-.voice-pack-item {
+.collection-item-large {
   display: flex;
   align-items: center;
-  padding: 20rpx;
-  background: #FFF9F0;
+  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
   border-radius: 20rpx;
-  margin-bottom: 15rpx;
+  padding: 30rpx 25rpx;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
 }
 
-.pack-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.collection-item-large:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+  border-color: #FF9A8B;
+}
+
+.collection-icon-large {
+  font-size: 60rpx;
+  margin-right: 25rpx;
+  background: linear-gradient(135deg, #FF9A8B 0%, #FF6B6B 100%);
   border-radius: 50%;
+  width: 100rpx;
+  height: 100rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
-  color: white;
-  margin-right: 20rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 154, 139, 0.3);
 }
 
-.pack-info {
+.collection-content {
   flex: 1;
 }
 
-.pack-name {
-  font-size: 28rpx;
+.collection-name {
+  font-size: 32rpx;
+  font-weight: 600;
   color: #333;
   margin-bottom: 8rpx;
 }
 
-.pack-actor {
+.collection-desc {
   font-size: 24rpx;
-  color: #999;
+  color: #666;
 }
 
-.pack-action {
-  padding: 15rpx 25rpx;
-  background: linear-gradient(135deg, #FF9A8B 0%, #FF6B6B 100%);
-  border-radius: 30rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.play-icon {
-  font-size: 28rpx;
-  color: white;
+.collection-arrow {
+  font-size: 32rpx;
+  color: #FF9A8B;
+  font-weight: bold;
 }
 
 /* 快捷入口 */
@@ -264,8 +242,8 @@
 
 .entry-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 25rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30rpx;
 }
 
 .entry-item {

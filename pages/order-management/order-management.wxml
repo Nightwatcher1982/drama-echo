@@ -37,13 +37,13 @@
 
       <view class="order-content" bindtap="onOrderDetail" data-order-id="{{item.orderId}}">
         <view class="pack-info">
-          <view class="pack-icon">{{item.packName.charAt(0)}}</view>
+          <view class="pack-icon">{{item.packIcon || '🎵'}}</view>
           <view class="pack-details">
             <view class="pack-name">{{item.packName}}</view>
             <view class="actor-name">{{item.actorName}}</view>
           </view>
         </view>
-        <view class="order-amount">¥{{(item.amount / 100).toFixed(2)}}</view>
+        <view class="order-amount">¥{{item.formattedAmount}}</view>
       </view>
 
       <view class="order-footer">

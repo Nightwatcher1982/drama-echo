@@ -1,0 +1,11 @@
+{
+  "name": "completePurchase",
+  "version": "1.0.0",
+  "description": "完成购买记录创建",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+
+

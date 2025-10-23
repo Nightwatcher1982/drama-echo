@@ -1,653 +1,470 @@
-.header {
+/* 首页样式 - 根据设计稿重新设计 */
+
+.container {
+  min-height: 100vh;
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+/* 顶部导航 */
+.top-bar {
+  padding: 40rpx 30rpx 0;
+  background: transparent;
+  position: relative;
+  z-index: 10;
+}
+
+.nav-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+
+.nav-title {
+  width: 100%;
   text-align: center;
-  margin-bottom: 60rpx;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 42rpx;
+  margin-top: 56rpx;
+  background: -webkit-linear-gradient(0deg,#6A31A6, #8B38A2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.02em;
 }
 
-.logo {
-  width: 200rpx;
-  height: 200rpx;
-  margin-bottom: 30rpx;
-  border-radius: 24rpx;
-  box-shadow: 0 8px 24px rgba(255, 154, 139, 0.3);
-  animation: pulse 2s infinite;
-}
-
-.icon {
-  font-size: 120rpx;
-  margin-bottom: 30rpx;
-}
-
-.description {
-  color: #5D4E75;
-  font-size: 28rpx;
-  margin-top: 20rpx;
-  line-height: 1.5;
-}
-
-/* 用户登录状态样式 */
-.user-status {
-  margin-top: 30rpx;
+.logo-box{
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-bottom: 48rpx;
+}
+
+.logo-box .logo{
+width: 176rpx;
+height: 176rpx;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.nav-icon {
+  font-size: 32rpx;
+  color: white;
+  opacity: 0.8;
+}
+
+/* 用户信息卡片 */
+.user-card {
+  margin: 0 30rpx 30rpx;
+  position: relative;
+  z-index: 5;
 }
 
 .user-info {
+  background: linear-gradient(90deg, rgba(241, 227, 255, 1) 0%, rgba(249, 243, 255, 1) 100%);
+  backdrop-filter: blur(4rpx);
+  border-radius: 48rpx;
+  padding: 30rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx 30rpx;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50rpx;
-  backdrop-filter: blur(10rpx);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  flex-wrap: wrap;
-  cursor: pointer;
+  gap: 24rpx;
+  border: 1px solid rgba(242, 233, 246, 0.56);
+  box-shadow: 0 4rpx 24rpx rgba(187, 155, 228, 0.32);
   transition: all 0.3s ease;
-  position: relative;
 }
 
 .user-info:active {
   transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .user-avatar {
-  width: 60rpx;
-  height: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-  flex: 1;
-}
-
-.user-name {
-  font-size: 28rpx;
-  color: #5D4E75;
-  font-weight: 500;
-}
-
-.user-tip {
-  font-size: 22rpx;
-  color: #8B7355;
-  opacity: 0.8;
-}
-
-.arrow-icon {
-  font-size: 24rpx;
-  color: #8B7355;
-  opacity: 0.6;
+  border: 3px solid rgba(255, 255, 255, 0.5);
 }
 
 .avatar-placeholder {
-  width: 60rpx;
-  height: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #FF9A8B, #FFB5A3);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 48rpx;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name {
+  display: block;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 32rpx;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  color: #333333;
+  text-transform: uppercase;
+  text-align: center;
 }
 
-/* nightwatcher管理员快速入口 */
-.admin-quick-access {
-  margin-left: 16rpx;
-  padding: 8rpx 0;
-  animation: pulse 2s infinite;
-}
-
-.admin-badge {
+.user-stats {
+  display: block;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 22rpx;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-  color: white;
-  padding: 8rpx 16rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
-  font-weight: 600;
-  letter-spacing: 1rpx;
-  transition: all 0.3s ease;
+  font-weight: 400;
+  color: #635E84;
 }
 
-.admin-quick-access:active .admin-badge {
-  transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.4);
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.profile-btn {
+  background: linear-gradient(180deg, rgba(220, 222, 255, 1) 0%, rgba(151, 158, 255, 1) 100%);
+  color: #635E84;
+  padding: 20rpx 32rpx;
+  border-radius: 100rpx;
+  font-size: 24rpx;
+  font-weight: 400;
+  border: 1px solid rgba(196, 200, 255, 1);
+  box-shadow: 0 11rpx 22rpx rgba(53, 62, 185, 0.09), inset 0 -2rpx 1rpx rgba(151, 158, 255, 0.4);
+  backdrop-filter: blur(4rpx);
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .login-btn {
-  background: linear-gradient(135deg, #FFB6C1 0%, #DDA0DD 100%);
-  border: none;
-  border-radius: 50rpx;
-  padding: 20rpx 40rpx;
-  box-shadow: 0 8rpx 20rpx rgba(221, 160, 221, 0.3);
-  transition: all 0.3s ease;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20rpx);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 48rpx;
+  padding: 30rpx;
+  color: white;
+  font-size: 32rpx;
+  font-weight: 600;
 }
 
 .login-btn::after {
   border: none;
 }
 
-.login-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4rpx 10rpx rgba(221, 160, 221, 0.4);
-}
-
-.login-text {
-  font-size: 28rpx;
-  color: #5D4E75;
-  font-weight: 600;
-}
-
-
-
-/* 统计卡片 */
-.stats-card {
-  margin-bottom: 40rpx;
-}
-
-.stats-content {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.stat-item {
+/* 标语 */
+.quote {
   text-align: center;
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 48rpx;
-  font-weight: bold;
-  margin-bottom: 8rpx;
-}
-
-.stat-label {
-  font-size: 24rpx;
-  color: #5D4E75;
-  font-weight: 500;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 60rpx;
-  background: rgba(255, 154, 139, 0.4);
-}
-
-/* 台词泡泡球区域 */
-.quotes-section {
-  margin-bottom: 40rpx;
-  padding: 32rpx;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.title-icon {
-  font-size: 32rpx;
-  margin-right: 16rpx;
-}
-
-.title-text {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #5D4E75;
-}
-
-/* 主要功能区域 */
-.main-features {
-  margin: 0 5% 40rpx 5%;
-}
-
-.feature-row {
-  display: flex;
-  gap: 20rpx;
-  align-items: stretch;
-  height: 160rpx;
-}
-
-.feature-btn-half {
-  flex: 1;
-  height: 160rpx;
-  background: linear-gradient(135deg, #FF9A8B, #A8E6CF);
-  border: none;
-  border-radius: 24rpx;
-  padding: 0;
-  box-shadow: 0 8rpx 32rpx rgba(255, 154, 139, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.feature-btn-half::after {
-  border: none;
-}
-
-.feature-btn-half:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4rpx 16rpx rgba(255, 154, 139, 0.4);
-}
-
-.feature-btn-half .btn-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 20rpx 16rpx;
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.feature-btn-half .btn-icon {
-  font-size: 44rpx;
-  margin-bottom: 16rpx;
-  line-height: 1;
-  height: 44rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.feature-btn-half .btn-text {
-  text-align: center;
-  width: 100%;
-}
-
-.feature-btn-half .btn-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #5D4E75;
-  margin-bottom: 8rpx;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  line-height: 1.2;
-  height: 34rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.feature-btn-half .btn-subtitle {
-  font-size: 22rpx;
-  color: #8B7355;
-  opacity: 0.8;
-  line-height: 1.3;
-  word-break: keep-all;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 响应式优化 */
-@media screen and (max-width: 650rpx) {
-  .feature-row {
-    gap: 16rpx;
-    height: 140rpx;
-  }
-  
-  .feature-btn-half {
-    height: 140rpx;
-  }
-  
-  .feature-btn-half .btn-content {
-    padding: 16rpx 12rpx;
-  }
-  
-  .feature-btn-half .btn-icon {
-    font-size: 36rpx;
-    margin-bottom: 12rpx;
-    height: 36rpx;
-  }
-  
-  .feature-btn-half .btn-title {
-    font-size: 24rpx;
-    height: 30rpx;
-    margin-bottom: 6rpx;
-  }
-  
-  .feature-btn-half .btn-subtitle {
-    font-size: 18rpx;
-    height: 24rpx;
-  }
-}
-
-/* 功能按钮行 (已废弃，保留用于兼容) */
-.menu-buttons-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: stretch;
-  margin: 0 5% 40rpx 5%;
-  padding: 0;
-}
-
-.menu-btn-small {
-  flex: 0 0 calc(50% - 10rpx);
-  width: calc(50% - 10rpx);
-  min-height: 200rpx;
-  margin-bottom: 20rpx;
-  background: linear-gradient(135deg, #FF9A8B, #A8E6CF);
-  border: none;
-  border-radius: 24rpx;
-  padding: 0;
-  box-shadow: 0 8rpx 32rpx rgba(255, 154, 139, 0.3);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 确保在小屏幕上也能正确显示 */
-@media screen and (max-width: 650rpx) {
-  .menu-buttons-row {
-    margin: 0 3% 40rpx 3%;
-  }
-  
-  .menu-btn-small {
-    flex: 0 0 calc(50% - 8rpx);
-    width: calc(50% - 8rpx);
-    min-height: 180rpx;
-  }
-}
-
-/* 大屏幕优化 */
-@media screen and (min-width: 900rpx) {
-  .menu-buttons-row {
-    max-width: 800rpx;
-    margin: 0 auto 40rpx auto;
-    padding: 0 20rpx;
-  }
-}
-
-.menu-btn-small .btn-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  position: relative;
-  z-index: 2;
-  padding: 20rpx;
-  box-sizing: border-box;
-}
-
-.menu-btn-small .btn-icon {
-  font-size: clamp(36rpx, 5vw, 44rpx);
-  margin-bottom: clamp(8rpx, 2vw, 16rpx);
-  margin-right: 0;
-  line-height: 1;
-}
-
-.menu-btn-small .btn-text {
-  text-align: center;
-  flex: none;
-  word-break: keep-all;
-  white-space: nowrap;
-}
-
-.menu-btn-small .btn-title {
-  font-size: clamp(22rpx, 3.5vw, 28rpx);
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* 小屏幕按钮内容优化 */
-@media screen and (max-width: 650rpx) {
-  .menu-btn-small .btn-content {
-    padding: 16rpx;
-  }
-  
-  .menu-btn-small .btn-icon {
-    font-size: 34rpx;
-    margin-bottom: 8rpx;
-  }
-  
-  .menu-btn-small .btn-title {
-    font-size: 22rpx;
-  }
-}
-
-/* 大屏幕按钮内容优化 */
-@media screen and (min-width: 900rpx) {
-  .menu-btn-small .btn-content {
-    padding: 24rpx;
-  }
-  
-  .menu-btn-small .btn-icon {
-    font-size: 46rpx;
-    margin-bottom: 16rpx;
-  }
-  
-  .menu-btn-small .btn-title {
-    font-size: 30rpx;
-  }
-}
-
-/* 戏剧笔记按钮特殊样式 */
-.btn-gradient {
-  background: linear-gradient(135deg, #FF9A8B, #A8E6CF);
-  color: white;
-  border: none;
-}
-
-.btn-gradient::after {
-  border: none;
-}
-
-.btn-gradient .btn-icon,
-.btn-gradient .btn-title {
-  color: white;
-}
-
-/* 观剧日历按钮文字颜色修复 */
-.menu-btn-small.btn-outline .btn-icon,
-.menu-btn-small.btn-outline .btn-title {
-  color: white;
-}
-
-.btn-arrow {
-  font-size: 32rpx;
-  color: #5D4E75;
-}
-
-
-
-/* 页脚 */
-.footer {
-  text-align: center;
-  margin-top: 60rpx;
-}
-
-.sparkle {
-  color: #5D4E75;
-  font-size: 28rpx;
-  line-height: 1.5;
-}
-
-/* 按钮点击效果 */
-.menu-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.menu-btn:active::before {
-  left: 100%;
-}
-
-/* 台词详情弹窗 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.modal-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.quote-modal {
-  width: 600rpx;
-  max-width: 90vw;
-  max-height: 80vh;
-  overflow-y: auto;
-  transform: translateY(50rpx);
-  transition: transform 0.3s ease;
-}
-
-.modal-overlay.show .quote-modal {
-  transform: translateY(0);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24rpx;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-  padding-bottom: 16rpx;
-}
-
-.modal-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #5D4E75;
-}
-
-.modal-close {
-  font-size: 48rpx;
-  color: #5D4E75;
-  cursor: pointer;
-}
-
-.quote-detail {
-  padding: 16rpx 0;
-}
-
-.quote-main {
-  text-align: center;
-  margin-bottom: 32rpx;
+  margin: 0 30rpx 40rpx;
 }
 
 .quote-text {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #8B5CF6;
-  line-height: 1.6;
-  margin-bottom: 16rpx;
-}
-
-.quote-english {
-  font-size: 28rpx;
-  color: #5D4E75;
-  font-style: italic;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
 }
 
-.quote-info {
-  background: rgba(139, 92, 246, 0.1);
-  padding: 24rpx;
-  border-radius: 16rpx;
-}
-
-.quote-source {
-  font-size: 28rpx;
-  color: #5D4E75;
-  font-weight: bold;
-  margin-bottom: 8rpx;
-}
-
-.quote-date {
-  font-size: 24rpx;
-  color: #5D4E75;
-  margin-bottom: 8rpx;
-}
-
-.quote-type {
-  font-size: 22rpx;
-  color: #06B6D4;
-  background: rgba(6, 182, 212, 0.2);
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
-  display: inline-block;
-}
-
-/* 删除按钮样式 */
-.quote-actions {
-  margin-top: 32rpx;
-  padding-top: 24rpx;
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
-}
-
-.delete-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
-  border: none;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 71, 87, 0.3);
+/* 主要功能卡片 */
+.main-feature-card {
+  margin: 0 30rpx 30rpx;
+  background: rgba(255, 255, 255, 0.49);
+  backdrop-filter: blur(4rpx);
+  border-radius: 48rpx;
+  padding: 24rpx 40rpx;
+  border: 0.5px solid rgba(242, 233, 246, 1);
+  box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 5;
 }
 
-.delete-btn::after {
-  border: none;
+.main-feature-card:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.delete-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 2rpx 8rpx rgba(255, 71, 87, 0.4);
+.feature-header {
+  margin-bottom: 30rpx;
 }
 
-.delete-icon {
-  font-size: 32rpx;
-}
-
-.delete-text {
-  font-size: 28rpx;
-  color: #ffffff;
+.feature-title {
+  display: inline;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 40rpx;
   font-weight: 600;
-} 
+  background: -webkit-linear-gradient(10deg,#CE479B, #2E22AD);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8rpx;
+  letter-spacing: 0.02em;
+}
+
+.title-decoration {
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+  margin-top: -8rpx;
+  line-height: 0.6;
+}
+
+.feature-subtitle {
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #666666;
+}
+
+.feature-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actor-avatars {
+  flex: 1;
+}
+
+.avatar-stack {
+  position: relative;
+  height: 80rpx;
+}
+
+.actor-avatar {
+  position: absolute;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.feature-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  position: absolute;
+  top: -64rpx;
+  right: 12rpx;
+}
+
+.gift-box-icon {
+  width: 200rpx;
+  height: 300rpx;
+  animation: starGlow 2s ease-in-out infinite;
+}
+
+.stars {
+  display: flex;
+  gap: 8rpx;
+}
+
+.star {
+  font-size: 24rpx;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.star:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.star:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* 次要功能卡片 */
+.secondary-features {
+  display: flex;
+  gap: 20rpx;
+  margin: 0 30rpx 40rpx;
+  position: relative;
+  z-index: 5;
+}
+
+.secondary-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.49);
+  backdrop-filter: blur(4rpx);
+  border-radius: 48rpx;
+  padding: 24rpx 30rpx;
+  border: 0.5px solid rgba(242, 233, 246, 1);
+  box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.secondary-card:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.coming-soon-card {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coming-soon-card:active {
+  transform: none;
+  background: rgba(255, 255, 255, 0.49);
+}
+
+.card-header {
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  display: inline;
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 32rpx;
+  font-weight: 600;
+  background: -webkit-linear-gradient(10deg,#CE479B, #2E22AD);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8rpx;
+  letter-spacing: 0.02em;
+}
+
+.card-subtitle {
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #666666;
+}
+
+.card-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  width: 128rpx;
+  height: 128rpx;
+  position: absolute;
+  top:-24rpx;
+  right: 12rpx;
+}
+
+.magic-hat-icon {
+  width: 88rpx;
+  height: 88rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.1));
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+.magic-stars {
+  display: flex;
+  gap: 6rpx;
+}
+
+.magic-star {
+  font-size: 20rpx;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.magic-star:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.magic-star:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.wish-star-icon {
+  width: 88rpx;
+  height: 88rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.1));
+  animation: wishGlow 2s ease-in-out infinite;
+}
+
+@keyframes wishGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3)) hue-rotate(0deg);
+    transform: scale(1);
+  }
+  50% { 
+    filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3)) hue-rotate(180deg);
+    transform: scale(1.1);
+  }
+}
+
+/* 底部标语 */
+.footer-quote {
+  text-align: center;
+  margin: 40rpx 30rpx 60rpx;
+  position: sticky;
+  top:90vh;
+}
+
+.footer-text {
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #635E84;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/* 响应式适配 */
+@media screen and (max-width: 650rpx) {
+  .secondary-features {
+    flex-direction: column;
+    gap: 16rpx;
+  }
+  
+  .feature-content {
+    flex-direction: column;
+    gap: 20rpx;
+    align-items: flex-start;
+  }
+  
+  .feature-icon {
+    align-self: flex-end;
+  }
+  
+  .nav-title {
+    font-size: 40rpx;
+  }
+  
+  .feature-title {
+    font-size: 36rpx;
+  }
+  
+  .card-title {
+    font-size: 28rpx;
+  }
+}
+
+/* 动画效果 */
+.fade-in {
+  animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(30rpx); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}

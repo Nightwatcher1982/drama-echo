@@ -1,9 +1,0 @@
-{
-  "navigationBarTitleText": "戏剧魔法书",
-  "navigationBarBackgroundColor": "#FFF9F0",
-  "navigationBarTextStyle": "black",
-  "backgroundColor": "#FFF9F0",
-  "backgroundTextStyle": "dark",
-  "enablePullDownRefresh": true,
-  "onReachBottomDistance": 50
-}

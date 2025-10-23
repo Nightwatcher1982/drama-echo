@@ -51,9 +51,12 @@
               <view class="pack-icon">{{item.icon}}</view>
               <view class="pack-details">
                 <view class="pack-name">{{item.name}}</view>
-                <view class="pack-price">¥{{item.formattedPrice}}</view>
+                <view class="pack-price">
+                  <text class="price-number">{{item.priceValue}}</text>
+                  <text class="price-unit">个回响</text>
+                </view>
                 <view class="pack-meta">
-                  销量: {{item.sales}} | 文件: {{item.voiceFiles.length}}个
+                  已售: {{item.sales}} 份 | 文件: {{item.voiceFiles.length}}个
                   <text wx:if="{{item.isHot}}" class="hot-tag">🔥热门</text>
                 </view>
               </view>
@@ -77,8 +80,10 @@
                   <view class="file-details">
                     <view class="file-name">{{file.name}}</view>
                     <view class="file-meta">
-                      时长: {{file.duration}}s | 大小: {{file.size || '未知'}}
+                      <text class="meta-item">时长: {{file.duration || 30}}s</text>
+                      <text class="meta-item" wx:if="{{file.size}}">大小: {{file.size}}B</text>
                     </view>
+                    <view class="file-description" wx:if="{{file.description}}">{{file.description}}</view>
                     <view class="file-path">{{file.fileId}}</view>
                   </view>
                 </view>
@@ -192,12 +197,15 @@
           </view>
           <view wx:else class="video-preview">
             <video class="preview-video" src="{{editingPack.bonusVideoUrl}}" controls="{{true}}" poster="{{editingPack.bonusVideoThumb}}"></video>
+            <view class="video-actions">
+              <button class="btn-small btn-primary" bindtap="chooseVideoCover">上传封面</button>
+              <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
+              <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
+            </view>
             <view class="video-info">
               <view class="video-title">{{editingPack.bonusVideoTitle || '花絮视频'}}</view>
               <view class="video-duration">{{editingPack.bonusVideoDuration || '未知时长'}}</view>
             </view>
-            <button class="btn-small btn-outline" bindtap="chooseBonusVideo">重新上传</button>
-            <button class="btn-small btn-danger" bindtap="removeBonusVideo">删除</button>
           </view>
         </view>
       </view>
@@ -327,3 +335,12 @@
     </view>
   </view>
 </view>
+
+<!-- 音频播放器组件 -->
+<audio-player 
+  show="{{showAudioPlayer}}"
+  audioUrl="{{currentAudioUrl}}"
+  fileName="{{currentAudioFileName}}"
+  coverImage="{{editingPack && editingPack.images && editingPack.images[0] ? editingPack.images[0] : ''}}"
+  bind:close="closeAudioPlayer">
+</audio-player>

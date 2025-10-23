@@ -7,7 +7,7 @@
     "es6": true,
     "enhance": false,
     "postcss": true,
-    "minified": false,
+    "minified": true,
     "newFeature": false,
     "autoAudits": false,
     "checkInvalidKey": true,
@@ -41,5 +41,6 @@
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

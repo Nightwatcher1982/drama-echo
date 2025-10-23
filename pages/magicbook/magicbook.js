@@ -240,8 +240,7 @@ Page({
       castingProgress: 0
     })
     
-    // 轻微震动反馈
-    wx.vibrateShort()
+    // 震动反馈已移除
     
     // 开始2秒倒计时动画
     let progress = 0
@@ -288,8 +287,7 @@ Page({
       showMagicEffect: true
     })
     
-    // 强烈震动反馈
-    wx.vibrateLong()
+    // 震动反馈已移除
     
     // 特效持续1秒后跳转
     setTimeout(() => {
@@ -353,8 +351,7 @@ Page({
       return
     }
     
-    // 发动魔法时的震动效果
-    wx.vibrateShort()
+    // 震动效果已移除
     
     // 跳转到结果页面，同时传递星座和心情信息
     const zodiacName = this.data.userZodiac.name || this.data.userZodiac

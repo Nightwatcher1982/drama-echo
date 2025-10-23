@@ -65,7 +65,15 @@ Page({
 
       if (result.result.code === 0) {
         const { orders, total, totalPages } = result.result.data
-        const newOrders = this.data.page === 1 ? orders : [...this.data.orders, ...orders]
+        
+        // 格式化订单数据，添加格式化金额和图标
+        const formattedOrders = orders.map(order => ({
+          ...order,
+          formattedAmount: (order.amount / 100).toFixed(2),
+          packIcon: order.packIcon || '🎵'
+        }))
+        
+        const newOrders = this.data.page === 1 ? formattedOrders : [...this.data.orders, ...formattedOrders]
         
         this.setData({
           orders: newOrders,

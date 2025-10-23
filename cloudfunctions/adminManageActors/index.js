@@ -8,20 +8,28 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 
-const ADMIN_PASSWORDS = ['voice2024', 'admin123']
+// 安全配置加载
+const secureConfig = require('../utils/secureConfig')
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const { action, actorData, actorId, userInfo, adminPassword } = event
   
   try {
-    // 生产环境权限验证 - 基于用户昵称或 OpenID
-    // 密码鉴权（统一口径）
-    const hasPermission = ADMIN_PASSWORDS.includes(String(adminPassword || ''))
-    console.log('🔐 权限验证(密码):', { hasPermission, openId: OPENID, action, ts: new Date().toISOString() })
-    if (!hasPermission) return { code: -1, message: '无权限访问，仅管理员可使用此功能' }
+    // 安全权限验证
+    const hasPermission = secureConfig.validateAdminPermission(adminPassword, OPENID)
+    secureConfig.log('info', '权限验证', { 
+      hasPermission, 
+      action, 
+      timestamp: new Date().toISOString() 
+    })
+    
+    if (!hasPermission) {
+      secureConfig.log('warn', '权限验证失败', { openId: OPENID, action })
+      return { code: -1, message: '无权限访问，仅管理员可使用此功能' }
+    }
 
-    console.log('✅ 管理员操作:', {
+    secureConfig.log('info', '管理员操作', {
       action: action,
       user: userInfo?.nickName,
       timestamp: new Date().toISOString()
@@ -43,7 +51,7 @@ exports.main = async (event, context) => {
         }
     }
   } catch (error) {
-    console.error('adminManageActors error:', error)
+    secureConfig.log('error', 'adminManageActors error', { error: error.message })
     return {
       code: -1,
       message: error.message || '操作失败'
