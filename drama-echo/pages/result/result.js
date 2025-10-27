@@ -538,7 +538,7 @@ Page({
     if (!userData) return
     
     const today = new Date().toDateString()
-    const lastEarnedDate = userData.lastMagicBookEarnDate
+    const lastEarnedDate = userData.lastDramaEchoEarnDate
     const hasEarnedToday = lastEarnedDate === today
     
     this.setData({
@@ -606,7 +606,7 @@ Page({
     // 记录今日已获得积分
     const userData = app.globalData.userData
     if (userData) {
-      userData.lastMagicBookEarnDate = new Date().toDateString()
+      userData.lastDramaEchoEarnDate = new Date().toDateString()
       app.saveUserData()
     }
     

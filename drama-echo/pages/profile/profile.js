@@ -7,7 +7,7 @@ Page({
     userInfo: {},
     displayName: '戏剧爱好者',
     userData: {},
-    todayMagicBookUses: 0,
+    todayDramaEchoUses: 0,
     purchasedVoicePacks: 0,
     isAdmin: false,
     // 头像昵称官方采集面板
@@ -169,9 +169,9 @@ Page({
       
       if (today === lastUsedDate) {
         const todayUses = (userData.zodiacUsedCount || 0) + (userData.moodUsedCount || 0)
-        this.setData({ todayMagicBookUses: todayUses })
+        this.setData({ todayDramaEchoUses: todayUses })
       } else {
-        this.setData({ todayMagicBookUses: 0 })
+        this.setData({ todayDramaEchoUses: 0 })
       }
     }
   },
@@ -830,7 +830,7 @@ Page({
           app.globalData.userData = {}
           this.setData({
             userData: {},
-            todayMagicBookUses: 0,
+            todayDramaEchoUses: 0,
             purchasedVoicePacks: 0
           })
           wx.showToast({

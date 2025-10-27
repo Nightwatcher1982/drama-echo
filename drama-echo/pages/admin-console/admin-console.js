@@ -1098,8 +1098,6 @@ Page({
     }
   },
 
-  },
-
   // 跳转到许愿池管理页面
   goToWishPoolAdmin() {
     wx.showToast({

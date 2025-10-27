@@ -263,7 +263,7 @@ App({
         if (!Array.isArray(userData.favoriteTheaters)) userData.favoriteTheaters = []
         if (typeof userData.checkInDays !== 'number') userData.checkInDays = 0
         if (!Array.isArray(userData.dramaNotes)) userData.dramaNotes = []
-        if (!userData.lastMagicBookEarnDate) userData.lastMagicBookEarnDate = null
+        if (!userData.lastDramaEchoEarnDate) userData.lastDramaEchoEarnDate = null
         
         this.globalData.userData = userData
         this.saveUserData()
@@ -296,7 +296,7 @@ App({
         zodiacHistory: [],
         moodHistory: [],
         dramaNotes: [],
-        lastMagicBookEarnDate: null
+        lastDramaEchoEarnDate: null
       }
       this.globalData.userData = defaultData
     }
@@ -369,8 +369,6 @@ App({
       if (lastMoodDate !== today) {
         userData.dailyMoodShares = 0
         userData.lastMoodShareDate = today
-      }
-      
       }
       
       // 戏剧魔法书模式：统一每日3次限制
