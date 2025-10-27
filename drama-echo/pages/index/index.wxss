@@ -68,15 +68,15 @@ height: 176rpx;
 }
 
 .user-info {
-  background: linear-gradient(90deg, rgba(241, 227, 255, 1) 0%, rgba(249, 243, 255, 1) 100%);
+  background: rgba(255, 255, 255, 0.49);
   backdrop-filter: blur(4rpx);
   border-radius: 48rpx;
-  padding: 30rpx;
+  padding: 24rpx 40rpx;
   display: flex;
   align-items: center;
   gap: 24rpx;
-  border: 1px solid rgba(242, 233, 246, 0.56);
-  box-shadow: 0 4rpx 24rpx rgba(187, 155, 228, 0.32);
+  border: 0.5px solid rgba(242, 233, 246, 1);
+  box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
   transition: all 0.3s ease;
 }
 
@@ -115,10 +115,13 @@ height: 176rpx;
   display: block;
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 32rpx;
-  font-weight: 500;
-  color: #333333;
-  text-transform: uppercase;
+  font-weight: 600;
+  background: -webkit-linear-gradient(10deg,#CE479B, #2E22AD);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .user-stats {
@@ -130,16 +133,15 @@ height: 176rpx;
 }
 
 .profile-btn {
-  background: linear-gradient(180deg, rgba(220, 222, 255, 1) 0%, rgba(151, 158, 255, 1) 100%);
-  color: #635E84;
-  padding: 20rpx 32rpx;
-  border-radius: 100rpx;
-  font-size: 24rpx;
-  font-weight: 400;
-  border: 1px solid rgba(196, 200, 255, 1);
-  box-shadow: 0 11rpx 22rpx rgba(53, 62, 185, 0.09), inset 0 -2rpx 1rpx rgba(151, 158, 255, 0.4);
-  backdrop-filter: blur(4rpx);
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #666666;
+  padding: 16rpx 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4rpx);
+  border: 0.5px solid rgba(242, 233, 246, 0.8);
 }
 
 .login-btn {
