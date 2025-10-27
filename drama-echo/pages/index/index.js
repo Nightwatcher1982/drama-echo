@@ -41,10 +41,8 @@ Page({
   },
   
   onShow() {
-    // 只在必要时刷新用户状态，避免重复检查
-    if (!this.data.userLoggedIn) {
-      this.refreshUserState()
-    }
+    // 每次显示页面时都刷新用户状态，确保显示最新的用户信息
+    this.refreshUserState()
   },
 
   // 初始化页面
