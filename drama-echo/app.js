@@ -771,7 +771,6 @@ App({
     const hasUserProfile = !!this.globalData.userProfile
     const hasValidNickname = this.globalData.userProfile && 
       this.globalData.userProfile.nickName && 
-      this.globalData.userProfile.nickName !== '微信用户' &&
       this.globalData.userProfile.nickName.length >= 1 &&
       this.globalData.userProfile.nickName.length <= 20
     
