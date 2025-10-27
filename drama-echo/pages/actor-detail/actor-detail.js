@@ -568,7 +568,7 @@ Page({
         success: (res) => {
           if (res.confirm) {
             // 用户选择去设置，跳转到个人中心
-            wx.switchTab({
+            wx.navigateTo({
               url: '/pages/profile/profile'
             })
           } else {
