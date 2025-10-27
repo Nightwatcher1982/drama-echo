@@ -126,13 +126,13 @@ Page({
         // 用户已自定义昵称（包括通过头像昵称选择器设置的）
         displayName = userProfile.nickName
         console.log('🎭 使用用户自定义昵称:', displayName, '来源:', userProfile.dataSource || 'unknown')
-      } else if (userProfile.nickName === '微信用户' || userProfile.isWechatDefault) {
-        // 微信默认昵称，显示友好提示并提供自定义选项
+      } else if (userProfile.nickName === '微信用户') {
+        // 微信政策变化后，统一返回"微信用户"，我们显示为"戏剧爱好者"并提示可自定义
         displayName = '戏剧爱好者'
         showCustomizeHint = true
         console.log('🎭 检测到微信默认昵称，显示友好昵称并提示自定义')
       } else {
-        // 真实的微信昵称
+        // 真实的微信昵称（这种情况现在很少见）
         displayName = userProfile.nickName
         console.log('🎭 使用微信真实昵称:', displayName)
       }

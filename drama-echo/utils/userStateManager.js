@@ -32,12 +32,12 @@ class UserStateManager {
       if (userProfile.isCustomized && userProfile.nickName !== '微信用户') {
         // 用户已自定义昵称
         displayName = userProfile.nickName
-      } else if (userProfile.nickName === '微信用户' || userProfile.isWechatDefault) {
-        // 微信默认昵称
+      } else if (userProfile.nickName === '微信用户') {
+        // 微信政策变化后，统一返回"微信用户"，我们显示为"戏剧爱好者"并提示可自定义
         displayName = '戏剧爱好者'
         showCustomizeHint = true
       } else {
-        // 真实的微信昵称
+        // 真实的微信昵称（这种情况现在很少见）
         displayName = userProfile.nickName
       }
     }
