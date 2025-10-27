@@ -191,8 +191,8 @@
   <!-- 授权弹窗 -->
   <auth-modal 
     show="{{showAuthModal}}" 
-    title="授权登录"
-    subtitle="为了完成语音包购买"
+    title="完善用户信息"
+    subtitle="为了完成语音包购买，需要获取您的用户信息"
     bind:success="onAuthSuccess"
     bind:cancel="onAuthCancel"
     bind:close="onAuthClose">

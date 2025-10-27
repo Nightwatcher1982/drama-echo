@@ -556,7 +556,36 @@ Page({
     console.log('授权成功:', e.detail)
     this.setData({ showAuthModal: false })
     
-    // 授权成功后，检查是否有待处理的语音包
+    // 检查用户信息是否完善
+    const userProfile = app.globalData.userProfile
+    if (userProfile && userProfile.nickName === '微信用户') {
+      // 如果昵称是"微信用户"，提示用户完善信息
+      wx.showModal({
+        title: '完善个人信息',
+        content: '为了更好的购买体验，建议您设置个性化昵称。您可以在个人中心进行设置。',
+        confirmText: '去设置',
+        cancelText: '稍后设置',
+        success: (res) => {
+          if (res.confirm) {
+            // 用户选择去设置，跳转到个人中心
+            wx.switchTab({
+              url: '/pages/profile/profile'
+            })
+          } else {
+            // 用户选择稍后设置，继续购买流程
+            this.continuePurchaseFlow()
+          }
+        }
+      })
+    } else {
+      // 用户信息已完善，直接继续购买流程
+      this.continuePurchaseFlow()
+    }
+  },
+
+  // 继续购买流程
+  continuePurchaseFlow() {
+    // 检查是否有待处理的语音包
     if (this.data.pendingPackDetail) {
       // 恢复语音包详情弹窗并继续购买流程
       this.setData({
