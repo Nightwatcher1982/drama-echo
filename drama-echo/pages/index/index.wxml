@@ -20,7 +20,15 @@
       </view>
       <view class="profile-btn">个人中心 ></view>
     </view>
-    <!-- 未登录时不显示任何登录相关按钮，让用户先浏览功能 -->
+    
+    <!-- 未登录时显示个人中心入口 -->
+    <view wx:else class="user-info" bindtap="goToProfile">
+      <view class="avatar-placeholder">头像</view>
+      <view class="user-details">
+        <text class="user-name">点击进入个人中心</text>
+      </view>
+      <view class="profile-btn">个人中心 ></view>
+    </view>
   </view>
 
   <!-- 标语 -->
