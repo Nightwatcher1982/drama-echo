@@ -1098,10 +1098,14 @@ Page({
     }
   },
 
+  },
+
   // 跳转到许愿池管理页面
   goToWishPoolAdmin() {
-    wx.navigateTo({
-      url: '/pages/wish-pool-admin/wish-pool-admin'
+    wx.showToast({
+      title: '功能已下线',
+      icon: 'none',
+      duration: 2000
     })
   },
 

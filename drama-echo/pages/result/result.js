@@ -601,7 +601,7 @@ Page({
     
     // 获得积分奖励
     const points = this.data.pointsToEarn
-    app.addPoints(points, '戏剧魔法书完整记录')
+    app.addPoints(points, '戏剧回响完整记录')
     
     // 记录今日已获得积分
     const userData = app.globalData.userData

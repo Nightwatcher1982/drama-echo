@@ -163,7 +163,7 @@ Page({
   calculateStats() {
     const userData = app.globalData.userData
     if (userData) {
-      // 计算今日魔法书使用次数
+      // 计算今日戏剧回响使用次数
       const today = new Date().toDateString()
       const lastUsedDate = userData.lastUsedDate ? new Date(userData.lastUsedDate).toDateString() : ''
       
@@ -846,7 +846,7 @@ Page({
   aboutApp() {
     wx.showModal({
       title: '戏剧回响',
-      content: '版本：v2.1.0\n\n让戏剧照亮你的每一天\n\n专为戏剧爱好者打造的生活记录应用，融合了戏剧魔法书、语音回响和笔记功能。',
+      content: '版本：v2.1.0\n\n让戏剧照亮你的每一天\n\n专为戏剧爱好者打造的生活记录应用，融合了戏剧回响、语音回响和笔记功能。',
       showCancel: false,
       confirmText: '知道了'
     })

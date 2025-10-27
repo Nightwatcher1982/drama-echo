@@ -166,8 +166,8 @@ Page({
       favoriteTheaters: []
     }
     
-    // 计算今日魔法书使用次数
-    const todayUses = this.getTodayMagicBookUses()
+    // 计算今日戏剧回响使用次数
+    const todayUses = this.getTodayDramaEchoUses()
     
     // 计算总的戏剧笔记数量
     const totalNotes = (userData.dramaNotes && Array.isArray(userData.dramaNotes)) ? userData.dramaNotes.length : 0
@@ -179,8 +179,8 @@ Page({
     })
   },
 
-  // 获取今日魔法书使用次数
-  getTodayMagicBookUses() {
+  // 获取今日戏剧回响使用次数
+  getTodayDramaEchoUses() {
     const userData = app.globalData.userData
     if (!userData) return 0
     

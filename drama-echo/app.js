@@ -371,10 +371,16 @@ App({
         userData.lastMoodShareDate = today
       }
       
+      }
+      
       // 戏剧魔法书模式：统一每日3次限制
       if (type === 'magicbook') {
-        const totalUses = (userData.dailyZodiacUses || 0) + (userData.dailyMoodShares || 0)
-        return totalUses < 3
+        wx.showToast({
+          title: '功能已下线',
+          icon: 'none',
+          duration: 2000
+        })
+        return false
       }
       
       // 兼容旧模式

@@ -208,7 +208,7 @@
           <view class="function-item" bindtap="goToWishPoolAdmin">
             <view class="function-icon">🎋</view>
             <view class="function-title">许愿池管理</view>
-            <view class="function-desc">查看许愿数据统计</view>
+            <view class="function-desc">功能已下线</view>
           </view>
         </view>
       </view>
