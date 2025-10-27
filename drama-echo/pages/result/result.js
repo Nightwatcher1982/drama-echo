@@ -687,27 +687,27 @@ Page({
       return {
         title: `我的${value}运势：${resultData.chinese}`,
         path: `/pages/result/result?type=${type}&value=${value}`,
-        imageUrl: '/images/zodiac-share.jpg'
+        imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
       };
     } else if (type === 'mood') {
       return {
         title: `我的心情：${resultData.chinese}`,
         path: `/pages/result/result?type=${type}&value=${value}`,
-        imageUrl: '/images/mood-share.jpg'
+        imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
       };
     } else if (type === 'combined') {
       // 组合模式的分享
       return {
         title: `魔法之书：${resultData.chinese}`,
         path: `/pages/result/result?type=${type}&value=${value}`,
-        imageUrl: '/images/magic-share.jpg'
+        imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
       };
     } else {
       // 默认分享
       return {
         title: `戏剧台词：${resultData.chinese}`,
         path: `/pages/result/result?type=${type}&value=${value}`,
-        imageUrl: '/images/drama-share.jpg'
+        imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
       };
     }
   }

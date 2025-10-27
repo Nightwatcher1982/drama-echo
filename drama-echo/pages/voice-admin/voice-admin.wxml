@@ -51,9 +51,12 @@
               <view class="pack-icon">{{item.icon}}</view>
               <view class="pack-details">
                 <view class="pack-name">{{item.name}}</view>
-                <view class="pack-price">¥{{item.formattedPrice}}</view>
+                <view class="pack-price">
+                  <text class="price-number">{{item.priceValue}}</text>
+                  <text class="price-unit">个回响</text>
+                </view>
                 <view class="pack-meta">
-                  销量: {{item.sales}} | 文件: {{item.voiceFiles.length}}个
+                  已售: {{item.sales}} 份 | 文件: {{item.voiceFiles.length}}个
                   <text wx:if="{{item.isHot}}" class="hot-tag">🔥热门</text>
                 </view>
               </view>

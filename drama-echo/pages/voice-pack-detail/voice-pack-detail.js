@@ -62,6 +62,10 @@ Page({
     this.initAudioContext()
   },
 
+  onShow() {
+    // 允许浏览，但在购买时检查登录状态
+  },
+
   onUnload() {
     // 清理音频资源
     if (this.audioContext) {
@@ -81,6 +85,9 @@ Page({
       
       // 创建新的音频上下文
       this.audioContext = wx.createInnerAudioContext()
+      
+      // 设置iOS静音模式下也能播放声音
+      this.audioContext.obeyMuteSwitch = false
       
       // 验证音频上下文是否创建成功
       if (!this.audioContext) {
@@ -131,25 +138,41 @@ Page({
             console.log('使用云端数据:', res.result.data)
             const packData = res.result.data
             
-            // 使用云函数返回的购买状态
-            if (packData.packagePurchased || packData.isPurchased) {
+            // 使用云函数返回的购买状态，但需要检查用户是否已登录
+            const isUserLoggedIn = app.checkLoginStatus()
+            if (isUserLoggedIn && (packData.packagePurchased || packData.isPurchased)) {
               if (packData.voices) {
                 packData.voices.forEach(voice => {
                   voice.purchased = true
                   voice.canPreview = true
                 })
               }
+            } else {
+              // 未登录用户，设置为未购买状态
+              if (packData.voices) {
+                packData.voices.forEach(voice => {
+                  voice.purchased = false
+                  voice.canPreview = true
+                })
+              }
+              packData.packagePurchased = false
+              packData.isPurchased = false
             }
             
-            // 添加格式化价格字段（仅在支持虚拟支付时显示）
+            // 添加格式化价格字段（显示为回响单位）
             if (this.data.isVirtualPaymentSupported) {
-              packData.formattedPrice = (packData.packagePrice / 100).toFixed(2)
+              const priceValue = (packData.packagePrice / 100).toFixed(1)
+              packData.priceValue = priceValue
+              packData.priceUnit = '个回响'
+              packData.formattedPrice = `${priceValue}个回响`
             } else {
               packData.formattedPrice = ''
+              packData.priceValue = ''
+              packData.priceUnit = ''
             }
             
-            // 设置用户购买数量（基于购买状态）
-            const userPurchaseCount = (packData.packagePurchased || packData.isPurchased) ? 1 : 0
+            // 设置用户购买数量（基于购买状态和登录状态）
+            const userPurchaseCount = (isUserLoggedIn && (packData.packagePurchased || packData.isPurchased)) ? 1 : 0
             this.setData({ userPurchaseCount })
             
             // 先显示页面数据
@@ -168,6 +191,9 @@ Page({
             
             // 异步处理云存储图片，获取临时链接
             this.processCloudImages(packData)
+            
+            // 异步获取真实音频时长
+            this.loadRealAudioDurations(packData)
             
             // 获取用户购买数量
             await this.getUserPurchaseCount(packId)
@@ -355,11 +381,17 @@ Page({
       isEmpty: !shareImage
     })
     
+    // 构建演员详情页链接，需要获取演员ID
+    const actorId = packInfo.actorId || packInfo.actor_id
+    const sharePath = actorId ? 
+      `/pages/actor-detail/actor-detail?actorId=${actorId}` : 
+      `/pages/voice-echo/voice-echo` // 如果没有演员ID，回退到戏剧回响页面
+    
     // 使用分享图片处理工具
     const shareContent = await ShareImageHandler.createShareContent(
-      `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
-      packInfo.description || `${packInfo.actorName}专属语音包`,
-      `/pages/voice-pack-detail/voice-pack-detail?packId=${this.data.packId}`,
+      `${packInfo.actorName}的专属空间 - 戏剧回响`,
+      `探索${packInfo.actorName}的精彩内容`,
+      sharePath,
       shareImage
     )
     
@@ -372,7 +404,7 @@ Page({
   // 验证图片URL是否有效
   async validateImageUrl(imageUrl) {
     return new Promise((resolve) => {
-      if (!imageUrl || imageUrl === '/images/modu.png') {
+      if (!imageUrl || imageUrl === 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png') {
         resolve(true) // 本地图片直接通过
         return
       }
@@ -650,11 +682,17 @@ Page({
     
     // 默认分享内容
     const { packInfo } = this.data
-    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
+    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
+    
+    // 构建演员详情页链接
+    const actorId = packInfo.actorId || packInfo.actor_id
+    const sharePath = actorId ? 
+      `/pages/actor-detail/actor-detail?actorId=${actorId}` : 
+      `/pages/voice-echo/voice-echo` // 如果没有演员ID，回退到戏剧回响页面
     
     return {
-      title: `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
-      path: `/pages/voice-pack-detail/voice-pack-detail?packId=${this.data.packId}`,
+      title: `${packInfo.actorName}的专属空间 - 戏剧回响`,
+      path: sharePath,
       imageUrl: defaultImage
     }
   },
@@ -662,20 +700,28 @@ Page({
   onShareTimeline() {
     const shareContent = this.data.shareContent
     if (shareContent) {
+      // 从分享路径中提取参数
+      const urlParts = shareContent.path.split('?')
+      const query = urlParts.length > 1 ? urlParts[1] : ''
+      
       return {
         title: shareContent.title,
-        query: `packId=${shareContent.path.split('packId=')[1]}`,
+        query: query,
         imageUrl: shareContent.imageUrl
       }
     }
     
     // 默认分享内容
     const { packInfo } = this.data
-    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || '/images/modu.png'
+    const defaultImage = packInfo.actorAvatar || packInfo.photos && packInfo.photos[0] || packInfo.images && packInfo.images[0] || 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
+    
+    // 构建演员详情页链接
+    const actorId = packInfo.actorId || packInfo.actor_id
+    const query = actorId ? `actorId=${actorId}` : ''
     
     return {
-      title: `${packInfo.actorName}的${packInfo.name} - 戏剧回响`,
-      query: `packId=${this.data.packId}`,
+      title: `${packInfo.actorName}的专属空间 - 戏剧回响`,
+      query: query,
       imageUrl: defaultImage
     }
   },
@@ -717,6 +763,119 @@ Page({
     } catch (error) {
       console.error('🖼️ 获取图片临时链接失败:', error)
     }
+  },
+
+  // 获取真实音频时长
+  async loadRealAudioDurations(packData) {
+    try {
+      console.log('🎵 开始获取真实音频时长，语音数量:', packData.voices?.length || 0)
+      
+      if (!packData.voices || packData.voices.length === 0) {
+        console.log('🎵 没有语音需要获取时长')
+        return
+      }
+      
+      // 为每个语音获取真实时长
+      const updatedVoices = await Promise.all(
+        packData.voices.map(async (voice, index) => {
+          try {
+            // 如果数据库中已经有真实时长，直接使用
+            if (voice.duration && voice.duration !== '2:30' && voice.duration !== '0:00') {
+              console.log(`🎵 语音 ${index + 1} (${voice.title}) 使用数据库时长: ${voice.duration}`)
+              return voice
+            }
+            
+            // 调用云函数获取真实时长
+            const durationResult = await wx.cloud.callFunction({
+              name: 'getAudioDuration',
+              data: { audioUrl: voice.audioUrl || voice.previewUrl }
+            })
+            
+            if (durationResult.result && durationResult.result.code === 0) {
+              voice.duration = durationResult.result.data.formattedDuration
+              console.log(`🎵 语音 ${index + 1} (${voice.title}) 真实时长: ${voice.duration}`)
+            } else {
+              console.error(`🎵 获取语音 ${index + 1} 时长失败:`, durationResult.result?.message)
+              // 保持原有时长或设置默认值
+              if (!voice.duration || voice.duration === '2:30') {
+                voice.duration = '0:00'
+              }
+            }
+          } catch (error) {
+            console.error(`🎵 获取语音 ${index + 1} 时长失败:`, error)
+            // 保持原有时长或设置默认值
+            if (!voice.duration || voice.duration === '2:30') {
+              voice.duration = '0:00'
+            }
+          }
+          return voice
+        })
+      )
+      
+      // 更新页面数据
+      this.setData({
+        'packInfo.voices': updatedVoices
+      })
+      
+      console.log('🎵 真实音频时长获取完成')
+    } catch (error) {
+      console.error('🎵 获取真实音频时长失败:', error)
+    }
+  },
+
+  // 获取单个音频文件的时长
+  getAudioDuration(audioUrl) {
+    return new Promise((resolve, reject) => {
+      if (!audioUrl) {
+        reject(new Error('音频URL为空'))
+        return
+      }
+      
+      // 创建音频上下文
+      const audioContext = wx.createInnerAudioContext()
+      
+      // 设置iOS静音模式下也能播放声音
+      audioContext.obeyMuteSwitch = false
+      
+      audioContext.src = audioUrl
+      
+      // 监听音频加载完成事件
+      audioContext.onCanplay(() => {
+        // 获取音频时长
+        const duration = audioContext.duration
+        audioContext.destroy()
+        
+        if (duration && duration > 0) {
+          resolve(duration)
+        } else {
+          reject(new Error('无法获取音频时长'))
+        }
+      })
+      
+      // 监听错误事件
+      audioContext.onError((error) => {
+        audioContext.destroy()
+        reject(error)
+      })
+      
+      // 设置超时
+      setTimeout(() => {
+        audioContext.destroy()
+        reject(new Error('获取音频时长超时'))
+      }, 10000) // 10秒超时
+    })
+  },
+
+  // 格式化时长（秒转换为分:秒格式）
+  formatDuration(seconds) {
+    if (!seconds || seconds <= 0) {
+      return '0:00'
+    }
+    
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   },
 
   // 获取用户购买数量
@@ -779,21 +938,28 @@ Page({
     console.log('💰 找到的价格字段:', { price, packagePrice: packInfo?.packagePrice, originalPrice: packInfo?.originalPrice })
     
     if (packInfo && price && repurchaseQuantity) {
-      const totalPrice = (price * repurchaseQuantity / 100).toFixed(2)
+      const totalPriceValue = (price * repurchaseQuantity / 100).toFixed(1)
+      const totalPrice = `${totalPriceValue}个回响`
       console.log('💰 计算出的总价:', totalPrice)
-      this.setData({ totalPrice })
+      this.setData({ 
+        totalPrice,
+        totalPriceValue
+      })
     } else {
       console.log('💰 数据不完整，设置默认总价')
-      this.setData({ totalPrice: '0.00' })
+      this.setData({ 
+        totalPrice: '0.0个回响',
+        totalPriceValue: '0.0'
+      })
     }
   },
 
   // 显示复购弹窗
   showRepurchaseModal() {
-    // 检查虚拟支付支持
-    if (!this.data.isVirtualPaymentSupported) {
+    // 检查登录状态，如果未登录则提示
+    if (!app.checkLoginStatus()) {
       wx.showToast({
-        title: '由于相关规范，iOS功能暂不可用',
+        title: '请先登录',
         icon: 'none',
         duration: 2000
       })
@@ -852,14 +1018,7 @@ Page({
   // 确认复购
   async confirmRepurchase() {
     // 检查虚拟支付支持
-    if (!this.data.isVirtualPaymentSupported) {
-      wx.showToast({
-        title: '由于相关规范，iOS功能暂不可用',
-        icon: 'none',
-        duration: 2000
-      })
-      return
-    }
+    // 现在安卓和iOS都支持虚拟支付，无需检查
     
     const { packId, repurchaseQuantity, packInfo } = this.data
     

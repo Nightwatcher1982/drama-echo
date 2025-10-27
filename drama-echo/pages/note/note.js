@@ -287,7 +287,7 @@ Page({
     })
 
     // 如果搜索结果包含海报，自动添加到票根图片
-    if (show.poster && show.poster !== '/images/modu.png') {
+    if (show.poster && show.poster !== 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png') {
       this.setData({
         ticketImages: [show.poster, ...this.data.ticketImages]
       })
@@ -639,7 +639,7 @@ Page({
     return {
       title: `我在${this.data.venue}观看了《${this.data.dramaTitle}》`,
       path: `/pages/note/note?mode=view&id=${this.data.noteId}`,
-      imageUrl: this.data.ticketImages[0] || '/images/modu.png'
+      imageUrl: this.data.ticketImages[0] || 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   },
 
@@ -648,7 +648,7 @@ Page({
     return {
       title: `我在${this.data.venue}观看了《${this.data.dramaTitle}》`,
       query: `mode=view&id=${this.data.noteId}`,
-      imageUrl: this.data.ticketImages[0] || '/images/modu.png'
+      imageUrl: this.data.ticketImages[0] || 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   }
 }) 

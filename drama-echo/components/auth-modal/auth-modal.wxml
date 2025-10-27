@@ -1,0 +1,36 @@
+<!-- 用户授权弹窗组件 -->
+<view class="auth-modal" wx:if="{{show}}">
+  <view class="modal-mask" bindtap="onCancel"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <view class="modal-title">🎭 授权登录</view>
+      <view class="modal-subtitle">为了给您提供更好的服务体验</view>
+    </view>
+    
+    <view class="modal-body">
+      <view class="auth-info">
+        <view class="info-item">
+          <text class="info-icon">👤</text>
+          <text class="info-text">获取您的昵称和头像</text>
+        </view>
+        <view class="info-item">
+          <text class="info-icon">💾</text>
+          <text class="info-text">保存您的个人设置和收藏</text>
+        </view>
+        <view class="info-item">
+          <text class="info-icon">🎵</text>
+          <text class="info-text">记录您的语音包购买记录</text>
+        </view>
+      </view>
+      
+      <view class="privacy-notice">
+        <text class="notice-text">我们承诺保护您的隐私，仅用于提供个性化服务</text>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="onCancel">暂不登录</button>
+      <button class="confirm-btn" bindtap="onConfirm">立即授权</button>
+    </view>
+  </view>
+</view>

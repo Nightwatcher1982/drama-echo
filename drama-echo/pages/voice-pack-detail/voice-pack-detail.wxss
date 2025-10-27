@@ -4,6 +4,7 @@
   padding-bottom: 120rpx;
   position: relative;
   overflow-x: hidden;
+  padding-top: calc(80rpx + env(safe-area-inset-top));
 }
 
 .container::before {
@@ -33,6 +34,17 @@
 }
 
 /* 顶部导航 */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding-top: env(safe-area-inset-top);
+}
+
 .header {
   position: fixed;
   top: 0;
@@ -48,7 +60,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 30rpx;
-  padding-top: calc(20rpx + env(safe-area-inset-top));
 }
 
 .nav-left, .nav-right {
@@ -86,10 +97,12 @@
 /* 写真照片区域 */
 .photo-section {
   position: relative;
+  margin-top: 20rpx;
 }
 
 .photo-swiper {
   height: 480px;
+  margin: 0 20rpx;
 }
 
 .photo-image {
@@ -789,11 +802,7 @@
   }
 }
 
-.nav-bar {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
+/* 重复的nav-bar样式已移除 */
 
 .nav-title {
   width: 100%;
@@ -809,13 +818,15 @@
   color: #fff;
 }
 
+/* 购买区域样式已移除 */
+
 /* 打榜复购区域新样式 */
 .support-section {
   padding: 20rpx 0;
 }
 
 .support-card {
-  background: rgba(255, 255, 255, 0.95);
+  background:linear-gradient(180deg,#F2D3FC,#fff);
   border-radius: 20rpx;
   padding: 30rpx;
   display: flex;
@@ -851,15 +862,29 @@
 }
 
 .support-btn {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  padding: 16rpx 24rpx;
-  border-radius: 24rpx;
+  width: 184rpx;
+  height: 76rpx;
+  background: linear-gradient(180deg, #9500E5 0%, #C31DED 100%);
+  color: #EDDBF3;
+  padding: 24rpx 36rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid rgba(119, 5, 180, 0.3);
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
+  justify-content: center;
+  gap: 12rpx;
+  white-space: nowrap;
+  box-shadow: 
+    0rpx 0rpx 0rpx 10rpx rgba(255, 255, 255, 0.3),
+    0rpx 0rpx 0rpx 8rpx #F3EAF8,
+    0rpx 7.42rpx 9.7rpx 0rpx rgba(149, 0, 229, 0.15),
+    0rpx 20.54rpx 26.8rpx 0rpx rgba(149, 0, 229, 0.22),
+    0rpx 49.44rpx 64.52rpx 0rpx rgba(149, 0, 229, 0.19),
+    0rpx 84rpx 214rpx 0rpx rgba(149, 0, 229, 0.34),
+    0rpx 2rpx 8rpx 4rpx rgba(242, 217, 255, 0.8) inset,
+    0rpx 2rpx 36rpx 4rpx rgba(242, 217, 255, 0.8) inset;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .support-btn:active {
@@ -871,14 +896,21 @@
 }
 
 .support-btn .btn-text {
-  font-size: 24rpx;
+  font-family: PingFang SC;
+  font-size: 28rpx;
   font-weight: 500;
+  font-style: normal;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #EDDBF3;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .share-button-box{
   width: 100% !important;
   border-radius: 100rpx !important;
-  background: linear-gradient(135deg, #fff 0%, rgb(243, 203, 237) 20%, #fff 80%, rgb(243, 203, 237) 100%);
+  background: linear-gradient(0deg, #fff 0%, rgb(243, 203, 237) 70%, #fff 90%, rgb(243, 203, 237) 100%);
   padding: 8rpx;
   box-sizing: border-box;
 }
@@ -1062,4 +1094,17 @@
 .repurchase-modal .confirm-btn {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   color: white;
+}
+
+/* 价格显示样式 */
+.price-number {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.price-unit {
+  font-size: 24rpx;
+  color: #666;
+  margin-left: 4rpx;
 }

@@ -3,6 +3,9 @@ const UserStateManager = require('../../utils/userStateManager.js')
 
 Page({
   data: {
+    // 页面状态
+    pageReady: false,
+    
     userData: {
       checkInDays: 0,
       moodRecords: [],
@@ -22,42 +25,42 @@ Page({
     // 环境相关
     isRealDevice: false,
     // 演员头像数据
-    actorAvatars: [
-      'https://picsum.photos/100/100?random=1',
-      'https://picsum.photos/100/100?random=2',
-      'https://picsum.photos/100/100?random=3',
-      'https://picsum.photos/100/100?random=4',
-      'https://picsum.photos/100/100?random=5',
-      'https://picsum.photos/100/100?random=6',
-      'https://picsum.photos/100/100?random=7',
-      'https://picsum.photos/100/100?random=8'
-    ]
+    actorAvatars: [],
+    // 演员头像加载状态
+    actorAvatarsLoaded: false
   },
   
   onLoad() {
+    // 立即显示页面，异步加载数据
+    this.setData({
+      pageReady: true
+    })
+    
+    // 异步初始化页面
     this.initializePage()
   },
   
   onShow() {
-    this.refreshUserState()
+    // 只在必要时刷新用户状态，避免重复检查
+    if (!this.data.userLoggedIn) {
+      this.refreshUserState()
+    }
   },
 
   // 初始化页面
   async initializePage() {
     try {
-      // 1. 刷新用户状态
-      await this.refreshUserState()
+      // 1. 并行加载关键数据
+      const [userStateValid] = await Promise.all([
+        this.refreshUserState(),
+        this.loadActorAvatars() // 并行加载演员头像
+      ])
       
-      // 2. 加载用户数据
+      // 2. 加载其他数据（非阻塞）
       this.loadUserData()
-      
-      // 3. 设置今日剧院
       this.setTodayTheater()
       
-      // 4. 加载演员头像数据
-      await this.loadActorAvatars()
-      
-      // 5. 添加云函数测试功能（开发环境）
+      // 3. 添加云函数测试功能（开发环境）
       if (wx.getSystemInfoSync().platform === 'devtools') {
         this.testCloudFunction = this.testVoicePackDetail
       }
@@ -71,6 +74,18 @@ Page({
     try {
       console.log('🔄 刷新用户状态...')
       
+      // 检查缓存，避免重复调用
+      const cacheKey = 'userStateRefreshed'
+      const lastRefresh = wx.getStorageSync(cacheKey)
+      const now = Date.now()
+      
+      // 如果最近30秒内已经刷新过，跳过
+      if (lastRefresh && (now - lastRefresh < 30 * 1000)) {
+        console.log('📦 用户状态最近已刷新，跳过')
+        UserStateManager.updatePageUserState(this)
+        return
+      }
+      
       // 1. 检查并修复用户信息
       const userInfoValid = await UserStateManager.checkAndFixUserInfo()
       if (!userInfoValid) {
@@ -81,7 +96,10 @@ Page({
       // 2. 更新页面用户状态
       UserStateManager.updatePageUserState(this)
       
-      // 3. 如果用户已登录，重新加载数据
+      // 3. 记录刷新时间
+      wx.setStorageSync(cacheKey, now)
+      
+      // 4. 如果用户已登录，重新加载数据
       if (UserStateManager.checkLoginStatus()) {
         this.loadUserData()
       }
@@ -136,62 +154,9 @@ Page({
     }
   },
 
-  // 处理用户登录
-  async handleLogin(e) {
-    try {
-      wx.showLoading({
-        title: '登录中...',
-        mask: true
-      })
-
-      // 调用app中的授权方法
-      await app.authorizeUser()
-      
-      // 更新页面登录状态
-      this.updateLoginStatus()
-      
-      wx.hideLoading()
-      
-      // 重新加载用户数据
-      this.loadUserData()
-      
-      wx.showToast({
-        title: '登录成功！',
-        icon: 'success'
-      })
-      
-    } catch (error) {
-      wx.hideLoading()
-      console.error('登录失败:', error)
-      
-      if (error.errMsg && (error.errMsg.includes('deny') || error.errMsg.includes('cancel'))) {
-        wx.showModal({
-          title: '温馨提示',
-          content: '需要您的授权才能使用完整功能哦～',
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      } else if (error.errMsg && error.errMsg.includes('can only be invoked by user TAP gesture')) {
-        wx.showModal({
-          title: '授权提示',
-          content: '请点击登录按钮完成授权',
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      } else if (error.errMsg && error.errMsg.includes('desc length does not meet the requirements')) {
-        wx.showModal({
-          title: '授权配置错误',
-          content: '登录参数配置有误，请联系开发者修复',
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      } else {
-        wx.showToast({
-          title: '登录失败，请重试',
-          icon: 'none'
-        })
-      }
-    }
+  // 检查登录状态（供其他页面调用）
+  checkLoginStatus() {
+    return app.checkLoginStatus()
   },
   
   loadUserData() {
@@ -244,26 +209,10 @@ Page({
     }
   },
   
-  goToMagicBook() {
-    wx.showToast({
-      title: '敬请期待',
-      icon: 'none',
-      duration: 2000
-    })
-  },
-  
   goToEcho() {
     // 直接进入戏剧回响页面，不需要登录
     wx.navigateTo({
       url: '/pages/voice-echo/voice-echo'
-    })
-  },
-
-  goToWishPool() {
-    wx.showToast({
-      title: '敬请期待',
-      icon: 'none',
-      duration: 2000
     })
   },
 
@@ -286,7 +235,7 @@ Page({
     return {
       title: '戏剧回响 - 聆听内心的戏剧回响',
       path: '/pages/index/index',
-      imageUrl: '/images/share-cover.jpg'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   },
 
@@ -340,6 +289,22 @@ Page({
     try {
       console.log('🎭 开始加载演员头像数据...')
       
+      // 检查缓存
+      const cacheKey = 'actorAvatars'
+      const cachedAvatars = wx.getStorageSync(cacheKey)
+      const cacheTime = wx.getStorageSync(cacheKey + '_time')
+      const now = Date.now()
+      
+      // 如果缓存存在且未过期（5分钟），直接使用缓存
+      if (cachedAvatars && cacheTime && (now - cacheTime < 5 * 60 * 1000)) {
+        console.log('📦 使用缓存的演员头像数据')
+        this.setData({
+          actorAvatars: cachedAvatars,
+          actorAvatarsLoaded: true
+        })
+        return
+      }
+      
       if (app.globalData.cloudEnabled) {
         const res = await wx.cloud.callFunction({
           name: 'getActors',
@@ -353,8 +318,13 @@ Page({
           // 提取演员头像，最多显示8个
           const avatars = actors.slice(0, 8).map(actor => actor.imageUrl || actor.avatar)
           
+          // 缓存数据
+          wx.setStorageSync(cacheKey, avatars)
+          wx.setStorageSync(cacheKey + '_time', now)
+          
           this.setData({
-            actorAvatars: avatars
+            actorAvatars: avatars,
+            actorAvatarsLoaded: true
           })
           
           console.log('✅ 演员头像已更新:', avatars.length, '个头像')

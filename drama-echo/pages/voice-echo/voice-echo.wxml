@@ -31,27 +31,29 @@
 
     <!-- 演员信息卡片 -->
     <view class="actor-info-card">
-      <view class="actor-header">
-        <view class="actor-name">{{currentActor.name}}</view>
-        <view class="actor-title">{{currentActor.title}}</view>
-      </view>
-      
-      <view class="actor-description">{{currentActor.description}}</view>
-      
-      <view class="stats-row">
-        <view class="stat-box">
-          <view class="stat-number">{{currentActor.stats.guardianCount}}</view>
-          <view class="stat-label">守护者</view>
+      <view class="actor-content">
+        <view class="actor-header">
+          <view class="actor-name">{{currentActor.name}}</view>
+          <view class="actor-title">{{currentActor.title}}</view>
         </view>
-        <view class="stat-box">
-          <view class="stat-number">{{currentActor.stats.voicePackCount}}</view>
-          <view class="stat-label">语音包</view>
+        
+        <view class="actor-description">{{currentActor.description}}</view>
+        
+        <view class="stats-row">
+          <view class="stat-box">
+            <view class="stat-number">{{currentActor.stats.guardianCount}}</view>
+            <view class="stat-label">守护者</view>
+          </view>
+          <view class="stat-box">
+            <view class="stat-number">{{currentActor.stats.voicePackCount}}</view>
+            <view class="stat-label">语音包</view>
+          </view>
         </view>
       </view>
       
       <button class="enter-space-btn" bind:tap="enterActorSpace">
         <text class="btn-text">进入专属空间</text>
-        <image class="star-icon" src="/images/figma-assets/star-decoration.png" mode="aspectFit"></image>
+        <text class="star-icon">✨</text>
       </button>
     </view>
   </view>

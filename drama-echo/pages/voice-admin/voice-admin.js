@@ -242,7 +242,9 @@ Page({
       if (res.result.code === 0) {
         const voicePacks = res.result.data.map(pack => ({
           ...pack,
-          formattedPrice: (pack.price / 100).toFixed(2),
+          priceValue: (pack.price / 100).toFixed(1),
+          priceUnit: '个回响',
+          formattedPrice: `${(pack.price / 100).toFixed(1)}个回响`,
           showFiles: false
         }))
         
@@ -472,20 +474,32 @@ Page({
       count: 1,
       type: 'file',
       extension: ['mp3', 'wav', 'aac', 'm4a'],
-      success: (res) => {
+      success: async (res) => {
         const file = res.tempFiles[0]
         if (file.size && file.size > 20 * 1024 * 1024) {
           wx.showToast({ title: '音频文件不能超过20MB', icon: 'none' })
           return
         }
+        
         const editingFile = { ...this.data.editingFile }
         editingFile.tempFilePath = file.path
         editingFile.fileName = file.name || (file.path ? file.path.split('/').pop() : `audio_${Date.now()}`)
         editingFile.size = file.size
-        // chooseMessageFile 无 duration，这里保持或设默认
-        if (!editingFile.duration || editingFile.duration === 30) {
+        
+        // 自动获取音频文件的真实时长
+        try {
+          wx.showLoading({ title: '获取音频时长...' })
+          const realDuration = await this.getAudioDuration(file.path)
+          editingFile.duration = realDuration
+          console.log('🎵 获取到真实音频时长:', realDuration, '秒')
+        } catch (error) {
+          console.error('🎵 获取音频时长失败:', error)
+          // 如果获取失败，使用默认值
           editingFile.duration = 30
+        } finally {
+          wx.hideLoading()
         }
+        
         this.setData({ editingFile })
         wx.showToast({ title: '文件选择成功', icon: 'success' })
       },
@@ -873,6 +887,49 @@ Page({
       showAudioPlayer: false,
       currentAudioUrl: '',
       currentAudioFileName: ''
+    })
+  },
+
+  // 获取音频文件的真实时长
+  getAudioDuration(audioPath) {
+    return new Promise((resolve, reject) => {
+      if (!audioPath) {
+        reject(new Error('音频路径为空'))
+        return
+      }
+      
+      // 创建音频上下文
+      const audioContext = wx.createInnerAudioContext()
+      
+      // 设置iOS静音模式下也能播放声音
+      audioContext.obeyMuteSwitch = false
+      
+      audioContext.src = audioPath
+      
+      // 监听音频加载完成事件
+      audioContext.onCanplay(() => {
+        // 获取音频时长
+        const duration = audioContext.duration
+        audioContext.destroy()
+        
+        if (duration && duration > 0) {
+          resolve(Math.floor(duration)) // 返回整数秒数
+        } else {
+          reject(new Error('无法获取音频时长'))
+        }
+      })
+      
+      // 监听错误事件
+      audioContext.onError((error) => {
+        audioContext.destroy()
+        reject(error)
+      })
+      
+      // 设置超时
+      setTimeout(() => {
+        audioContext.destroy()
+        reject(new Error('获取音频时长超时'))
+      }, 10000) // 10秒超时
     })
   }
 })

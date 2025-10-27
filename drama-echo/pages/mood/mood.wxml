@@ -76,4 +76,14 @@
     <view class="tip-icon">🌟</view>
     <view class="tip-text">每一种心情都值得被戏剧化地记录和珍藏</view>
   </view>
+
+  <!-- 授权弹窗 -->
+  <auth-modal 
+    show="{{showAuthModal}}" 
+    title="授权登录"
+    subtitle="为了保存您的心情记录"
+    bind:success="onAuthSuccess"
+    bind:cancel="onAuthCancel"
+    bind:close="onAuthClose">
+  </auth-modal>
 </view> 

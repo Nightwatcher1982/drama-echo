@@ -62,15 +62,14 @@
           <!-- 演员列表 -->
           <view class="actor-grid" wx:if="{{actors.length > 0}}">
             <view wx:for="{{actors}}" wx:key="_id" 
-                  class="actor-card {{selectedActorId === item._id ? 'selected' : ''}}"
-                  bindtap="selectActorDirect" data-actor="{{item}}">
+                  class="actor-card {{selectedActorId === item._id ? 'selected' : ''}}">
               <!-- 选中状态指示器 -->
               <view wx:if="{{selectedActorId === item._id}}" class="selected-indicator">
                 <view class="selected-badge">已选中</view>
               </view>
               
-              <!-- 演员信息区域 -->
-              <view class="actor-content">
+              <!-- 演员信息区域 - 可点击选择 -->
+              <view class="actor-content" bindtap="selectActorDirect" data-actor="{{item}}">
                 <view class="actor-avatar">
                   <image wx:if="{{item.avatar && item.avatar.startsWith('http') || item.avatar.startsWith('cloud://')}}" src="{{item.avatar}}" class="avatar-image" mode="aspectFill"></image>
                   <view wx:else class="avatar-placeholder">{{item.name.charAt(0)}}</view>
@@ -95,11 +94,11 @@
               
               <!-- 操作按钮区域 - 只在选中时显示 -->
               <view wx:if="{{selectedActorId === item._id}}" class="actor-actions">
-                <button class="action-btn edit" bindtap="openEditActor" data-actor="{{item}}" catchtap="true">
+                <button class="action-btn edit" bindtap="openEditActor" data-actor="{{item}}">
                   <view class="action-icon">✏️</view>
                   <view class="action-text">编辑</view>
                 </button>
-                <button class="action-btn delete" bindtap="deleteActor" data-actor-id="{{item._id}}" catchtap="true">
+                <button class="action-btn delete" bindtap="deleteActor" data-actor-id="{{item._id}}">
                   <view class="action-icon">🗑️</view>
                   <view class="action-text">删除</view>
                 </button>
@@ -142,7 +141,10 @@
                 <view class="pack-meta">
                   <view class="meta-item">
                     <view class="meta-label">价格</view>
-                    <view class="meta-value">¥{{item.formattedPrice}}</view>
+                    <view class="meta-value">
+                      <text class="price-number">{{item.priceValue}}</text>
+                      <text class="price-unit">个回响</text>
+                    </view>
                   </view>
                   <view class="meta-item">
                     <view class="meta-label">音频文件</view>
@@ -372,6 +374,7 @@
           </view>
           <view class="audio-file-actions">
             <button class="btn-outline btn-s" data-src="{{item.fileId}}" bindtap="previewExistingAudio">试听</button>
+            <button class="btn-outline btn-s" data-file="{{item}}" bindtap="editExistingAudio">编辑</button>
             <button class="btn-outline btn-s" data-id="{{item.id}}" bindtap="deleteExistingAudio">删除</button>
           </view>
         </view>

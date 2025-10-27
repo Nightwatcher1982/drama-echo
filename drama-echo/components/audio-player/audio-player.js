@@ -102,6 +102,9 @@ Component({
       
       const audioContext = wx.createInnerAudioContext()
       
+      // 设置iOS静音模式下也能播放声音
+      audioContext.obeyMuteSwitch = false
+      
       // 监听音频加载完成
       audioContext.onCanplay(() => {
         console.log('音频可以播放')

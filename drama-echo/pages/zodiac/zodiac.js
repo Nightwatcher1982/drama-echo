@@ -54,7 +54,8 @@ Page({
   onShareAppMessage() {
     return {
       title: '选择你的星座 - 魔都戏剧',
-      path: '/pages/zodiac/zodiac'
+      path: '/pages/zodiac/zodiac',
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   }
 }) 

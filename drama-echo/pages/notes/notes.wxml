@@ -61,7 +61,7 @@
             binderror="onImageError"
             bindload="onImageLoad"
           />
-          <view class="image-placeholder" wx:if="{{!item.coverImage || item.coverImage === '/images/modu.png'}}">🎭</view>
+          <view class="image-placeholder" wx:if="{{!item.coverImage || item.coverImage === 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'}}">🎭</view>
           <view class="note-rating" wx:if="{{item.rating}}">
             <view class="rating-stars">
               <text wx:for="{{item.ratingStars}}" wx:key="*this">{{item}}</text>

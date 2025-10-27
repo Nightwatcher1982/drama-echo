@@ -580,7 +580,8 @@ Page({
   onShareAppMessage() {
     return {
       title: '魔都戏剧 - 后台管理',
-      path: '/pages/index/index'
+      path: '/pages/index/index',
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   },
 

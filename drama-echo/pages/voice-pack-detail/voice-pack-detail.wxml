@@ -3,11 +3,6 @@
   <!-- 顶部导航 -->
   <view class="top-bar">
     <view class="nav-bar">
-      <view class="nav-title"></view>
-    </view>
-  </view>
-  <view class="top-bar">
-    <view class="nav-bar">
       <view class="nav-back" bind:tap="goBackFn">＜</view>
       <view class="nav-title">语音包详情</view>
     </view>
@@ -56,7 +51,6 @@
         <view class="voice-content">
           <view class="voice-title">{{item.title}}</view>
           <view class="voice-meta">
-            <text class="voice-duration">{{item.duration}}</text>
             <text wx:if="{{item.subtitle}}" class="voice-subtitle">{{item.subtitle}}</text>
           </view>
         </view>
@@ -99,6 +93,8 @@
     </view>
   </view>
 
+  <!-- 购买区域已移除 -->
+
   <!-- 打榜复购区域 -->
   <view class="support-section" wx:if="{{packInfo.packagePurchased}}">
     <view class="support-card">
@@ -110,8 +106,7 @@
       
       <view class="support-action">
         <view class="support-btn" bindtap="showRepurchaseModal">
-          <text class="btn-icon">💎</text>
-          <text class="btn-text">{{isVirtualPaymentSupported ? '打榜复购' : '由于相关规范，iOS功能暂不可用'}}</text>
+          <text class="btn-text">打榜</text>
         </view>
       </view>
     </view>
@@ -133,7 +128,7 @@
     <view class="modal-mask" bindtap="hideRepurchaseModal"></view>
     <view class="modal-content">
       <view class="modal-header">
-        <view class="modal-title">选择复购数量</view>
+        <view class="modal-title">选择接力数量</view>
         <view class="modal-close" bindtap="hideRepurchaseModal">×</view>
       </view>
       
@@ -142,15 +137,22 @@
           <image src="{{packInfo.icon}}" class="pack-icon" mode="aspectFill" />
           <view class="pack-details">
             <view class="pack-name">{{packInfo.name}}</view>
+            <view class="pack-price" wx:if="{{isVirtualPaymentSupported}}">
+              <text class="price-number">{{packInfo.priceValue}}</text>
+              <text class="price-unit">个回响</text>
+            </view>
           </view>
         </view>
         
         <view class="quantity-selector" wx:if="{{isVirtualPaymentSupported}}">
-          <view class="quantity-label">获取数量</view>
+          <view class="quantity-label">接力数量</view>
           <view class="quantity-controls">
             <view class="quantity-btn" bindtap="decreaseQuantity">-</view>
             <view class="quantity-display">{{repurchaseQuantity}}</view>
             <view class="quantity-btn" bindtap="increaseQuantity">+</view>
+          </view>
+          <view class="total-price" wx:if="{{totalPriceValue}}">
+            总计：<text class="price-number">{{totalPriceValue}}</text><text class="price-unit">个回响</text>
           </view>
         </view>
         
@@ -158,7 +160,7 @@
       
       <view class="modal-footer">
         <view class="modal-btn cancel-btn" bindtap="hideRepurchaseModal">取消</view>
-        <view class="modal-btn confirm-btn" bindtap="confirmRepurchase">{{isVirtualPaymentSupported ? '确认获取' : '由于相关规范，iOS功能暂不可用'}}</view>
+        <view class="modal-btn confirm-btn" bindtap="confirmRepurchase">确认接力</view>
       </view>
     </view>
   </view>

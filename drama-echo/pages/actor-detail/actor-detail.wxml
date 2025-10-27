@@ -51,19 +51,19 @@
           <view class="empty-text">暂无支持榜，快来成为第一个守护者吧！</view>
         </view>
       </view>
-        <view class="header-actions">
-          <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
-        </view>
+      <view class="header-actions">
+        <view class="view-all" bind:tap="viewFullRanking">查看完整榜单 →</view>
+      </view>
     </view>
       
       <!-- 奖励说明 -->
       <view class="reward-notice">
         <view class="notice-header">
           <view class="notice-icon">🎁</view>
-          <view class="notice-title">月度奖励活动</view>
+          <view class="notice-title">月度荣耀活动</view>
         </view>
         <view class="notice-content">
-          <view class="notice-text">戏剧回响小程序会在月末给榜单前三名的用户发放线下奖励</view>
+          <view class="notice-text">榜单前三甲粉丝可获得实物礼包</view>
           <view class="notice-details" bind:tap="showRewardDetails">
             <text>查看奖励详情</text>
             <text class="arrow">→</text>
@@ -90,7 +90,13 @@
             <view class="pack-icon">{{item.icon}}</view>
             <view class="pack-info">
               <view class="pack-name">{{item.name}}</view>
-              <view class="pack-sales">已售 {{item.sales}} 份</view>
+              <view class="pack-meta">
+                <view class="pack-sales">已售 {{item.sales}} 份</view>
+                <view class="pack-price" wx:if="{{isVirtualPaymentSupported && item.priceValue}}">
+                  <text class="price-number">{{item.priceValue}}</text>
+                  <text class="price-unit">个回响</text>
+                </view>
+              </view>
             </view>
           </view>
           
@@ -101,17 +107,8 @@
                     data-pack-id="{{item._id}}"
                     data-is-purchased="{{item.isPurchased}}"
                     catch:tap="{{item.isPurchased ? 'goToPackDetail' : 'showPackDetail'}}">
-                {{item.isPurchased ? '▶️ 播放' : (isVirtualPaymentSupported ? '获取' : '功能暂不可用')}}
+                {{item.isPurchased ? '查看' : '获取'}}
               </view>
-              <button wx:if="{{item.isPurchased}}" 
-                      class="share-button"
-                      open-type="share"
-                      data-pack-id="{{item._id}}"
-                      data-pack-name="{{item.name}}"
-                      data-pack-sales="{{item.sales}}"
-                      bind:tap="setShareContent">
-                📤 分享
-              </button>
             </view>
           </view>
           
@@ -161,27 +158,22 @@
         
         
         <!-- 详细信息 -->
-        <view class="detail-info-section">
+        <view class="detail-info-section" wx:if="{{currentPackDetail.description}}">
           <view class="pack-info-item">
-            <text class="info-label">总时长：</text>
-            <text class="info-value">{{currentPackDetail.totalDuration || '未知'}}</text>
-          </view>
-          
-          <view class="pack-info-item">
-            <text class="info-label">分类：</text>
-            <text class="info-value">{{currentPackDetail.category || '未分类'}}</text>
-          </view>
-          
-          <view class="pack-info-item" wx:if="{{currentPackDetail.description}}">
             <text class="info-label">描述：</text>
             <text class="info-value">{{currentPackDetail.description}}</text>
           </view>
         </view>
       </view>
       
+      <!-- 版权声明 -->
+      <view class="copyright-notice">
+        <text class="copyright-text">戏剧回响销售内容（含文字、图片、音视频等）版权归我方所有，受法律保护，未经书面许可，禁止任何形式转载、复制、传播、改编、剪辑，也不得将内容用于商业性销售、盈利或其他侵犯版权的行为。违者将依法追责。</text>
+      </view>
+      
       <view class="modal-footer">
         <button class="modal-buy-btn" bind:tap="goToPackDetailFromModal">
-          {{currentPackDetail.isPurchased ? '进入详情页' : (isVirtualPaymentSupported ? '立即获取' : '由于相关规范，iOS功能暂不可用')}}
+          {{currentPackDetail.isPurchased ? '进入详情页' : '立即获取'}}
         </button>
       </view>
     </view>
@@ -195,4 +187,14 @@
     playlist="{{voicePlaylist}}"
     bind:close="closeVoicePlayer">
   </voice-player>
+
+  <!-- 授权弹窗 -->
+  <auth-modal 
+    show="{{showAuthModal}}" 
+    title="授权登录"
+    subtitle="为了完成语音包购买"
+    bind:success="onAuthSuccess"
+    bind:cancel="onAuthCancel"
+    bind:close="onAuthClose">
+  </auth-modal>
 </view>

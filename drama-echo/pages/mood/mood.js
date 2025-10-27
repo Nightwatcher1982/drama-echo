@@ -44,29 +44,13 @@ Page({
       { name: '破防', emoji: '💫', description: '防线崩塌内心柔软' }
     ],
     canShareToday: true,
-    todayShares: 0
+    todayShares: 0,
+    // 授权弹窗
+    showAuthModal: false
   },
   
   async onLoad() {
-    // 检查登录状态
-    if (!app.checkLoginStatus()) {
-      wx.showModal({
-        title: '需要登录',
-        content: '请先登录后再使用心情记录功能',
-        confirmText: '去登录',
-        cancelText: '返回',
-        success: (res) => {
-          if (res.confirm) {
-            wx.switchTab({
-              url: '/pages/index/index'
-            })
-          } else {
-            wx.navigateBack()
-          }
-        }
-      })
-      return
-    }
+    // 允许用户先浏览功能，在需要保存数据时才检查登录状态
     
     this.initCategory()
     this.loadRecentMoods()
@@ -156,6 +140,12 @@ Page({
         showCancel: false,
         confirmText: '知道了'
       })
+      return
+    }
+    
+    // 检查登录状态，如果需要保存数据但用户未登录，弹出授权弹窗
+    if (!app.checkLoginStatus()) {
+      this.setData({ showAuthModal: true })
       return
     }
     
@@ -287,7 +277,24 @@ Page({
     return {
       title: '魔都戏剧 - 用戏剧语言记录心情',
       path: '/pages/mood/mood',
-      imageUrl: '/images/mood-share.jpg'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
+  },
+
+  // 授权弹窗事件处理
+  onAuthSuccess(e) {
+    console.log('授权成功:', e.detail)
+    this.setData({ showAuthModal: false })
+    // 重新执行之前的心情选择
+    // 这里可以重新触发selectMood逻辑
+  },
+
+  onAuthCancel() {
+    console.log('用户取消授权')
+    this.setData({ showAuthModal: false })
+  },
+
+  onAuthClose() {
+    this.setData({ showAuthModal: false })
   }
 }) 

@@ -81,7 +81,7 @@ Page({
       content: this.truncateText(note.remarks || note.content || '', 50),
       // 处理封面图片：优先使用票根图片，其次使用旧版图片
       coverImage: note.ticketImages && note.ticketImages.length > 0 ? note.ticketImages[0] : 
-                 (note.images && note.images.length > 0 ? note.images[0] : '/images/modu.png'),
+                 (note.images && note.images.length > 0 ? note.images[0] : 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'),
       // 兼容旧版数据
       theater: note.venue || note.theater || '',
       id: note._id || note.id
@@ -295,7 +295,7 @@ Page({
     return {
       title: '我的戏剧笔记 - 戏剧回响',
       path: '/pages/notes/notes',
-      imageUrl: '/images/share-notes.jpg'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   },
 

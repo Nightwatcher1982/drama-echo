@@ -1,8 +1,9 @@
 {
   "navigationBarTitleText": "",
-  "navigationBarBackgroundColor": "#F7C7F4",
+  "navigationBarBackgroundColor": "#DEABEA",
   "navigationBarTextStyle": "white",
   "usingComponents": {
-    "voice-player": "/components/voice-player/voice-player"
+    "voice-player": "/components/voice-player/voice-player",
+    "auth-modal": "/components/auth-modal/auth-modal"
   }
 }

@@ -8,7 +8,7 @@ class ShareImageHandler {
     // 如果图片URL为空，使用默认图片
     if (!originalImageUrl) {
       console.log('⚠️ 图片URL为空，使用默认图片')
-      return '/images/modu.png'
+      return 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
     
     // 如果是本地图片，直接返回
@@ -34,11 +34,11 @@ class ShareImageHandler {
           return tempUrl
         } else {
           console.log('❌ 获取临时链接失败，使用备用图片')
-          return '/images/modu.png'
+          return 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
         }
       } catch (error) {
         console.error('❌ 处理云存储图片失败:', error)
-        return '/images/modu.png'
+        return 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
       }
     }
     
@@ -56,7 +56,7 @@ class ShareImageHandler {
   // 验证图片URL是否有效
   static validateImageUrl(imageUrl) {
     return new Promise((resolve) => {
-      if (!imageUrl || imageUrl === '/images/modu.png') {
+      if (!imageUrl || imageUrl === 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png') {
         resolve(true)
         return
       }

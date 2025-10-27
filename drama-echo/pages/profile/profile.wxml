@@ -1,7 +1,4 @@
 <view class="container fade-in">
-  <view class="page-title">个人中心</view>
-  <view class="page-subtitle">我的戏剧生活</view>
-  
   <!-- 用户信息区域 -->
   <view class="header-section glass-card">
     <view class="user-avatar" bindlongpress="goToAdmin">
@@ -13,15 +10,14 @@
       <view class="user-title">魔都戏剧爱好者</view>
     </view>
     <button class="btn-outline edit-btn" bindtap="editUserInfo">
-      <view class="btn-icon">✏️</view>
       <view class="btn-text">编辑资料</view>
+      <view class="btn-icon">﹥</view>
     </button>
   </view>
 
   <!-- 官方头像昵称填写能力面板 -->
   <view wx:if="{{showEditorPanel}}" class="editor-panel glass-card">
     <view class="section-title">
-      <view class="title-icon">🖼️</view>
       <view class="title-text">选择微信头像和昵称</view>
     </view>
     <view class="editor-row">
@@ -41,7 +37,6 @@
   <!-- 我的收藏 -->
   <view class="collection-section glass-card">
     <view class="section-title">
-      <view class="title-icon">⭐</view>
       <view class="title-text">我的收藏</view>
     </view>
     <view class="collection-single">
@@ -56,49 +51,24 @@
     </view>
   </view>
 
-  <!-- 快捷入口 -->
-  <view class="quick-entries glass-card">
-    <view class="section-title">
-      <view class="title-icon">🚀</view>
-      <view class="title-text">快捷入口</view>
-    </view>
-    <view class="entry-grid">
-      <view class="entry-item" bindtap="goToMagicBook">
-        <view class="entry-icon">🔮</view>
-        <view class="entry-text">戏剧魔法书</view>
-      </view>
-      <view class="entry-item" bindtap="goToDramaEcho">
-        <view class="entry-icon">🎤</view>
-        <view class="entry-text">戏剧回响</view>
-      </view>
-      <view class="entry-item" bindtap="goToWishPool">
-        <view class="entry-icon">🌟</view>
-        <view class="entry-text">许愿池</view>
-      </view>
-    </view>
-  </view>
 
 
   <!-- 设置选项 -->
   <view class="settings-section glass-card">
     <view class="settings-item" bindtap="contactUs">
-      <view class="settings-icon">💬</view>
       <view class="settings-text">联系我们</view>
       <view class="settings-arrow">〉</view>
     </view>
     <view class="settings-item" bindtap="clearData">
-      <view class="settings-icon">🗑️</view>
       <view class="settings-text">清除缓存</view>
       <view class="settings-arrow">〉</view>
     </view>
     <view class="settings-item" bindtap="aboutApp">
-      <view class="settings-icon">ℹ️</view>
       <view class="settings-text">关于应用</view>
       <view class="settings-arrow">〉</view>
     </view>
-    <view class="settings-item logout-item" bindtap="handleLogout" wx:if="{{userInfo.nickName && userInfo.nickName !== '未登录用户'}}">
-      <view class="settings-icon">🚪</view>
-      <view class="settings-text">退出登录</view>
+    <view class="settings-item" bindtap="handleLogout" wx:if="{{userInfo.nickName && userInfo.nickName !== '未登录用户'}}">
+      <view class="settings-text red">退出登录</view>
       <view class="settings-arrow">〉</view>
     </view>
   </view>
@@ -120,4 +90,14 @@
       </view>
     </view>
   </view>
+
+  <!-- 授权弹窗 -->
+  <auth-modal 
+    show="{{showAuthModal}}" 
+    title="授权登录"
+    subtitle="为了给您提供更好的个人中心服务"
+    bind:success="onAuthSuccess"
+    bind:cancel="onAuthCancel"
+    bind:close="onAuthClose">
+  </auth-modal>
 </view>

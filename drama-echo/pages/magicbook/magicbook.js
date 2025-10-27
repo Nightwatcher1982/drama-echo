@@ -385,7 +385,7 @@ Page({
     return {
       title: '魔法之书 - 用戏剧解读生活的每一刻',
       path: '/pages/magicbook/magicbook',
-      imageUrl: '/images/magicbook-share.jpg'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   }
 })

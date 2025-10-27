@@ -96,7 +96,8 @@ Page({
   onShareAppMessage() {
     return {
       title: '我的语音包收藏',
-      path: '/pages/purchased-voice-packs/purchased-voice-packs'
+      path: '/pages/purchased-voice-packs/purchased-voice-packs',
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   }
 })

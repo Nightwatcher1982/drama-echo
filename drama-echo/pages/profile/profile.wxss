@@ -1,7 +1,6 @@
 /* 个人中心样式 */
 .container {
   padding: 30rpx 20rpx;
-  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
   min-height: 100vh;
 }
 
@@ -23,13 +22,15 @@
 
 /* 玻璃卡片效果 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 40rpx;
+  background-clip: border-box;
+  border: 2rpx solid #fff;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
 }
 
 /* 用户信息区域 */
@@ -79,9 +80,8 @@
 }
 
 .user-title {
-  font-size: 28rpx;
-  color: #8B7355;
-  font-style: italic;
+  font-size: 24rpx;
+  color: #635E84;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -90,10 +90,12 @@
 
 .edit-btn {
   display: flex;
+  justify-content: center;
   align-items: center;
   padding: 8rpx 12rpx;
-  border: 1rpx solid #FF9A8B;
-  border-radius: 16rpx;
+  background-color: #E0DBFC !important;
+  border: 1rpx solid #A9ABFB;
+  border-radius: 100rpx;
   background: transparent;
   min-width: auto;
   flex-shrink: 0;
@@ -140,13 +142,14 @@
 }
 
 .btn-icon {
-  font-size: 16rpx;
-  margin-right: 4rpx;
+  font-size: 24rpx;
+  color: #635E84 !important;
 }
 
 .btn-text {
   font-size: 18rpx;
-  color: #FF9A8B;
+  color: #635E84 !important;
+  margin-right: 4rpx;
   white-space: nowrap;
 }
 
@@ -169,8 +172,9 @@
 .title-text {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
-  flex: 1;
+  background: -webkit-linear-gradient(10deg,#CE479B, #2E22AD);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .title-action {
@@ -187,8 +191,8 @@
 .collection-item-large {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #FFF9F0 0%, #FFE4E1 100%);
-  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 40rpx;
   padding: 30rpx 25rpx;
   transition: all 0.3s ease;
   border: 2rpx solid transparent;
@@ -251,6 +255,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 40rpx;
   padding: 20rpx 10rpx;
   transition: all 0.3s ease;
 }
@@ -261,8 +267,12 @@
 }
 
 .entry-icon {
-  font-size: 50rpx;
-  margin-bottom: 10rpx;
+  font-size: 0;
+}
+
+.icon-img{
+  width: 100rpx;
+  height: 100rpx;
 }
 
 .entry-text {
@@ -281,8 +291,14 @@
   display: flex;
   align-items: center;
   padding: 30rpx 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  margin: 12rpx 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 20rpx;
   transition: background 0.3s ease;
+}
+
+.settings-item .red{
+  color:#DD1536;
 }
 
 .settings-item:last-child {

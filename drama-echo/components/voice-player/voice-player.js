@@ -115,6 +115,9 @@ Component({
         // 创建新的音频上下文
         const audioContext = wx.createInnerAudioContext()
         
+        // 设置iOS静音模式下也能播放声音
+        audioContext.obeyMuteSwitch = false
+        
         // 防下载设置
         audioContext.src = currentTrack.fileId
         audioContext.autoplay = false

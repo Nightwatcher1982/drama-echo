@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "auth-modal": "/components/auth-modal/auth-modal"
+  },
   "navigationBarTitleText": "心情记录"
 }
 

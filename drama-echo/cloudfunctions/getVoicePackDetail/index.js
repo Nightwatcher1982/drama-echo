@@ -75,17 +75,38 @@ exports.main = async (event, context) => {
     const actorData = actorResult.data || {}
     
     // 处理语音文件
-    const voices = (packData.voiceFiles || []).map((file, index) => ({
-      title: file.name || `语音${index + 1}`,
-      subtitle: file.description || '',
-      duration: '2:30', // 默认时长
-      price: Math.floor((packData.price || 1999) / (packData.voiceFiles.length || 2)),
-      canPreview: true,
-      purchased: false,
-      audioUrl: file.fileId || '',
-      previewUrl: file.fileId || '',
-      voiceId: `voice_${packId}_${index}`
-    }))
+    const voices = (packData.voiceFiles || []).map((file, index) => {
+      // 格式化时长：如果duration是数字（秒），转换为分:秒格式
+      let formattedDuration = '0:00'
+      if (file.duration) {
+        if (typeof file.duration === 'number') {
+          const minutes = Math.floor(file.duration / 60)
+          const seconds = file.duration % 60
+          formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`
+        } else if (typeof file.duration === 'string') {
+          // 如果已经是字符串格式，直接使用
+          formattedDuration = file.duration
+        }
+      }
+      
+      // 过滤掉包含"bgm的原作者"的description内容
+      let cleanDescription = file.description || ''
+      if (cleanDescription.includes('bgm的原作者') || cleanDescription.includes('Audionautix')) {
+        cleanDescription = ''
+      }
+      
+      return {
+        title: file.name || `语音${index + 1}`,
+        subtitle: cleanDescription,
+        duration: formattedDuration,
+        price: Math.floor((packData.price || 1999) / (packData.voiceFiles.length || 2)),
+        canPreview: true,
+        purchased: false,
+        audioUrl: file.fileId || '',
+        previewUrl: file.fileId || '',
+        voiceId: `voice_${packId}_${index}`
+      }
+    })
     
     // 处理演员头像 - 优先使用 imageUrl 字段
     let actorAvatar = 'https://picsum.photos/200/200?random=2' // 默认占位图片

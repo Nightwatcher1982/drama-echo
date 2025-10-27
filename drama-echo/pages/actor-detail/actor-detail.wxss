@@ -224,7 +224,7 @@
   margin: 40rpx auto;
   border-radius: 40rpx;
   padding: 24rpx;
-  background: linear-gradient(90deg,#EFD0FA,#fff);
+  background: linear-gradient(180deg,#F1D3FB ,#fff 20%,#fff);
   box-sizing: border-box;
 }
 
@@ -268,6 +268,7 @@
   font-size: 32rpx;
   font-weight: 600;
   background: -webkit-linear-gradient(10deg,#CE479B, #2E22AD);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -286,10 +287,8 @@
 }
 
 .ranking-list {
-  background: white;
   border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.08);
 }
 
 .ranking-item {
@@ -353,24 +352,24 @@
 }
 
 .rank-1 { 
-  background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%); 
-  color: #f57c00; 
-  border: 1rpx solid #ffecb3;
-}
-.rank-2 { 
-  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%); 
-  color: #757575; 
-  border: 1rpx solid #e0e0e0;
-}
-.rank-3 { 
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); 
   color: #c2185b; 
   border: 1rpx solid #f8bbd9;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.rank-2 { 
+  color: #f57c00; 
+  border: 1rpx solid #ffecb3;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+.rank-3 { 
+  color: #757575; 
+  border: 1rpx solid #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 .rank-other { 
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
   color: #6c757d; 
   border: 1rpx solid #dee2e6;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .fan-info {
@@ -409,21 +408,21 @@
 }
 
 .rank-1 .level-text {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+  color: #c2185b;
+  border: 1rpx solid #f8bbd9;
+}
+
+.rank-2 .level-text {
   background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
   color: #f57c00;
   border: 1rpx solid #ffecb3;
 }
 
-.rank-2 .level-text {
+.rank-3 .level-text {
   background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
   color: #757575;
   border: 1rpx solid #e0e0e0;
-}
-
-.rank-3 .level-text {
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
-  color: #c2185b;
-  border: 1rpx solid #f8bbd9;
 }
 
 /* 奖励说明 */
@@ -510,7 +509,7 @@
 /* 演员封面照片 */
 .actor-cover-section {
   width: 100%;
-  height: 202px;
+  height: 222px;
   position: relative;
   overflow: hidden;
   border-radius: 40rpx;
@@ -576,7 +575,7 @@
 .packs-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 10rpx;
 }
 
 .pack-item-row {
@@ -700,24 +699,31 @@
 }
 
 .buy-button {
-  width: 80rpx;
-  height: 48rpx;
-  line-height: 40rpx;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  width: 180rpx;
+  height: 72rpx;
+  line-height: 100%;
+  background: linear-gradient(360deg, #FD4E77 0%, #F9AEA2 100%);
   color: white;
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  font-size: 18rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 16rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.16);
+  font-family: PingFang SC;
+  font-size: 28rpx;
   font-weight: 500;
+  font-style: normal;
   text-align: center;
-  box-shadow: 0 2rpx 4rpx rgba(79, 172, 254, 0.3);
+  letter-spacing: 0%;
+  box-shadow: 0 2rpx 4rpx rgba(253, 78, 119, 0.3);
   transition: all 0.3s ease;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .buy-button:active {
   transform: scale(0.95);
-  box-shadow: 0 2rpx 8rpx rgba(79, 172, 254, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(253, 78, 119, 0.3);
 }
 
 .share-button {
@@ -873,6 +879,21 @@
   font-weight: 600;
 }
 
+/* 版权声明样式 */
+.copyright-notice {
+  padding: 20rpx 30rpx;
+  background: #f8f9fa;
+  border-top: 1rpx solid #e9ecef;
+}
+
+.copyright-text {
+  font-size: 22rpx;
+  color: #6c757d;
+  line-height: 1.4;
+  text-align: center;
+  display: block;
+}
+
 .modal-footer {
   padding: 30rpx;
   border-top: 1rpx solid #f0f0f0;
@@ -953,4 +974,17 @@
 .detail-info-section {
   border-top: 1rpx solid #f0f0f0;
   padding-top: 20rpx;
+}
+
+/* 价格显示样式 */
+.price-number {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.price-unit {
+  font-size: 20rpx;
+  color: #666;
+  margin-left: 4rpx;
 }

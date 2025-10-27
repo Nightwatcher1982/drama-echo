@@ -15,11 +15,18 @@ Page({
     pendingAvatarUrl: '',
     pendingNickname: '',
     // 新用户引导层
-    showOnboardingOverlay: false
+    showOnboardingOverlay: false,
+    // 授权弹窗
+    showAuthModal: false
   },
   
   onLoad() {
-    this.initializePage()
+    // 检查用户是否已登录，如果未登录则弹出授权弹窗
+    if (!app.checkLoginStatus()) {
+      this.setData({ showAuthModal: true })
+    } else {
+      this.initializePage()
+    }
   },
   
   onShow() {
@@ -721,13 +728,6 @@ Page({
     }
   },
   
-  // 跳转到戏剧魔法书
-  goToMagicBook() {
-    wx.navigateTo({
-      url: '/pages/magicbook/magicbook'
-    })
-  },
-  
   // 跳转到已购买的语音包列表
   goToVoiceEcho() {
     // 检查是否有购买的语音包
@@ -742,20 +742,6 @@ Page({
     // 跳转到已购买的语音包列表页面
     wx.navigateTo({
       url: '/pages/purchased-voice-packs/purchased-voice-packs'
-    })
-  },
-
-  // 跳转到戏剧回响页面（用于快捷入口）
-  goToDramaEcho() {
-    wx.navigateTo({
-      url: '/pages/voice-echo/voice-echo'
-    })
-  },
-  
-  // 跳转到许愿池页面
-  goToWishPool() {
-    wx.navigateTo({
-      url: '/pages/wish-pool/wish-pool'
     })
   },
   
@@ -910,7 +896,7 @@ Page({
     return {
       title: '戏剧回响 - 让戏剧照亮你的每一天',
       path: '/pages/index/index',
-      imageUrl: '/images/share-cover.png'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
   },
   
@@ -918,7 +904,32 @@ Page({
     return {
       title: '戏剧回响 - 让戏剧照亮你的每一天',
       query: '',
-      imageUrl: '/images/share-cover.png'
+      imageUrl: 'cloud://cloud1-2gyb3dkq4c474fe4.636c-cloud1-2gyb3dkq4c474fe4-1371126028/images/xjhx-logo.png'
     }
+  },
+
+  // 授权弹窗事件处理
+  onAuthSuccess(e) {
+    console.log('授权成功:', e.detail)
+    this.setData({ showAuthModal: false })
+    // 重新初始化页面
+    this.initializePage()
+  },
+
+  onAuthCancel() {
+    console.log('用户取消授权')
+    this.setData({ showAuthModal: false })
+    // 返回上一页或首页
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({
+          url: '/pages/index/index'
+        })
+      }
+    })
+  },
+
+  onAuthClose() {
+    this.setData({ showAuthModal: false })
   }
 })

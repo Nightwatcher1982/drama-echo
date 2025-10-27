@@ -23,6 +23,9 @@ App({
     
     // 初始化用户登录状态
     this.initUserLogin()
+    
+    // 设置全局音频选项，解决iOS静音模式问题
+    this.setupGlobalAudioOptions()
   },
   
   // 设置全局错误处理
@@ -457,22 +460,30 @@ App({
 
   // 检查是否支持虚拟支付
   isVirtualPaymentSupported() {
-    return !this.globalData.isIOS
+    return true // 现在安卓和iOS都支持虚拟支付
   },
 
-  // iOS支付拦截方法
-  interceptPaymentOnIOS(actionName = '此操作') {
-    if (this.globalData.isIOS) {
-      wx.showModal({
-        title: '功能暂不可用',
-        content: `由于相关规范，iOS端暂不支持${actionName}功能。我们正在努力优化，敬请期待！`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#A78BFA'
-      })
-      return true // 表示已拦截
+  // 设置全局音频选项，解决iOS静音模式问题
+  setupGlobalAudioOptions() {
+    try {
+      // 检查是否支持setInnerAudioOption API
+      if (wx.setInnerAudioOption) {
+        wx.setInnerAudioOption({
+          obeyMuteSwitch: false, // 在静音模式下仍然播放声音
+          success: () => {
+            console.log('✅ 全局音频选项设置成功：静音模式下可播放')
+          },
+          fail: (err) => {
+            console.warn('⚠️ 全局音频选项设置失败:', err)
+            // 如果全局设置失败，我们仍然依赖各个音频上下文中的设置
+          }
+        })
+      } else {
+        console.log('⚠️ 当前微信版本不支持setInnerAudioOption，使用实例级别设置')
+      }
+    } catch (error) {
+      console.error('❌ 设置全局音频选项时出错:', error)
     }
-    return false // 表示未拦截，可以继续
   },
 
   // 初始化用户登录
@@ -602,7 +613,9 @@ App({
           language: profileRes.userInfo.language,
           authTime: new Date().toISOString(),
           isWechatDefault: profileRes.userInfo.nickName === '微信用户', // 标记是否为微信默认信息
-          isCustomized: false // 通过授权获取的信息不标记为自定义
+          isCustomized: false, // 通过授权获取的信息不标记为自定义
+          isAuthorized: true, // 标记为真实授权
+          dataSource: 'wechat-real' // 标记数据来源
         }
         
         // 保存用户信息
@@ -730,6 +743,24 @@ App({
     })
   },
 
+  // 清理模拟数据（用于测试）
+  clearMockData() {
+    console.log('🧹 清理模拟数据...')
+    
+    // 清理本地存储
+    wx.removeStorageSync('userProfile')
+    wx.removeStorageSync('userData')
+    wx.removeStorageSync('customUserProfile')
+    
+    // 清理全局状态
+    this.globalData.userProfile = null
+    this.globalData.userLoggedIn = false
+    this.globalData.userData = null
+    this.globalData.userOpenId = null
+    
+    console.log('✅ 模拟数据已清理')
+  },
+
   // 检查登录状态
   checkLoginStatus() {
     const hasOpenId = !!this.globalData.userOpenId
@@ -740,14 +771,22 @@ App({
       this.globalData.userProfile.nickName.length >= 1 &&
       this.globalData.userProfile.nickName.length <= 20
     
-    const isLoggedIn = hasOpenId && hasUserProfile && hasValidNickname
+    // 检查是否来自真实授权（不是模拟数据）
+    const isRealAuth = this.globalData.userProfile && 
+      (this.globalData.userProfile.isAuthorized || 
+       this.globalData.userProfile.dataSource === 'wechat-real' ||
+       this.globalData.userProfile.isCustomized)
+    
+    const isLoggedIn = hasOpenId && hasUserProfile && hasValidNickname && isRealAuth
     
     console.log('🔍 登录状态检查:', {
       hasOpenId,
       hasUserProfile,
       hasValidNickname,
+      isRealAuth,
       isLoggedIn,
-      nickname: this.globalData.userProfile?.nickName
+      nickname: this.globalData.userProfile?.nickName,
+      dataSource: this.globalData.userProfile?.dataSource
     })
     
     return isLoggedIn

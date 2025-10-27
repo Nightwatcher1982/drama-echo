@@ -18,6 +18,8 @@ page {
   padding: 0;
   margin: 0 auto;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 顶部标题卡片 - 基于Figma Frame 1321319070 */
@@ -70,7 +72,9 @@ page {
   border: 0.5px solid rgba(242, 233, 246, 1);
   box-shadow: 0 4rpx 12rpx rgba(187, 155, 228, 0.4);
   overflow: hidden;
-  min-height: 640rpx;
+  min-height: 1240rpx;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 演员头像区域 - 基于Figma image 44 */
@@ -93,10 +97,12 @@ page {
   background: linear-gradient(180deg, #F5DEFC 0%, #fff 20%);
   backdrop-filter: blur(4rpx);
   border-radius: 48rpx;
-  min-height: 320rpx;
+  min-height: 600rpx;
   position: relative;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
 }
 
 /* 渐变背景 - 基于Figma Rectangle 2768 */
@@ -110,6 +116,15 @@ page {
   z-index: 1;
 }
 
+/* 演员信息内容区域 */
+.actor-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-bottom: 0;
+}
+
 .actor-header {
   display: flex;
   flex-direction: row;
@@ -119,6 +134,7 @@ page {
   padding-top: 24rpx;
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
 }
 
 .actor-name {
@@ -145,10 +161,17 @@ page {
   font-weight: 300;
   color: #333333;
   line-height: 1.5em;
-  margin: 58rpx 24rpx 30rpx;
+  margin: 58rpx 24rpx 12rpx;
   padding: 0 4rpx;
   position: relative;
   z-index: 2;
+  min-height: 90rpx;
+  max-height: 90rpx;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  flex-shrink: 0;
 }
 
 /* 统计数据行 - 基于Figma Frame 1321319076 */
@@ -156,9 +179,12 @@ page {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  margin: 24rpx 24rpx 12rpx;
+  margin: 12rpx 24rpx 0;
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
+  margin-top: auto;
+  margin-bottom: 8rpx;
 }
 
 .stat-box {
@@ -205,7 +231,7 @@ page {
   gap: 8rpx;
   position: relative;
   overflow: hidden;
-  margin: 24rpx 0 36rpx;
+  margin: 0 auto 40rpx;
   box-shadow: 0px 0px 0px 5px rgba(255, 255, 255, 1), 
               0px 0px 0px 4px rgba(243, 234, 248, 1), 
               0px 3.713615894317627px 4.845815658569336px 0px rgba(149, 0, 229, 0.15), 
@@ -215,6 +241,8 @@ page {
   z-index: 10;
   opacity: 1;
   visibility: visible;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .btn-text {
@@ -226,8 +254,8 @@ page {
 }
 
 .star-icon {
-  width: 48rpx;
-  height: 48rpx;
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 /* 空数据状态 */
@@ -636,5 +664,6 @@ page {
 
 /* 底部空白 */
 .bottom-spacing {
-  height: 60rpx;
+  height: 20rpx;
+  flex-shrink: 0;
 }

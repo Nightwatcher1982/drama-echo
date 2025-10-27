@@ -272,6 +272,9 @@ Page({
     const { currentActor } = this.data
     if (!currentActor) return
 
+    // 隐藏当前页面的加载提示，避免与目标页面的加载提示冲突
+    wx.hideLoading()
+
     wx.navigateTo({
       url: `/pages/actor-detail/actor-detail?actorId=${currentActor._id}`
     })
